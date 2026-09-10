@@ -19,6 +19,26 @@ Before a public GitHub release is published, the exact commit must satisfy all a
 
 Use `build/Test-ReleaseReadiness.ps1` for the local preflight and `docs/release-checklist.md` for the complete go/no-go procedure. A stale native-capture fingerprint is a release blocker, not a warning to bypass.
 
+## Current 1.0.0 release-candidate checkpoint — 2026-09-10
+
+The consolidated candidate was validated on commit `7d03f5da7bd2193d597d2213fa68af14e2060134` before this status-only documentation update.
+
+Validated evidence:
+
+- x64 Release build succeeded with 0 warnings and 0 errors;
+- executable integration harness completed with 88 passed and 0 failed;
+- website regression/accessibility passed at 1440, 768 and 375 pixel widths across all eight site locales;
+- Axe reported 0 violations; keyboard skip link, forced-colors behavior and external-request blocking passed;
+- universal Chromium, Firefox and WebKit compatibility passed;
+- CodeQL completed successfully;
+- ARM64 Release build, packaging and artifact upload completed successfully;
+- resource/site validation passed for eight resource catalogs and eight localized Pages;
+- documentation structural validation passed for 55 documents, 72 image hashes, eight locale mappings and the synthetic SID allowlist.
+
+The remaining release blocker is deliberate: the native screenshot provenance gate reports the existing capture set as stale after application-source changes. The first reported stale capture is `ar/access-dark.png`. The 72 native captures must be regenerated from the current application on an interactive Windows desktop and visually reviewed. The capture manifest fingerprint must not be advanced manually to bypass this check.
+
+Until that evidence is refreshed and the x64 workflow proceeds through package/install/CLI/uninstall validation, this state is a release candidate and must not be tagged or published as the final `v1.0.0` release.
+
 ## Implemented product surface
 
 Implemented: native WinUI GUI, shared CLI engine, Authz discretionary decisions, local file ACLs, UNC/mapped-share descriptors, conservative remote projections, token and local-group evidence, LDAP group traversal, primary-group/disabled/SID-history metadata when available, explicit Unknown states, findings, snapshots, comparison, in-memory ACE removal, guarded local-file changes and rollback, HTML/CSV/JSON/XLSX/PDF exports, daily interactive-user Task Scheduler integration, English and Brazilian Portuguese UI.
