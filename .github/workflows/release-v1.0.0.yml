@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: release-v1.0.0-${{ github.ref }}
@@ -61,6 +62,7 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
+      actions: read
       id-token: write
       attestations: write
     strategy:
@@ -122,6 +124,9 @@ jobs:
     needs: [package, source]
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -160,6 +165,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+      actions: read
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
