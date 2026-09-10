@@ -16,7 +16,7 @@ internal static class Program
         {
             if (args.Length == 0 || args[0] is "--help" or "help")
             {
-                Console.WriteLine("PermissionScope 1.0.0 — Windows access analysis\n\nscan <path> [--user <name-or-SID>] [--files] [--shallow] [--save] [--output <file.json>] [--json]\nexplain <path> [--user <name-or-SID>] [--json]\nlist [--json]\nexport <snapshot-id-or-json> --format html|csv|json|xlsx|pdf --output <file>\ncompare <before-id-or-json> <after-id-or-json> [--json]\nfindings <snapshot-id-or-json>\nsimulate <path> --remove-ace <index> [--user <name-or-SID>]\n\nExit: 0 success; 1 failure; 2 invalid arguments; 3 incomplete/unknown; 130 cancelled.\nDecisions cover discretionary permissions, not actual file-open success. No ACLs are modified.");
+                Console.WriteLine("PermissionScope 1.0.0 — Windows access analysis\n\nscan <path> [--user <name-or-SID>] [--files] [--shallow] [--save] [--output <file.json>] [--json]\nexplain <path> [--user <name-or-SID>] [--json]\nlist [--json]\nexport <snapshot-id-or-json> --format html|csv|json|xlsx|pdf --output <file>\ncompare <before-id-or-json> <after-id-or-json> [--json]\nfindings <snapshot-id-or-json>\nsimulate <path> --remove-ace <index> [--user <name-or-SID>]\ndemo --output <directory> (synthetic examples in five formats)\n\nExit: 0 success; 1 failure; 2 invalid arguments; 3 incomplete/unknown; 130 cancelled.\nDecisions cover discretionary permissions, not actual file-open success. No ACLs are modified.");
                 return 0;
             }
             string? Option(string key)
@@ -32,6 +32,17 @@ internal static class Program
             var json = args.Contains("--json");
             switch (args[0])
             {
+                case "demo":
+                    {
+                        var directory = Path.GetFullPath(Option("--output") ?? throw new ArgumentException("demo requires --output <directory>."));
+                        Directory.CreateDirectory(directory);
+                        var fixture = DemoFixture.Create();
+                        foreach (var format in new[] { "html", "csv", "json", "xlsx", "pdf" })
+                            ReportExporter.Export(fixture, Path.Combine(directory, "permissionscope-demo." + format), format);
+                        ReportExporter.Export(DemoFixture.Create(true), Path.Combine(directory, "permissionscope-demo-after.json"), "json");
+                        Console.WriteLine("Synthetic Authz demonstration exported. No accounts, groups or ACLs were created or changed.");
+                        return 0;
+                    }
                 case "scan":
                 case "explain":
                     {
@@ -85,10 +96,15 @@ internal static class Program
                         var identities = new IdentityResolver();
                         using var access = new EffectiveAccessResolver(identities, Option("--user"));
                         var path = Path.GetFullPath(Pos(1));
-                        var before = new AclReader(identities).Read(path);
+                        var reader = new AclReader(identities);
+                        var reparse = File.GetAttributes(path).HasFlag(FileAttributes.ReparsePoint);
+                        var before = reparse ? reader.ReadReparsePoint(path) : reader.Read(path);
+                        var share = new ShareResolver(reader).Resolve(path);
                         var after = DescriptorParser.Parse(ImpactSimulator.RemoveAce(before.Sddl, int.Parse(Option("--remove-ace") ?? throw new ArgumentException("--remove-ace is required."))));
-                        Json(new { Mode = "Simulation only; no ACL changes", Path = path, Before = access.CheckDiscretionary(before.Sddl), After = access.CheckDiscretionary(after.Sddl), Scope = access.Identity.Context, ProposedSddl = after.Sddl });
-                        return 0;
+                        var beforeDecision = access.Evaluate(before, path, share, reparse);
+                        var afterDecision = access.Evaluate(after, path, share, reparse);
+                        Json(new { Mode = "Simulation only; no ACL changes", Path = path, Before = beforeDecision, After = afterDecision, Scope = access.Identity.Context, ProposedSddl = after.Sddl });
+                        return afterDecision.State == AccessState.Unknown ? 3 : 0;
                     }
                 default: throw new ArgumentException("Unknown command. Run --help.");
             }

@@ -5,3 +5,5 @@
 @media(prefers-color-scheme:dark){:root{--ink:#f2f3f5;--muted:#b4bbc6;--line:#353c48;--surface:#20242b;--navy:#b7cbf5;color:var(--ink);background:#111317}.trust{background:#17315c}.primary{color:#fff}.eyebrow{color:#b7cbf5}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 @media(forced-colors:active){.primary,.trust{border:1px solid CanvasText}.primary{background:ButtonFace;color:ButtonText}.product img{border:1px solid CanvasText}}
+.features{grid-template-columns:repeat(2,minmax(0,1fr))}.features article:last-child{grid-column:1/-1}.features article:last-child p{max-width:900px}li{margin-bottom:12px}[dir=rtl] .language{margin-inline-start:auto;margin-inline-end:0}
+@media(max-width:480px){.features{grid-template-columns:1fr}}

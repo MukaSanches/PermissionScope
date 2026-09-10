@@ -76,7 +76,7 @@
         "contentHash": "CoCRHFym33aUSf/NtWSVSZa99dkd0Hm7OCZUxORBjRB16LNhIEOf8THPqzIYlvKM0nNDAPTRBa1FxEECrgaxxA=="
       }
     },
-    "net10.0-windows10.0.19041/win-arm64": {
+    "net10.0-windows10.0.19041/win-x64": {
       "SQLite": {
         "type": "Transitive",
         "resolved": "3.53.4",

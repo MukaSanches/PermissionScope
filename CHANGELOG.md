@@ -15,5 +15,10 @@ Initial public release candidate. Publication and certification status are track
 - Remediation verifies the opened file's local volume, including paths reached through a drive mapping or parent link.
 - Packaging records a source fingerprint; release verification rejects stale binaries and invalid checksums. Initial GitHub releases remain drafts pending final validation.
 - Self-contained x64/ARM64 packages; unsigned x64 MSIX preparation.
+- Added an isolated synthetic LAB demonstration evaluated by Windows Authz, with five sample export formats and before/after snapshots.
+- Added plain-language access summaries, actionable Unknown explanations and diagnostics without account names, paths or SIDs.
+- Fixed missing Unknown guidance for unreadable resources and stale filters when entering the demo. CLI simulation now preserves Unknown states and limitations.
+- Added eight equivalent READMEs, localized visual guides and static website pages, backed by 72 native light/dark captures and source/hash checks.
+- Pinned workflow actions to upstream commit SHAs and added documentation, image integrity and locale checks to CI.
 
 See `docs/release-status.md` for what is and is not established by this release.

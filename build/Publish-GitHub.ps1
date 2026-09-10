@@ -28,7 +28,12 @@ try {
     $version = 'v1.0.0'
     & $gh release view $version --repo $repo *> $null
     if ($LASTEXITCODE -eq 0) { throw 'Release already exists. Existing release artifacts are immutable; do not overwrite them.' }
-    $assets = Get-ChildItem artifacts -File | Where-Object { $_.Name -match '^PermissionScope-1\.0\.0-.*\.(exe|zip|msix)$' -or $_.Name -eq 'SHA256SUMS.txt' }
+    $releaseManifest = Get-Content artifacts/release-manifest.json -Raw | ConvertFrom-Json
+    $names = @($releaseManifest.files.name) + @('SHA256SUMS.txt','release-manifest.json')
+    $assets = foreach ($name in $names) {
+        if ($name -notmatch '^[A-Za-z0-9._-]+$') { throw 'Invalid release manifest filename.' }
+        Get-Item -LiteralPath (Join-Path $repository "artifacts/$name")
+    }
     if ($assets.Count -lt 6) { throw 'Expected release artifacts are missing.' }
     if (-not (git tag --list $version)) { git tag -a $version -m 'PermissionScope 1.0.0' }
     git push origin $version

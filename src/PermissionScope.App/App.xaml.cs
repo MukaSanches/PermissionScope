@@ -21,8 +21,9 @@ public partial class App : Application
         {
             window = new MainWindow();
             window.Activate();
-            var path = Environment.GetCommandLineArgs().Skip(1).FirstOrDefault(a => !a.StartsWith("--"));
-            if (path != null) window.SetPath(path);
+            var arguments = Environment.GetCommandLineArgs().Skip(1).ToArray();
+            if (arguments.FirstOrDefault() == "--demo") window.ShowDemo(arguments.ElementAtOrDefault(1) ?? "access");
+            else if (arguments.FirstOrDefault() is { } path && !path.StartsWith("--")) window.SetPath(path);
         }
         catch (Exception error) { WriteFailure(error); throw; }
     }

@@ -42,6 +42,7 @@ public sealed record PermissionSnapshot(int SchemaVersion, string AppVersion, st
     public const int CurrentSchema = 1;
     public IReadOnlyList<string> IdentityWarnings { get; init; } = [];
     public DirectoryIdentity? DirectoryIdentity { get; init; }
+    public string? FixtureId { get; init; }
 }
 public sealed record DirectoryIdentity(string Sid, string DistinguishedName, bool Disabled, string? PrimaryGroupSid, IReadOnlyList<string> SidHistory, string Source);
 public sealed record SnapshotChange(string Path, string Kind, string Detail, string? BeforeHash, string? AfterHash);
@@ -71,6 +72,26 @@ public static class Rights
     }
     public static string Describe(uint mask) => mask == 0 ? "None" : (mask & FullControl) == FullControl ? "Full control" :
         (mask & 0x1301BF) == 0x1301BF ? "Modify" : $"0x{mask:X8}";
+}
+
+public static class AccessSummary
+{
+    public static string Key(AccessDecision? decision)
+    {
+        if (decision is null || decision.State == AccessState.Unknown) return "SummaryUnknown";
+        var mask = decision.EffectiveMask;
+        if ((mask & Rights.FullControl) == Rights.FullControl) return "SummaryFull";
+        if ((mask & 0x1301BF) == 0x1301BF) return "SummaryModify";
+        if ((mask & Rights.Read) == Rights.Read) return "SummaryRead";
+        return mask == 0 ? "SummaryDenied" : "SummaryPartial";
+    }
+
+    public static string UnknownReason(ResourceAccess resource) => resource.Error != null ? "UnknownRead" :
+        resource.Descriptor?.HasSpecialAces == true ? "UnknownConditional" : resource.IsReparsePoint ? "UnknownLink" :
+        resource.Share != null ? "UnknownRemote" : "UnknownContext";
+
+    public static string Diagnostic(string operation, int? errorCode, AccessState? state, bool remote) =>
+        $"PermissionScope 1.0.0\nWindows: {Environment.OSVersion.Version}\nArchitecture: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}\nOperation: {operation}\nError code: {errorCode?.ToString() ?? "none"}\nDecision: {state?.ToString() ?? "unavailable"}\nResource kind: {(remote ? "remote" : "local")}\nPaths, account names, SIDs and descriptors are intentionally excluded.";
 }
 
 public static class DescriptorParser

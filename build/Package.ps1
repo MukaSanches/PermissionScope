@@ -25,6 +25,7 @@ try {
     $buildInfo = Get-Content -LiteralPath (Join-Path $distribution 'build-info.json') -Raw | ConvertFrom-Json
     if ($buildInfo.sourceSha256 -ne $sourceFingerprint) { throw 'Existing binaries do not match the current source. Run packaging without SkipBuild.' }
     foreach ($name in @('LICENSE','FREE-FOREVER.md','README.md','LEIA-ME.pt-BR.md','THIRD-PARTY-NOTICES.md','SECURITY.md','CHANGELOG.md')) { Copy-Item -LiteralPath (Join-Path $repository $name) -Destination $distribution }
+    Get-ChildItem -LiteralPath $repository -Filter 'README.*.md' | Copy-Item -Destination $distribution
     Copy-Item -LiteralPath (Join-Path $repository 'docs') -Destination $distribution -Recurse -Force
     $legal = Join-Path $distribution 'ThirdParty'
     New-Item -ItemType Directory -Path $legal -Force | Out-Null

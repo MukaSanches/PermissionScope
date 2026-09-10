@@ -13,8 +13,10 @@ public sealed class EffectiveAccessResolver : IDisposable
     public AccessIdentity Identity { get; }
     public GroupGraph Groups { get; } = new();
 
-    public EffectiveAccessResolver(IdentityResolver resolver, string? identity = null, bool isolatedSid = false)
+    public EffectiveAccessResolver(IdentityResolver resolver, string? identity = null, bool isolatedSid = false, IReadOnlyList<string>? fixtureGroups = null)
     {
+        if (fixtureGroups is { Count: > 0 } && (!isolatedSid || fixtureGroups.Count > 128))
+            throw new ArgumentException("Synthetic groups are restricted to bounded isolated test contexts.");
         if (!Native.AuthzInitializeResourceManager(1, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, "PermissionScope", out manager))
             throw new Win32Exception(Marshal.GetLastWin32Error());
         try
@@ -33,6 +35,26 @@ public sealed class EffectiveAccessResolver : IDisposable
                 initialized = Native.AuthzInitializeContextFromSid(isolatedSid ? 2u : 4u, bytes, manager, IntPtr.Zero, default, IntPtr.Zero, out context);
             }
             if (!initialized) throw new Win32Exception(Marshal.GetLastWin32Error());
+            if (fixtureGroups is { Count: > 0 })
+            {
+                var size = Marshal.SizeOf<Native.SidAndAttributes>();
+                var entries = Marshal.AllocHGlobal(size * fixtureGroups.Count);
+                var pins = new List<GCHandle>();
+                try
+                {
+                    for (var i = 0; i < fixtureGroups.Count; i++)
+                    {
+                        var group = new SecurityIdentifier(fixtureGroups[i]);
+                        var bytes = new byte[group.BinaryLength]; group.GetBinaryForm(bytes, 0);
+                        var pin = GCHandle.Alloc(bytes, GCHandleType.Pinned); pins.Add(pin);
+                        Marshal.StructureToPtr(new Native.SidAndAttributes { Sid = pin.AddrOfPinnedObject(), Attributes = 4 }, entries + i * size, false);
+                    }
+                    if (!Native.AuthzAddSidsToContext(context, entries, (uint)fixtureGroups.Count, IntPtr.Zero, 0, out var expanded))
+                        throw new Win32Exception(Marshal.GetLastWin32Error());
+                    context.Dispose(); context = expanded;
+                }
+                finally { foreach (var pin in pins) pin.Free(); Marshal.FreeHGlobal(entries); }
+            }
             Native.AuthzGetInformationFromContext(context, 2, 0, out var needed, IntPtr.Zero);
             if (needed > 16 * 1024 * 1024) throw new InvalidDataException("Authz group buffer exceeds the safety bound.");
             var buffer = Marshal.AllocHGlobal(checked((int)needed));

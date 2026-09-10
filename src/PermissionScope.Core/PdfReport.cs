@@ -53,6 +53,7 @@ internal static class PdfReport
         try
         {
             NewPage(); Paragraph("Access report", heading); Paragraph(snapshot.Root, bold);
+            if (snapshot.FixtureId != null) Paragraph("SYNTHETIC DEMONSTRATION: fictional identities and resources, evaluated by Windows Authz. No machine inventory collected.", bold);
             Paragraph($"Observed: {snapshot.CreatedAt:u}\nSnapshot: {snapshot.Id}\nObjects: {snapshot.Resources.Count:N0} · Read errors: {snapshot.Resources.Count(r => r.Error != null):N0}\nStatus: {(snapshot.Cancelled ? "Cancelled; partial scope" : "Completed")}");
             Paragraph("Scope", bold); Paragraph("Read-only observations for the selected identity. Authz evaluates discretionary permissions. Remote masks are projections, not verified server logons. Integrity policy, privileges, encryption, parent traversal and locks are outside this decision.");
             foreach (var resource in snapshot.Resources)

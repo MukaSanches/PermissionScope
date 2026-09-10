@@ -1,13 +1,17 @@
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+& (Join-Path $PSScriptRoot 'Verify-Documentation.ps1') -SkipBrowser
 . (Join-Path $PSScriptRoot 'Get-SourceFingerprint.ps1')
 $fingerprint = Get-SourceFingerprint -Root $root
 foreach ($architecture in @('x64','arm64')) {
     $directory = Join-Path $root "artifacts/PermissionScope-1.0.0-win-$architecture"
     $info = Get-Content -LiteralPath (Join-Path $directory 'build-info.json') -Raw | ConvertFrom-Json
     if ($info.sourceSha256 -ne $fingerprint -or $info.architecture -ne $architecture) { throw "Stale package: $architecture" }
-    foreach ($file in @('PermissionScope.exe','permissionscope-cli.exe','sbom.cdx.json','THIRD-PARTY-NOTICES.md')) {
+    foreach ($file in @('PermissionScope.exe','permissionscope-cli.exe','sbom.cdx.json','THIRD-PARTY-NOTICES.md','LICENSE','NOTICE')) {
         if (-not (Test-Path -LiteralPath (Join-Path $directory $file))) { throw "Missing $architecture package file: $file" }
+    }
+    foreach ($file in @('LICENSE','NOTICE')) {
+        if ((Get-FileHash (Join-Path $directory $file)).Hash -ne (Get-FileHash (Join-Path $root $file)).Hash) { throw "Stale package license document: $architecture/$file" }
     }
 }
 $tests = Get-Content -LiteralPath (Join-Path $root 'artifacts/test-results.json') -Raw | ConvertFrom-Json

@@ -343,6 +343,28 @@ Test("100,000 descriptor parses benchmark", () =>
     var sddl = Sddl($"(A;;FR;;;{fixtureSid})"); var clock = Stopwatch.StartNew(); for (var i = 0; i < 100000; i++) DescriptorParser.Parse(sddl);
     timings.Add($"Parse 100,000 descriptors: {clock.Elapsed.TotalMilliseconds:F2} ms");
 });
+Test("Synthetic groups are evaluated by Windows Authz", () =>
+{
+    var demo = DemoFixture.Create();
+    Assert(demo.Resources[0].Decision!.EffectiveMask == 0x1301BF);
+    Assert(demo.Resources[1].Decision!.EffectiveMask == Rights.FullControl);
+    Assert(demo.Resources[2].Decision!.EffectiveMask == Rights.Read);
+    Assert(demo.Resources[3].Decision!.State == AccessState.Denied);
+    Assert(demo.Resources[4].Decision!.State == AccessState.Unknown);
+    Assert(AccessSummary.Key(demo.Resources[4].Decision) == "SummaryUnknown");
+    Assert(SnapshotComparer.Compare(demo, DemoFixture.Create(true)).Count == 1);
+    Assert(DemoFixture.Evaluate(ImpactSimulator.RemoveAce(demo.Resources[0].Descriptor!.Sddl, 0), DemoFixture.Root).EffectiveMask == 0);
+});
+Test("Demo serialization is deterministic and contains no host identity", () =>
+{
+    var first = JsonSerializer.Serialize(DemoFixture.Create(), SnapshotJson.Options);
+    Assert(first == JsonSerializer.Serialize(DemoFixture.Create(), SnapshotJson.Options));
+    Assert(!first.Contains(Environment.MachineName, StringComparison.OrdinalIgnoreCase));
+    Assert(!first.Contains(WindowsIdentity.GetCurrent().User!.Value));
+    Assert(first.Contains(DemoFixture.Version));
+});
+Test("Synthetic context cannot be attached to real token evaluation", () =>
+    Throws<ArgumentException>(() => new EffectiveAccessResolver(resolver, null, false, [DemoFixture.FinanceSid])));
 Console.WriteLine($"\n{passed} passed; {failures.Count} failed.");
 foreach (var timing in timings) Console.WriteLine(timing);
 if (args.Contains("--results"))

@@ -31,26 +31,32 @@ try {
   await page.getByRole('heading', { level: 1 }).waitFor();
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(() => document.activeElement.getAttribute('href')), '#main');
-  for (const width of [1440, 768, 375]) {
-    await page.setViewportSize({ width, height: 1000 });
-    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Horizontal overflow at ${width}px`);
+  const locales = ['en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'];
+  for (const locale of locales) {
+    const filename = locale === 'en-US' ? 'index.html' : `index.${locale}.html`;
+    await Promise.all([page.waitForURL(origin + '/' + filename), page.selectOption('#language', filename)]);
+    assert.equal(await page.locator('html').getAttribute('lang'), locale);
+    assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
+    assert((await page.locator('.product img').getAttribute('src')).includes(`/${locale}/`));
+    for (const width of [1440, 768, 375]) {
+      await page.setViewportSize({ width, height: 1000 });
+      assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale}: horizontal overflow at ${width}px`);
+    }
+    await page.addScriptTag({ url: origin + '/__test/axe.js' });
+    const accessibility = await page.evaluate(async () => axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } }));
+    assert.deepEqual(accessibility.violations.map(item => ({ id: item.id, impact: item.impact })), [], locale);
+    assert(await page.locator('.product img').evaluate(image => image.complete && image.naturalWidth > 0));
   }
-  await page.selectOption('#language', 'pt-BR');
-  assert.equal(await page.locator('html').getAttribute('lang'), 'pt-BR');
-  assert.match(await page.locator('h1').innerText(), /Veja quem tem acesso/);
-  await page.addScriptTag({ url: origin + '/__test/axe.js' });
-  const accessibility = await page.evaluate(async () => axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } }));
-  assert.deepEqual(accessibility.violations.map(item => ({ id: item.id, impact: item.impact })), []);
   fs.mkdirSync(path.join(root, 'artifacts'), { recursive: true });
   await page.locator('h1').click();
   await page.screenshot({ path: path.join(root, 'artifacts/site-mobile.png'), fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.selectOption('#language', 'en');
+  await page.goto(origin);
   await page.screenshot({ path: path.join(root, 'artifacts/site-desktop.png'), fullPage: true });
   await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
   assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
   assert.deepEqual(errors, []);
-  const result = { passed: true, widths: [1440, 768, 375], locales: ['en', 'pt-BR'], axeViolations: accessibility.violations.length, keyboardSkipLink: true, forcedColors: true, externalRequestsBlocked: true };
+  const result = { passed: true, widths: [1440, 768, 375], locales, axeViolations: 0, keyboardSkipLink: true, forcedColors: true, externalRequestsBlocked: true };
   fs.writeFileSync(path.join(root, 'artifacts/site-tests.json'), JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result));
 } finally { await browser?.close(); server.close(); }
