@@ -18,13 +18,17 @@ PermissionScope is built around a simple rule: trust should be inspectable.
 - CodeQL is part of the repository security workflow.
 - Release packages include SHA-256 checksums.
 - Packaging generates a CycloneDX SBOM from the locked dependency graph.
+- Main-branch Windows packages receive GitHub artifact provenance attestations.
+- Main-branch Windows packages also receive CycloneDX SBOM attestations bound to the installer and portable-package digests.
 - Source fingerprinting is used during packaging to detect source changes while a distribution is being produced.
+
+Artifact attestations establish verifiable build origin and bind release metadata to package digests; they are not a claim that a package is vulnerability-free or a security certification. See [release verification](release-verification.md) for exact commands and limitations.
 
 ## Distribution
 
 Official public binaries are published only through the repository's GitHub Releases until additional channels are explicitly listed in `docs/release-status.md`.
 
-Current direct-distribution installers are unsigned. Verify release checksums before relying on them. Microsoft Store packaging and signing are tracked separately from direct GitHub distribution.
+Current direct-distribution installers are unsigned. Verify release checksums and, for builds that include them, GitHub artifact attestations before relying on a package. Microsoft Store packaging and signing are tracked separately from direct GitHub distribution.
 
 ## Privacy
 
@@ -38,6 +42,7 @@ Remote logon equivalence, conditional rules and unverified reparse targets are n
 
 ## Verification resources
 
+- [Release verification](release-verification.md)
 - [Security policy](../SECURITY.md)
 - [Security model](security.md)
 - [Access model](access-model.md)
