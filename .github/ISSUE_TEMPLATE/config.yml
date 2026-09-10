@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/MukaSanches/PermissionScope/security/policy
+    about: Do not publish exploit details or sensitive security reports in a public issue.
+  - name: Support and troubleshooting
+    url: https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md
+    about: Check the support checklist, safe diagnostic guidance and troubleshooting resources first.
+  - name: Release and trust status
+    url: https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md
+    about: Verify signing, architecture, Store/WinGet and release evidence claims before reporting a distribution problem.

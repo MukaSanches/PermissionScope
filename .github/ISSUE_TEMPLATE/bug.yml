@@ -1,28 +1,84 @@
 name: Bug report
-description: Report a reproducible application or permission-calculation defect
+description: Report a reproducible application, website, packaging or permission-calculation defect
+title: "[Bug] "
 body:
   - type: markdown
     attributes:
-      value: Do not include production snapshots, credentials, confidential paths or account inventories. Use SECURITY.md for sensitive reports.
+      value: |
+        Thank you for reporting a reproducible problem. Keep public reports privacy-safe: do not include production snapshots, credentials, confidential paths, account inventories, private keys or exploit details for an unpatched vulnerability. Use the Security policy for sensitive reports.
   - type: input
     id: version
     attributes:
-      label: PermissionScope version and Windows build
+      label: PermissionScope version
+      placeholder: 1.0.0 or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows edition and build
+      placeholder: Windows 11 24H2, build ...
+    validations:
+      required: true
+  - type: dropdown
+    id: architecture
+    attributes:
+      label: Architecture
+      options:
+        - x64
+        - ARM64
+        - Unknown / not applicable
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - Desktop application
+        - CLI
+        - Permission calculation / Access Path
+        - Snapshot / comparison / simulation
+        - Export
+        - Installer / packaging
+        - Website / documentation
+        - Other
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
       label: Minimal steps to reproduce
+      description: Prefer the synthetic LAB demo or the smallest redacted/synthetic example that still reproduces the problem.
+      placeholder: |
+        1. Open ...
+        2. Choose ...
+        3. Observe ...
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: Expected and actual results
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
     validations:
       required: true
   - type: textarea
     id: evidence
     attributes:
-      label: Synthetic SDDL, Windows comparison or redacted diagnostic
+      label: Privacy-safe evidence
+      description: Synthetic SDDL, Windows comparison, error code or the application's redacted diagnostic are preferred.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Public-report safety
+      options:
+        - label: I removed credentials, confidential paths, private account inventories and other sensitive production data.
+          required: true
+        - label: This is not an unpatched security vulnerability requiring private disclosure.
+          required: true

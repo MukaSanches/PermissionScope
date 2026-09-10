@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Harden imported snapshot validation before data reaches UI, comparison or simulation paths, including integrity checks for both NTFS and share security descriptors and stricter nested metadata validation.
+- Reduce default scan I/O by enumerating directories directly when file inclusion is disabled, improve enumeration-error progress reporting and reject the Windows `GLOBALROOT` device namespace.
+- Repair website script isolation, mobile/WebKit overflow, accessibility diagnostics, contrast behavior and navigation-transition regressions across the eight localized static pages.
+- Strengthen release engineering with a guarded manual/tagged 1.0.0 workflow, explicit preflight, provenance attestations, combined SHA-256 release checksums, source packaging and refusal to overwrite an existing public 1.0.0 release.
+- Add an executable release-readiness command, a formal go/no-go checklist, first-release notes and safer GitHub issue routing for security/support questions.
 - License PermissionScope's own source and documentation under Apache-2.0, preserving Samuel Sanches's attribution and third-party licenses. Include NOTICE and license metadata in newly built packages. Previously distributed artifacts are unchanged.
 
 ## 1.0.0
