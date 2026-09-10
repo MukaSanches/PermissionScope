@@ -1,6 +1,6 @@
 "use strict";
 const selector = document.getElementById('language');
-selector.addEventListener('change', () => {
+if (selector) selector.addEventListener('change', () => {
   const selected = selector.selectedOptions[0];
   if (selected) location.assign(new URL(selected.value, location.href));
 });
@@ -12,26 +12,62 @@ if (download) {
   const repo = 'https://github.com/MukaSanches/PermissionScope';
   download.href = `${repo}/releases/latest/download/PermissionScope-1.0.0-x64-Setup.exe`;
   const labels = {
-    'pt-BR': 'Baixar instalador x64 →',
-    'es': 'Descargar instalador x64 →',
-    'fr': 'Télécharger l’installation x64 →',
-    'de': 'x64-Installer herunterladen →',
-    'ar': 'تنزيل مثبّت x64 ←',
-    'ja': 'x64 インストーラーをダウンロード →',
-    'zh-Hans': '下载 x64 安装程序 →',
-    'en-US': 'Download x64 installer →'
+    'pt-BR': 'Baixar instalador x64 →', 'es': 'Descargar instalador x64 →',
+    'fr': 'Télécharger l’installation x64 →', 'de': 'x64-Installer herunterladen →',
+    'ar': 'تنزيل مثبّت x64 ←', 'ja': 'x64 インストーラーをダウンロード →',
+    'zh-Hans': '下载 x64 安装程序 →', 'en-US': 'Download x64 installer →'
   };
   download.textContent = labels[document.documentElement.lang] || labels['en-US'];
-
   const arm64 = document.createElement('a');
   arm64.href = `${repo}/releases/latest/download/PermissionScope-1.0.0-arm64-Setup.exe`;
-  arm64.textContent = 'ARM64';
-  arm64.setAttribute('aria-label', 'Download PermissionScope ARM64 installer');
+  arm64.textContent = 'ARM64'; arm64.setAttribute('aria-label', 'Download PermissionScope ARM64 installer');
   download.insertAdjacentElement('afterend', arm64);
-
   const portable = document.createElement('a');
   portable.href = `${repo}/releases/latest/download/PermissionScope-1.0.0-win-x64.zip`;
-  portable.textContent = 'Portable ZIP x64';
-  portable.setAttribute('aria-label', 'Download PermissionScope portable ZIP for x64');
+  portable.textContent = 'Portable ZIP x64'; portable.setAttribute('aria-label', 'Download PermissionScope portable ZIP for x64');
   arm64.insertAdjacentElement('afterend', portable);
 }
+
+const lang = document.documentElement.lang || 'en-US';
+const copy = {
+  'en-US': {local:'100% local', authz:'Windows Authz', private:'No telemetry', proof:['Local-first','Open source','Apache-2.0','x64 + ARM64'], trust:'Trust you can inspect', trustBody:'PermissionScope is designed so its claims can be checked: source code, security model, checksums, release artifacts and reproducible documentation are public.', learn:'PermissionScope Academy', learnBody:'Learn Windows permissions from first principles, then move from safe demos to real diagnostics.', courses:['Permissions fundamentals','Reading Access Path','Safe troubleshooting'], courseDesc:['ACLs, identities, inheritance and effective access','Understand why Windows reached a decision','A repeatable workflow for real incidents']},
+  'pt-BR': {local:'100% local', authz:'Windows Authz', private:'Sem telemetria', proof:['Local-first','Código aberto','Apache-2.0','x64 + ARM64'], trust:'Confiança que você pode verificar', trustBody:'O PermissionScope foi projetado para que suas afirmações possam ser conferidas: código-fonte, modelo de segurança, checksums, artefatos de release e documentação reproduzível são públicos.', learn:'Academia PermissionScope', learnBody:'Aprenda permissões do Windows desde os fundamentos e avance de demonstrações seguras para diagnósticos reais.', courses:['Fundamentos de permissões','Lendo o Access Path','Diagnóstico seguro'], courseDesc:['ACLs, identidades, herança e acesso efetivo','Entenda por que o Windows chegou à decisão','Um fluxo repetível para incidentes reais']},
+  'es': {local:'100% local',authz:'Windows Authz',private:'Sin telemetría',proof:['Local-first','Código abierto','Apache-2.0','x64 + ARM64'],trust:'Confianza que puede verificar',trustBody:'Código, modelo de seguridad, checksums, artefactos y documentación reproducible son públicos.',learn:'Academia PermissionScope',learnBody:'Aprenda permisos de Windows desde los fundamentos hasta el diagnóstico real.',courses:['Fundamentos de permisos','Leer Access Path','Diagnóstico seguro'],courseDesc:['ACL, identidades, herencia y acceso efectivo','Comprenda por qué Windows llegó a la decisión','Un flujo repetible para incidentes reales']},
+  'fr': {local:'100 % local',authz:'Windows Authz',private:'Sans télémétrie',proof:['Local-first','Open source','Apache-2.0','x64 + ARM64'],trust:'Une confiance vérifiable',trustBody:'Code, modèle de sécurité, sommes de contrôle, artefacts et documentation reproductible sont publics.',learn:'Académie PermissionScope',learnBody:'Apprenez les autorisations Windows des bases au diagnostic réel.',courses:['Bases des autorisations','Lire Access Path','Diagnostic sûr'],courseDesc:['ACL, identités, héritage et accès effectif','Comprendre pourquoi Windows a pris cette décision','Une méthode reproductible pour les incidents']},
+  'de': {local:'100 % lokal',authz:'Windows Authz',private:'Keine Telemetrie',proof:['Local-first','Open Source','Apache-2.0','x64 + ARM64'],trust:'Vertrauen, das überprüfbar ist',trustBody:'Quellcode, Sicherheitsmodell, Prüfsummen, Release-Artefakte und reproduzierbare Dokumentation sind öffentlich.',learn:'PermissionScope Academy',learnBody:'Windows-Berechtigungen von den Grundlagen bis zur echten Diagnose lernen.',courses:['Berechtigungsgrundlagen','Access Path lesen','Sichere Diagnose'],courseDesc:['ACLs, Identitäten, Vererbung und effektiver Zugriff','Warum Windows zu einer Entscheidung kam','Ein wiederholbarer Ablauf für reale Vorfälle']},
+  'ar': {local:'محلي 100٪',authz:'Windows Authz',private:'بلا تتبع',proof:['محلي أولاً','مفتوح المصدر','Apache-2.0','x64 + ARM64'],trust:'ثقة يمكنك التحقق منها',trustBody:'الكود ونموذج الأمان وبصمات الملفات وملفات الإصدارات والوثائق القابلة لإعادة الإنتاج متاحة علناً.',learn:'أكاديمية PermissionScope',learnBody:'تعلم أذونات Windows من الأساسيات حتى التشخيص العملي.',courses:['أساسيات الأذونات','قراءة Access Path','تشخيص آمن'],courseDesc:['ACL والهويات والوراثة والوصول الفعلي','افهم لماذا وصل Windows إلى القرار','منهج قابل للتكرار للحوادث الحقيقية']},
+  'ja': {local:'100% ローカル',authz:'Windows Authz',private:'テレメトリなし',proof:['ローカル優先','オープンソース','Apache-2.0','x64 + ARM64'],trust:'検証できる信頼性',trustBody:'ソースコード、セキュリティモデル、チェックサム、リリース成果物、再現可能なドキュメントを公開しています。',learn:'PermissionScope Academy',learnBody:'Windows 権限を基礎から実際の診断まで学べます。',courses:['権限の基礎','Access Path の読み方','安全な診断'],courseDesc:['ACL、ID、継承、有効なアクセス','Windows が判断した理由を理解','実際の問題に使える再現可能な手順']},
+  'zh-Hans': {local:'100% 本地',authz:'Windows Authz',private:'无遥测',proof:['本地优先','开源','Apache-2.0','x64 + ARM64'],trust:'可验证的可信度',trustBody:'源代码、安全模型、校验和、发行文件和可复现文档均公开可查。',learn:'PermissionScope 学院',learnBody:'从基础到真实诊断，系统学习 Windows 权限。',courses:['权限基础','阅读 Access Path','安全诊断'],courseDesc:['ACL、身份、继承与有效访问','理解 Windows 为何得出该结论','真实问题的可重复排查流程']}
+};
+const t = copy[lang] || copy['en-US'];
+const hero = document.querySelector('.hero');
+const product = hero?.querySelector('.product');
+if (hero && product) {
+  product.classList.add('spatial-stage');
+  const img = product.querySelector('img');
+  if (img) {
+    const card = document.createElement('div'); card.className='spatial-card';
+    img.parentNode.insertBefore(card,img); card.appendChild(img);
+    [['badge-local',t.local],['badge-authz',t.authz],['badge-private',t.private]].forEach(([cls,text])=>{const b=document.createElement('span');b.className=`spatial-badge ${cls}`;b.textContent=text;card.appendChild(b);});
+  }
+  const proof=document.createElement('div'); proof.className='proof-strip';
+  t.proof.forEach((item,i)=>{const d=document.createElement('div');d.innerHTML=`<strong>${item}</strong><span>${['Privacy by design','Auditable repository','Patent-aware license','Native Windows packages'][i]}</span>`;proof.appendChild(d);});
+  product.insertAdjacentElement('afterend',proof);
+}
+
+const evidence = document.getElementById('evidence');
+if (evidence) {
+  const trust=document.createElement('section'); trust.className='trust';
+  trust.innerHTML=`<div class="shell section trust-grid"><div><p class="eyebrow">PermissionScope Trust Center</p><h2>${t.trust}</h2><p>${t.trustBody}</p></div><div class="trust-cards"><div class="trust-card"><strong>SHA-256</strong><span>Release integrity</span></div><div class="trust-card"><strong>SBOM</strong><span>CycloneDX inventory</span></div><div class="trust-card"><strong>CodeQL</strong><span>Security analysis</span></div><div class="trust-card"><strong>CI</strong><span>x64 + ARM64</span></div></div></div>`;
+  evidence.insertAdjacentElement('afterend',trust);
+  const academy=document.createElement('section'); academy.className='shell section';
+  academy.innerHTML=`<div class="section-heading"><p class="eyebrow">Learn</p><h2>${t.learn}</h2><p>${t.learnBody}</p></div><div class="course-grid"></div>`;
+  const grid=academy.querySelector('.course-grid');
+  ['fundamentals','access-path','troubleshooting'].forEach((slug,i)=>{const a=document.createElement('a');a.className='course';a.href=`https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/${slug}.${lang}.md`;a.innerHTML=`<b>${t.courses[i]} →</b><span>${t.courseDesc[i]}</span>`;grid.appendChild(a);});
+  trust.insertAdjacentElement('afterend',academy);
+}
+
+const stage=document.querySelector('.spatial-stage');
+const card=document.querySelector('.spatial-card');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(stage&&card&&!reduce){const reset=()=>{card.style.setProperty('--rx','1.5deg');card.style.setProperty('--ry','-2.5deg');};stage.addEventListener('pointermove',e=>{const r=stage.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5;const y=(e.clientY-r.top)/r.height-.5;card.style.setProperty('--rx',`${(-y*5).toFixed(2)}deg`);card.style.setProperty('--ry',`${(x*7).toFixed(2)}deg`);});stage.addEventListener('pointerleave',reset);}
