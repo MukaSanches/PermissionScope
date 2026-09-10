@@ -1,0 +1,50 @@
+name: Documentation parity sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'build/Build-Documentation.mjs'
+      - 'docs/content/locales.json'
+      - 'docs/brand/**'
+      - '.github/workflows/docs-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: permissionscope-docs-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Generate all localized READMEs, guides and Pages
+        run: node build/Build-Documentation.mjs
+      - name: Verify generated surfaces
+        run: node build/Build-Documentation.mjs --check
+      - name: Commit generated parity update
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo 'Generated documentation already synchronized.'
+            exit 0
+          fi
+          git config user.name 'permissionscope-docs-bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md README.*.md .github/README.md docs/guides site/index*.html
+          git commit -m 'Synchronize multilingual product documentation'
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then exit 0; fi
+            git fetch origin main
+            git rebase origin/main
+          done
+          echo 'Could not publish synchronized documentation after retries.' >&2
+          exit 1
