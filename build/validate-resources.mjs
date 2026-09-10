@@ -24,9 +24,27 @@ fs.mkdirSync(path.join(root, 'artifacts'), { recursive: true });
 fs.writeFileSync(path.join(root, 'artifacts/localization-coverage.json'), JSON.stringify(coverage, null, 2));
 console.log(`PASS ${coverage.length} resource catalogs: keys, required safety text and placeholders`);
 
-const html = fs.readFileSync(path.join(root, 'site/index.html'), 'utf8');
+const siteDir = path.join(root, 'site');
+const html = fs.readFileSync(path.join(siteDir, 'index.html'), 'utf8');
 for (const match of html.matchAll(/(?:href|src)="([^"#?:]+)"/g)) {
-  if (!fs.existsSync(path.join(root, 'site', match[1]))) throw new Error(`Missing site asset: ${match[1]}`);
+  if (!fs.existsSync(path.join(siteDir, match[1]))) throw new Error(`Missing site asset: ${match[1]}`);
 }
 if (!html.includes('id="main"') || !html.includes('class="skip"')) throw new Error('Missing accessible page navigation');
-console.log('PASS local website assets and primary accessibility landmarks');
+
+const webLocales = Object.keys(JSON.parse(fs.readFileSync(path.join(root, 'docs/content/locales.json'), 'utf8')));
+const pageFor = locale => locale === 'en-US' ? 'index.html' : `index.${locale}.html`;
+const sw = fs.readFileSync(path.join(siteDir, 'sw.js'), 'utf8');
+for (const locale of webLocales) {
+  const page = pageFor(locale);
+  const pagePath = path.join(siteDir, page);
+  if (!fs.existsSync(pagePath)) throw new Error(`Missing localized Pages document: ${page}`);
+  const localized = fs.readFileSync(pagePath, 'utf8');
+  if (!localized.includes(`<html lang="${locale}"`)) throw new Error(`Wrong lang metadata: ${page}`);
+  if (!sw.includes(`./${page}`)) throw new Error(`Localized page missing from offline shell: ${page}`);
+}
+for (const requiredSiteFile of ['404.html','manifest.webmanifest','robots.txt','sitemap.xml','.well-known/security.txt']) {
+  if (!fs.existsSync(path.join(siteDir, requiredSiteFile))) throw new Error(`Missing Pages platform file: ${requiredSiteFile}`);
+}
+if (!sw.includes('navigationPreload.enable()')) throw new Error('Service worker navigation preload is not enabled');
+if (!sw.includes("CACHE='permissionscope-shell-v3'")) throw new Error('Unexpected service worker cache generation');
+console.log(`PASS local website assets, ${webLocales.length} localized Pages, offline parity and platform metadata`);
