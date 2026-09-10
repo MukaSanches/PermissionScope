@@ -1,4 +1,5 @@
 "use strict";
+(()=>{
 const lang=document.documentElement.lang||'en-US';
 const copy={
 'en-US':{open:'Ask PermissionScope',title:'PermissionScope Assistant',sub:'On-device AI when supported · local fallback everywhere',hello:'Ask about installation, x64/ARM64, Access Path, Granted/Denied/Unknown, privacy, SHA-256, exports or the CLI.',send:'Send',ph:'Ask a PermissionScope question…',s:['How do I install it?','What does Unknown mean?','How do I verify SHA-256?']},
@@ -20,3 +21,4 @@ const add=(role,text)=>{const m=document.createElement('div');m.className=`ps-ms
 async function getSession(){if(checked)return session;checked=true;try{if('LanguageModel'in globalThis){const a=await LanguageModel.availability();if(a!=='unavailable'){session=await LanguageModel.create({initialPrompts:[{role:'system',content:`You are the PermissionScope website assistant. Answer only about PermissionScope and Windows permission concepts using these verified product facts. Be concise, distinguish known facts from limits, never invent certification or security claims. ${facts}`} ]});mode.dataset.mode='ai';mode.textContent='On-device AI';}}}catch{}return session;}
 async function ask(q){add('user',q);box.value='';const pending=add('assistant','…');try{const ai=await getSession();pending.textContent=ai?await ai.prompt(q):localAnswer(q);}catch{pending.textContent=localAnswer(q);}log.scrollTop=log.scrollHeight;}
 form.addEventListener('submit',e=>{e.preventDefault();const q=box.value.trim();if(q)ask(q)});dlg.querySelectorAll('.ps-assistant-suggestions button').forEach(b=>b.addEventListener('click',()=>ask(b.textContent)));launch.addEventListener('click',()=>dlg.showModal());dlg.querySelector('.ps-assistant-close').addEventListener('click',()=>dlg.close());dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
+})();
