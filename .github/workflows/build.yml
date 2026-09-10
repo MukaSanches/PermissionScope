@@ -1,5 +1,9 @@
 name: Windows build
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 concurrency:
@@ -42,6 +46,9 @@ jobs:
         run: choco install nsis --version=3.12 -y --no-progress
       - name: Package
         run: ./build/Package.ps1 -Architecture ${{ matrix.architecture }}
+      - name: Install and uninstall on disposable runner
+        if: matrix.architecture == 'x64'
+        run: ./build/Test-Installer.ps1
       - uses: actions/upload-artifact@v4
         with:
           name: PermissionScope-windows-${{ matrix.architecture }}
