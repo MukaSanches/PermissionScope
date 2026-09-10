@@ -44,7 +44,12 @@ try {
     }
     await page.addScriptTag({ url: origin + '/__test/axe.js' });
     const accessibility = await page.evaluate(async () => axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21aa'] } }));
-    assert.deepEqual(accessibility.violations.map(item => ({ id: item.id, impact: item.impact })), [], locale);
+    const violations = accessibility.violations.map(item => ({
+      id: item.id,
+      impact: item.impact,
+      nodes: item.nodes.slice(0, 8).map(node => ({ target: node.target, html: node.html, summary: node.failureSummary }))
+    }));
+    assert.deepEqual(violations, [], `${locale}: ${JSON.stringify(violations)}`);
     assert(await page.locator('.product img').evaluate(image => image.complete && image.naturalWidth > 0));
   }
   fs.mkdirSync(path.join(root, 'artifacts'), { recursive: true });
