@@ -48,4 +48,3 @@ ${Object.keys(languages).map(l=>`<link rel="alternate" hreflang="${l}" href="${w
 }
 for(const ext of ['html','csv','json','xlsx','pdf'])copy(`samples/reports/permissionscope-demo.${ext}`,`site/reports/permissionscope-demo.${ext}`);
 console.log('PASS '+(check?'verified':'generated')+' eight equivalent READMEs, visual guides and static localized pages');
-

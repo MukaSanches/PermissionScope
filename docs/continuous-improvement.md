@@ -80,3 +80,9 @@ Produto propôs priorizar escala e cancelamento; engenharia concordou e recomend
 1. Confirmar cherry-pick, referências geradas Apache-2.0, verificação de LICENSE/NOTICE e CI do lote combinado. Manter o ponto de retomada atualizado.
 2. Medir scan NTFS de 10 mil/100 mil objetos sintéticos: tempo, pico de memória de CLI e GUI, latência de cancelamento e perda de progresso. Usar fixtures isoladas e limites de execução definidos.
 3. Usar os resultados para decidir persistência incremental e recuperação em lote separado; ampliar depois a validação de domínio e acessibilidade.
+
+## Integrated batch checkpoint
+
+Apache-2.0 commit `18cecf3` was integrated locally as `c79d101`, preserving the README/site generator work and LICENSE/NOTICE package verification. The independent UX review found and fixed missing Unknown guidance for unreadable resources and a stale demo filter. Documentation validation now passes 42 Markdown files and 72 captures. Windows integration: 88 passed. Website: eight locales, three viewport widths, zero axe violations. Official WinGet CLI manifest validation passed; submission is still pending published installer hashes.
+
+Next action: push the combined documentation branch, review its CI, then integrate and prepare release assets. Keep Store account setup and unsigned-package limitations explicit. The screenshot fingerprint tracks application/engine sources, assets and project dependency declarations; test-only and license-only edits no longer invalidate rendered evidence.
