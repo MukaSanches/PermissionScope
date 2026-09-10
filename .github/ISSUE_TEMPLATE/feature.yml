@@ -1,0 +1,50 @@
+name: Feature request
+description: Propose an improvement with a concrete Windows-permission use case.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve PermissionScope. Please describe the real problem before proposing implementation details. Security, correctness, privacy and explainability take priority over feature count.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What task, failure mode or workflow is difficult today?
+      placeholder: Describe the user and the Windows-permission problem.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What should a successful result let the user understand or do?
+    validations:
+      required: true
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Primary audience
+      options:
+        - Beginner / home user
+        - IT administrator
+        - Security / audit
+        - Developer / contributor
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Example or evidence
+      description: Prefer a synthetic example. Do not include credentials, private snapshots, tokens, or confidential account inventories.
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Safety check
+      options:
+        - label: I have not included secrets or sensitive production data.
+          required: true
+        - label: I understand that a proposal may be declined if it weakens correctness, privacy, or security boundaries.
+          required: true
