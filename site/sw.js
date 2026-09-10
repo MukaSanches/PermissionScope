@@ -1,5 +1,5 @@
-const CACHE='permissionscope-shell-v1';
-const CORE=['./','./index.html','./index.pt-BR.html','./style.css','./premium.css','./experience.css','./future.css','./responsive.css','./site.js','./experience.js','./future.js','./logo.svg','./manifest.webmanifest','./pwa-icon-192.svg','./pwa-icon-512.svg'];
+const CACHE='permissionscope-shell-v2';
+const CORE=['./','./index.html','./index.pt-BR.html','./style.css','./premium.css','./experience.css','./future.css','./responsive.css','./intelligence.css','./site.js','./experience.js','./future.js','./intelligence.js','./logo.svg','./manifest.webmanifest','./pwa-icon-192.svg','./pwa-icon-512.svg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
 self.addEventListener('fetch',event=>{
