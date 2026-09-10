@@ -18,7 +18,7 @@ $manifest = @"
   <Identity Name="SamuelSanches.PermissionScope" Publisher="$publisherEscaped" Version="1.0.0.0" ProcessorArchitecture="$Architecture" />
   <Properties><DisplayName>PermissionScope</DisplayName><PublisherDisplayName>Samuel Sanches</PublisherDisplayName><Logo>Assets\StoreLogo.png</Logo></Properties>
   <Dependencies><TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" /></Dependencies>
-  <Resources><Resource Language="en-US"/><Resource Language="pt-BR"/></Resources>
+  <Resources><Resource Language="en-US"/><Resource Language="pt-BR"/><Resource Language="es"/><Resource Language="fr"/><Resource Language="de"/><Resource Language="ar"/><Resource Language="ja"/><Resource Language="zh-Hans"/></Resources>
   <Applications><Application Id="PermissionScope" Executable="PermissionScope.exe" EntryPoint="Windows.FullTrustApplication"><uap:VisualElements DisplayName="PermissionScope" Description="Windows access analysis and permission explainability" BackgroundColor="#17315C" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" /></Application></Applications>
   <Capabilities><rescap:Capability Name="runFullTrust" /></Capabilities>
 </Package>

@@ -98,6 +98,20 @@ public sealed class MainWindow : Window
         root.ActualThemeChanged += (_, _) => ApplyPalette();
     }
     public void SetPath(string path) { pathBox.Text = path; ShowAnalyze(); }
+    private bool IsDemo => snapshot?.FixtureId == DemoFixture.Version;
+    public void ShowDemo(string scene)
+    {
+        snapshot = DemoFixture.Create(); saved = false; page = 0; filterMode = "All";
+        filterBox.Text = "";
+        pathBox.Text = DemoFixture.Root;
+        selectedResource = scene == "unknown" ? snapshot.Resources.Last() : snapshot.Resources.First();
+        activeTab = scene switch { "access-path" => "Why", "technical" => "Technical", "simulation" => "Simulate", _ => "Access" };
+        if (scene == "home") ShowHome();
+        else if (scene == "analyze") ShowAnalyze();
+        else if (scene == "compare") Run(CompareAsync);
+        else ShowResults();
+    }
+    private static InfoBar DemoBanner() => new() { IsOpen = true, IsClosable = false, Severity = InfoBarSeverity.Informational, Title = T("DemoTitle"), Message = T("DemoNote") };
     private static SolidColorBrush Brush(byte r, byte g, byte b) => new(global::Windows.UI.Color.FromArgb(255, r, g, b));
     private static bool HighContrast => new global::Windows.UI.ViewManagement.AccessibilitySettings().HighContrast;
     private static Brush SystemBrush(bool foreground) => new SolidColorBrush(new global::Windows.UI.ViewManagement.UISettings().GetColorValue(
@@ -263,6 +277,7 @@ public sealed class MainWindow : Window
         var panel = new StackPanel { Spacing = 20, Margin = new(40, 32, 40, 32), MaxWidth = 1080, HorizontalAlignment = HorizontalAlignment.Stretch };
         panel.Children.Add(Text(title, 32, true));
         if (subtitle != null) panel.Children.Add(Text(subtitle, 15));
+        if (IsDemo) panel.Children.Add(DemoBanner());
         body.Children.Add(new ScrollViewer { Content = panel, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled });
         return panel;
     }
@@ -277,6 +292,8 @@ public sealed class MainWindow : Window
         var intro = Text(T("HomeIntro"), 18); intro.MaxWidth = 570; intro.HorizontalAlignment = HorizontalAlignment.Left; intro.Margin = new(0, 0, 0, 16); panel.Children.Add(intro);
         var primary = Button(T("AnalyzeFolder") + "  →", ShowAnalyze, true); primary.MinHeight = 46; panel.Children.Add(primary);
         panel.Children.Add(Row(Button(T("FindUser"), () => { ShowAnalyze(); identityBox.Focus(FocusState.Programmatic); }), Button(T("OpenScan"), () => Run(ShowSnapshotsAsync))));
+        panel.Children.Add(Button(T("TryDemo"), () => ShowDemo("access")));
+        if (IsDemo) panel.Children.Add(DemoBanner());
         panel.Children.Add(new Border { Height = 40 });
         panel.Children.Add(Line());
         panel.Children.Add(Text(T("ReadOnlyNote"), 14));
@@ -326,6 +343,7 @@ public sealed class MainWindow : Window
     private async Task AnalyzeAsync()
     {
         if (busy) return;
+        if (IsDemo && pathBox.Text == DemoFixture.Root) { ShowDemo("access"); return; }
         if (string.IsNullOrWhiteSpace(pathBox.Text)) { ShowAnalyze(); pathBox.Focus(FocusState.Programmatic); return; }
         var options = new ScanOptions(pathBox.Text, string.IsNullOrWhiteSpace(identityBox.Text) ? null : identityBox.Text.Trim(), recursiveBox?.IsChecked != false, filesBox?.IsChecked == true);
         busy = true; saved = false;
@@ -355,6 +373,7 @@ public sealed class MainWindow : Window
         layout.RowDefinitions.Add(new() { Height = GridLength.Auto }); layout.RowDefinitions.Add(new() { Height = GridLength.Auto }); layout.RowDefinitions.Add(new() { Height = new(1, GridUnitType.Star) });
         var header = new StackPanel { Spacing = 8 };
         header.Children.Add(Text(T("Results"), 28, true));
+        if (IsDemo) header.Children.Add(DemoBanner());
         header.Children.Add(Mono(snapshot.Root));
         header.Children.Add(Text($"{T(snapshot.Cancelled ? "Cancelled" : "Complete")} · {snapshot.CreatedAt.ToLocalTime():g} · {snapshot.CompletedAt - snapshot.CreatedAt:mm\\:ss}", 12));
         var more = new MenuFlyout();
@@ -368,7 +387,7 @@ public sealed class MainWindow : Window
         (string Key, int Count, string Filter)[] numbers = [("Objects", snapshot.Resources.Count, "All"), ("Findings", snapshot.Resources.Sum(r => r.Findings.Count), "FilterFindings"), ("Errors", snapshot.Resources.Count(r => r.Error != null), "FilterUnknown")];
         for (var i = 0; i < numbers.Length; i++)
         {
-            var number = numbers[i]; var content = new StackPanel { Spacing = 2 }; content.Children.Add(Text(number.Count.ToString("N0"), 28, true)); content.Children.Add(Text(T(number.Key), 12));
+            var number = numbers[i]; var content = Text(number.Count.ToString("N0") + " · " + T(number.Key), 14, true);
             var stat = Button(T(number.Key), () => { filterMode = number.Filter; page = 0; RefreshObjects(); }); stat.Content = content; stat.HorizontalAlignment = HorizontalAlignment.Stretch; stat.HorizontalContentAlignment = HorizontalAlignment.Left;
             stat.Background = new SolidColorBrush(Colors.Transparent); stat.BorderThickness = new(0, 0, 0, 1); stat.BorderBrush = new SolidColorBrush(global::Windows.UI.Color.FromArgb(48, 100, 107, 118)); stat.CornerRadius = new(0); stat.Padding = new(0, 10, 0, 14);
             stats.Children.Add(stat); Grid.SetColumn(stat, i);
@@ -391,6 +410,7 @@ public sealed class MainWindow : Window
         split.Children.Add(left); resultList = left;
         if (detailHost != null) detailHost.Content = null;
         var right = detailHost = new ScrollViewer { Content = detail, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled };
+        AutomationProperties.SetAutomationId(right, "AccessDetail");
         split.Children.Add(right); Grid.SetColumn(right, 1); resultDetail = right;
         layout.Children.Add(split); Grid.SetRow(split, 2);
         body.Children.Add(new ScrollViewer { Content = layout, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled });
@@ -440,11 +460,19 @@ public sealed class MainWindow : Window
         detail.Children.Add(tabs);
         if (resource.Error != null) detail.Children.Add(new InfoBar { IsOpen = true, IsClosable = false, Severity = InfoBarSeverity.Warning, Title = T("Errors"), Message = $"{resource.Error.Code}: {resource.Error.Message}" });
         var d = resource.Decision;
-        if (d?.Limitation != null) detail.Children.Add(new InfoBar { IsOpen = true, IsClosable = false, Severity = InfoBarSeverity.Warning, Title = T("Unknown"), Message = d.Limitation });
+        if (d is null || d.State == AccessState.Unknown)
+        {
+            var unknown = new StackPanel { Spacing = 8 };
+            foreach (var pair in new[] { ("WhatWeKnow", resource.Descriptor != null ? "KnownDescriptor" : "UnknownRead"), ("CouldNotVerify", AccessSummary.UnknownReason(resource)), ("WhyItMatters", "UnknownMeaning"), ("NextStep", "UnknownNext") })
+            { unknown.Children.Add(Text(T(pair.Item1), 14, true)); unknown.Children.Add(Text(T(pair.Item2), 13)); }
+            detail.Children.Add(new Expander { Header = T("SummaryUnknown"), Content = unknown, IsExpanded = true, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch });
+        }
         switch (activeTab)
         {
             case "Access":
                 detail.Children.Add(Text(T("EvaluatedIdentity"), 12)); detail.Children.Add(Text(d?.Identity ?? T("Unknown"), 18, true));
+                detail.Children.Add(Text(T(AccessSummary.Key(d)), 22, true));
+                detail.Children.Add(Text(T("ScopeCaution"), 12));
                 detail.Children.Add(Text(T("AccessExplanation"), 12));
                 detail.Children.Add(new Expander { Header = T("TechnicalDetails"), Content = Text(T("TechnicalScope"), 12), HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch });
                 if (d == null) break;
@@ -477,6 +505,12 @@ public sealed class MainWindow : Window
                 break;
             case "Technical":
                 detail.Children.Add(Text(T("TechnicalScope"), 12));
+                if (d != null) detail.Children.Add(Text(d.Basis, 12));
+                if (d?.Limitation != null) detail.Children.Add(Text(d.Limitation, 12));
+                detail.Children.Add(Button(T("CopyDiagnostic"), () =>
+                {
+                    var data = new DataPackage(); data.SetText(AccessSummary.Diagnostic("Inspect", resource.Error?.Code, d?.State, resource.Share != null)); Clipboard.SetContent(data); Notify(T("Copied"));
+                }));
                 if (resource.Descriptor is { } sd)
                 {
                     detail.Children.Add(Mono($"{T("Owner")}: {sd.Owner}\n{T("Protected")}: {sd.Protected}\n{T("NullDacl")}: {sd.NullDacl}\n{T("Canonical")}: {sd.Canonical}\nSHA-256: {sd.Hash}"));
@@ -496,6 +530,7 @@ public sealed class MainWindow : Window
         if (decision == null) return;
         detail.Children.Add(Text(decision.Identity, 18, true));
         detail.Children.Add(Text(T("Contributors"), 12));
+        detail.Children.Add(Text(T("EvidenceIntro"), 13));
         if (decision.Evidence.Count == 0) detail.Children.Add(Text(T("NoEvidence")));
         foreach (var evidence in decision.Evidence)
         {
@@ -537,23 +572,28 @@ public sealed class MainWindow : Window
         foreach (var entry in descriptor.Aces) ace.Items.Add(new ComboBoxItem { Content = $"#{entry.Index} · {entry.Name} · {entry.Type}", Tag = entry.Index });
         ace.SelectedIndex = 0; detail.Children.Add(ace);
         var output = new StackPanel { Spacing = 10 };
-        detail.Children.Add(Button(T("Recalculate"), () => Run(async () =>
+        var calculate = Button(T("Recalculate"), () => Run(async () =>
         {
             var index = (int)((ComboBoxItem)ace.SelectedItem).Tag;
             var selectedSid = snapshot?.IdentitySid;
             var result = await Task.Run(() =>
             {
+                if (IsDemo) return (Before: DemoFixture.Evaluate(descriptor.Sddl, resource.Path, resource.Share != null), After: DemoFixture.Evaluate(ImpactSimulator.RemoveAce(descriptor.Sddl, index), resource.Path, resource.Share != null));
                 var resolver = new IdentityResolver(); using var access = new EffectiveAccessResolver(resolver, selectedSid);
                 var proposed = DescriptorParser.Parse(ImpactSimulator.RemoveAce(descriptor.Sddl, index));
                 return (Before: access.Evaluate(descriptor, resource.Path, resource.Share, resource.IsReparsePoint), After: access.Evaluate(proposed, resource.Path, resource.Share, resource.IsReparsePoint));
             });
             output.Children.Clear();
+            AutomationProperties.SetAutomationId(output, "SimulationResult");
+            output.Children.Add(Text(T(AccessSummary.Key(result.After)), 18, true));
             output.Children.Add(Mono($"{T("Before")}: 0x{result.Before.EffectiveMask:X8}\n{T("After")}: 0x{result.After.EffectiveMask:X8}\n{T("Gained")}: 0x{(result.After.EffectiveMask & ~result.Before.EffectiveMask):X8}\n{T("Lost")}: 0x{(result.Before.EffectiveMask & ~result.After.EffectiveMask):X8}"));
             if (result.After.Limitation != null) output.Children.Add(Text(result.After.Limitation));
             foreach (var capability in result.After.Capabilities) output.Children.Add(Text($"{T(capability.Key)} · {T(capability.State.ToString())}", 13));
-            if (!resource.IsDirectory && !resource.IsReparsePoint && resource.Share == null && !descriptor.HasSpecialAces)
+            if (!IsDemo && !resource.IsDirectory && !resource.IsReparsePoint && resource.Share == null && !descriptor.HasSpecialAces)
                 output.Children.Add(Button(T("ApplyChange"), () => Run(() => ApplyChangeAsync(resource, ImpactSimulator.RemoveAce(descriptor.Sddl, index), output))));
-        }), true)); detail.Children.Add(output);
+        }), true);
+        AutomationProperties.SetAutomationId(calculate, "RunSimulation");
+        detail.Children.Add(calculate); detail.Children.Add(output);
     }
     private async Task ApplyChangeAsync(ResourceAccess resource, string proposed, StackPanel output)
     {
@@ -610,20 +650,25 @@ public sealed class MainWindow : Window
     private async Task CompareAsync()
     {
         SelectNavigation("Compare");
-        var list = await Task.Run(() => new SnapshotStore().List());
+        var demo = IsDemo;
+        var demoSnapshots = demo ? new[] { DemoFixture.Create(), DemoFixture.Create(true) } : Array.Empty<PermissionSnapshot>();
+        IReadOnlyList<SnapshotSummary> list = demo ? demoSnapshots.Reverse().Select(s => new SnapshotSummary(s.Id, s.Root, s.CreatedAt, s.Resources.Count, s.Cancelled)).ToArray() : await Task.Run(() => new SnapshotStore().List());
         var panel = Page(T("Compare"), T("CompareIntro"));
         if (list.Count < 2) { panel.Children.Add(Text(T("NoSnapshots"))); return; }
         ComboBox Picker(string key) { var box = new ComboBox { Header = T(key), HorizontalAlignment = HorizontalAlignment.Stretch }; foreach (var s in list) box.Items.Add(new ComboBoxItem { Content = $"{s.CreatedAt.ToLocalTime():g} · {s.Root}", Tag = s.Id }); return box; }
         var before = Picker("Baseline"); var after = Picker("Later"); before.SelectedIndex = 1; after.SelectedIndex = 0; panel.Children.Add(before); panel.Children.Add(after);
         var output = new StackPanel { Spacing = 16 };
-        panel.Children.Add(Button(T("Compare"), () => Run(async () =>
+        var compare = Button(T("Compare"), () => Run(async () =>
         {
             var a = (string)((ComboBoxItem)before.SelectedItem).Tag; var b = (string)((ComboBoxItem)after.SelectedItem).Tag;
-            var changes = await Task.Run(() => { var store = new SnapshotStore(); return SnapshotComparer.Compare(store.Load(a), store.Load(b)); });
+            var changes = await Task.Run(() => { if (demo) return SnapshotComparer.Compare(demoSnapshots.Single(s => s.Id == a), demoSnapshots.Single(s => s.Id == b)); var store = new SnapshotStore(); return SnapshotComparer.Compare(store.Load(a), store.Load(b)); });
             output.Children.Clear(); if (changes.Count == 0) output.Children.Add(Text(T("NoChanges")));
+            AutomationProperties.SetAutomationId(output, "ComparisonResult");
             foreach (var c in changes.Take(500)) { output.Children.Add(Text(T(c.Kind) + " · " + c.Path, 14, true)); output.Children.Add(Text(c.Detail, 13)); }
             if (changes.Count > 500) output.Children.Add(Text($"500 / {changes.Count:N0}"));
-        }), true)); panel.Children.Add(output);
+        }), true);
+        AutomationProperties.SetAutomationId(compare, "RunComparison");
+        panel.Children.Add(compare); panel.Children.Add(output);
     }
     private async Task ExportAsync()
     {
@@ -636,6 +681,7 @@ public sealed class MainWindow : Window
     private async Task ScheduleAsync()
     {
         if (snapshot == null) return;
+        if (IsDemo) { Notify(T("DemoNote")); return; }
         var time = new TextBox { Header = T("ScheduleTime"), Text = "09:00" };
         var content = new StackPanel { Spacing = 16 }; content.Children.Add(Text(T("ScheduleIntro"))); content.Children.Add(Mono(snapshot.Root)); content.Children.Add(time);
         var dialog = new ContentDialog { XamlRoot = root.XamlRoot, Title = T("Schedule"), Content = content, PrimaryButtonText = T("Apply"), CloseButtonText = T("Cancel") };

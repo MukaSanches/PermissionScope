@@ -21,6 +21,10 @@ function Get-SourceFingerprint {
                 }
             }
             "$relative $($shared -join '|')"
+        } elseif ($file.Extension -in @('.cs','.csproj','.json','.xaml','.props','.sln','.manifest','.md','.xml')) {
+            $normalized = [IO.File]::ReadAllText($file.FullName).Replace("`r`n","`n")
+            $digest = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($normalized)))
+            "$relative $digest"
         } else {
             "$relative $((Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash)"
         }

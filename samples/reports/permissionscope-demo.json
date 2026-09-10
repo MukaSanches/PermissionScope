@@ -1,0 +1,759 @@
+{
+  "SchemaVersion": 1,
+  "AppVersion": "1.0.0",
+  "Id": "11111111111111111111111111111111",
+  "Root": "C:\\PermissionScope-Demo",
+  "CreatedAt": "2026-01-01T10:00:00+00:00",
+  "CompletedAt": "2026-01-01T10:00:01+00:00",
+  "Cancelled": false,
+  "IdentitySid": "S-1-5-21-111111111-222222222-333333333-1001",
+  "Resources": [
+    {
+      "Path": "C:\\PermissionScope-Demo\\Finance",
+      "IsDirectory": true,
+      "IsReparsePoint": false,
+      "ObservedAt": "2026-01-01T10:00:00+00:00",
+      "Descriptor": {
+        "Sddl": "O:SYG:SYD:P(A;;0x1301BF;;;S-1-5-21-111111111-222222222-333333333-2001)",
+        "Hash": "2BEDBF989CBAAB812F240DAC8934A23F8EEFFC96DDB49C63D38143AE3B4B69DA",
+        "Owner": "S-1-5-18",
+        "PrimaryGroup": "S-1-5-18",
+        "NullDacl": false,
+        "Protected": true,
+        "Canonical": true,
+        "HasSpecialAces": false,
+        "Aces": [
+          {
+            "Index": 0,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-2001",
+            "Name": "LAB\\Finance",
+            "Type": "AccessAllowed",
+            "Mask": 1245631,
+            "Flags": "None",
+            "Inherited": false,
+            "InheritOnly": false,
+            "Supported": true
+          }
+        ]
+      },
+      "Share": null,
+      "Decision": {
+        "Sid": "S-1-5-21-111111111-222222222-333333333-1001",
+        "Identity": "LAB\\Alex",
+        "State": "Partial",
+        "GrantedMask": 1245631,
+        "ShareMask": null,
+        "Basis": "Synthetic demonstration. Windows Authz evaluates supplied fixture SIDs and descriptors; this is not an actual user logon or file-open test.",
+        "Limitation": null,
+        "Evidence": [
+          {
+            "AceIndex": 0,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-2001",
+            "Identity": "LAB\\Finance",
+            "Relation": "GrantedBy",
+            "Mask": 1245631,
+            "ContributingMask": 1245631,
+            "Flags": "None",
+            "Source": "C:\\PermissionScope-Demo\\Finance",
+            "MembershipPath": [
+              {
+                "MemberSid": "S-1-5-21-111111111-222222222-333333333-1001",
+                "GroupSid": "S-1-5-21-111111111-222222222-333333333-2001",
+                "Source": "Synthetic fixture membership; supplied to Authz"
+              }
+            ]
+          }
+        ],
+        "EffectiveMask": 1245631,
+        "Capabilities": [
+          {
+            "Key": "ListReadData",
+            "Mask": 1,
+            "State": "Granted"
+          },
+          {
+            "Key": "TraverseExecute",
+            "Mask": 32,
+            "State": "Granted"
+          },
+          {
+            "Key": "Read",
+            "Mask": 1179785,
+            "State": "Granted"
+          },
+          {
+            "Key": "CreateWriteData",
+            "Mask": 2,
+            "State": "Granted"
+          },
+          {
+            "Key": "CreateFoldersAppend",
+            "Mask": 4,
+            "State": "Granted"
+          },
+          {
+            "Key": "Write",
+            "Mask": 1179926,
+            "State": "Granted"
+          },
+          {
+            "Key": "Modify",
+            "Mask": 1245631,
+            "State": "Granted"
+          },
+          {
+            "Key": "Delete",
+            "Mask": 65536,
+            "State": "Granted"
+          },
+          {
+            "Key": "DeleteChildren",
+            "Mask": 64,
+            "State": "Denied"
+          },
+          {
+            "Key": "ReadPermissions",
+            "Mask": 131072,
+            "State": "Granted"
+          },
+          {
+            "Key": "ChangePermissions",
+            "Mask": 262144,
+            "State": "Denied"
+          },
+          {
+            "Key": "TakeOwnership",
+            "Mask": 524288,
+            "State": "Denied"
+          },
+          {
+            "Key": "FullControl",
+            "Mask": 2032127,
+            "State": "Partial"
+          }
+        ]
+      },
+      "Findings": [
+        {
+          "Rule": "ProtectedDacl",
+          "Severity": "Review",
+          "Path": "C:\\PermissionScope-Demo\\Finance",
+          "Evidence": "Inheritance is disabled on this object.",
+          "Recommendation": "Confirm this permission boundary is intentional."
+        }
+      ],
+      "Error": null
+    },
+    {
+      "Path": "C:\\PermissionScope-Demo\\Projects",
+      "IsDirectory": true,
+      "IsReparsePoint": false,
+      "ObservedAt": "2026-01-01T10:00:00+00:00",
+      "Descriptor": {
+        "Sddl": "O:SYG:SYD:P(A;;FA;;;S-1-5-21-111111111-222222222-333333333-2002)",
+        "Hash": "B846185AD1827E0A57888517A2994ACC2EE07A09606F810F2407745A030A5B64",
+        "Owner": "S-1-5-18",
+        "PrimaryGroup": "S-1-5-18",
+        "NullDacl": false,
+        "Protected": true,
+        "Canonical": true,
+        "HasSpecialAces": false,
+        "Aces": [
+          {
+            "Index": 0,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-2002",
+            "Name": "LAB\\Employees",
+            "Type": "AccessAllowed",
+            "Mask": 2032127,
+            "Flags": "None",
+            "Inherited": false,
+            "InheritOnly": false,
+            "Supported": true
+          }
+        ]
+      },
+      "Share": null,
+      "Decision": {
+        "Sid": "S-1-5-21-111111111-222222222-333333333-1001",
+        "Identity": "LAB\\Alex",
+        "State": "Granted",
+        "GrantedMask": 2032127,
+        "ShareMask": null,
+        "Basis": "Synthetic demonstration. Windows Authz evaluates supplied fixture SIDs and descriptors; this is not an actual user logon or file-open test.",
+        "Limitation": null,
+        "Evidence": [
+          {
+            "AceIndex": 0,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-2002",
+            "Identity": "LAB\\Employees",
+            "Relation": "GrantedBy",
+            "Mask": 2032127,
+            "ContributingMask": 2032127,
+            "Flags": "None",
+            "Source": "C:\\PermissionScope-Demo\\Projects",
+            "MembershipPath": [
+              {
+                "MemberSid": "S-1-5-21-111111111-222222222-333333333-1001",
+                "GroupSid": "S-1-5-21-111111111-222222222-333333333-2002",
+                "Source": "Synthetic fixture membership; supplied to Authz"
+              }
+            ]
+          }
+        ],
+        "EffectiveMask": 2032127,
+        "Capabilities": [
+          {
+            "Key": "ListReadData",
+            "Mask": 1,
+            "State": "Granted"
+          },
+          {
+            "Key": "TraverseExecute",
+            "Mask": 32,
+            "State": "Granted"
+          },
+          {
+            "Key": "Read",
+            "Mask": 1179785,
+            "State": "Granted"
+          },
+          {
+            "Key": "CreateWriteData",
+            "Mask": 2,
+            "State": "Granted"
+          },
+          {
+            "Key": "CreateFoldersAppend",
+            "Mask": 4,
+            "State": "Granted"
+          },
+          {
+            "Key": "Write",
+            "Mask": 1179926,
+            "State": "Granted"
+          },
+          {
+            "Key": "Modify",
+            "Mask": 1245631,
+            "State": "Granted"
+          },
+          {
+            "Key": "Delete",
+            "Mask": 65536,
+            "State": "Granted"
+          },
+          {
+            "Key": "DeleteChildren",
+            "Mask": 64,
+            "State": "Granted"
+          },
+          {
+            "Key": "ReadPermissions",
+            "Mask": 131072,
+            "State": "Granted"
+          },
+          {
+            "Key": "ChangePermissions",
+            "Mask": 262144,
+            "State": "Granted"
+          },
+          {
+            "Key": "TakeOwnership",
+            "Mask": 524288,
+            "State": "Granted"
+          },
+          {
+            "Key": "FullControl",
+            "Mask": 2032127,
+            "State": "Granted"
+          }
+        ]
+      },
+      "Findings": [
+        {
+          "Rule": "ProtectedDacl",
+          "Severity": "Review",
+          "Path": "C:\\PermissionScope-Demo\\Projects",
+          "Evidence": "Inheritance is disabled on this object.",
+          "Recommendation": "Confirm this permission boundary is intentional."
+        }
+      ],
+      "Error": null
+    },
+    {
+      "Path": "C:\\PermissionScope-Demo\\Shared",
+      "IsDirectory": true,
+      "IsReparsePoint": false,
+      "ObservedAt": "2026-01-01T10:00:00+00:00",
+      "Descriptor": {
+        "Sddl": "O:SYG:SYD:P(A;;FR;;;S-1-5-21-111111111-222222222-333333333-2002)",
+        "Hash": "9309201A68AC9D6D8BC095C9F0C2D68C2E1B2A1863824BE02E42EFDDD2C2253C",
+        "Owner": "S-1-5-18",
+        "PrimaryGroup": "S-1-5-18",
+        "NullDacl": false,
+        "Protected": true,
+        "Canonical": true,
+        "HasSpecialAces": false,
+        "Aces": [
+          {
+            "Index": 0,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-2002",
+            "Name": "LAB\\Employees",
+            "Type": "AccessAllowed",
+            "Mask": 1179785,
+            "Flags": "None",
+            "Inherited": false,
+            "InheritOnly": false,
+            "Supported": true
+          }
+        ]
+      },
+      "Share": null,
+      "Decision": {
+        "Sid": "S-1-5-21-111111111-222222222-333333333-1001",
+        "Identity": "LAB\\Alex",
+        "State": "Partial",
+        "GrantedMask": 1179785,
+        "ShareMask": null,
+        "Basis": "Synthetic demonstration. Windows Authz evaluates supplied fixture SIDs and descriptors; this is not an actual user logon or file-open test.",
+        "Limitation": null,
+        "Evidence": [
+          {
+            "AceIndex": 0,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-2002",
+            "Identity": "LAB\\Employees",
+            "Relation": "GrantedBy",
+            "Mask": 1179785,
+            "ContributingMask": 1179785,
+            "Flags": "None",
+            "Source": "C:\\PermissionScope-Demo\\Shared",
+            "MembershipPath": [
+              {
+                "MemberSid": "S-1-5-21-111111111-222222222-333333333-1001",
+                "GroupSid": "S-1-5-21-111111111-222222222-333333333-2002",
+                "Source": "Synthetic fixture membership; supplied to Authz"
+              }
+            ]
+          }
+        ],
+        "EffectiveMask": 1179785,
+        "Capabilities": [
+          {
+            "Key": "ListReadData",
+            "Mask": 1,
+            "State": "Granted"
+          },
+          {
+            "Key": "TraverseExecute",
+            "Mask": 32,
+            "State": "Denied"
+          },
+          {
+            "Key": "Read",
+            "Mask": 1179785,
+            "State": "Granted"
+          },
+          {
+            "Key": "CreateWriteData",
+            "Mask": 2,
+            "State": "Denied"
+          },
+          {
+            "Key": "CreateFoldersAppend",
+            "Mask": 4,
+            "State": "Denied"
+          },
+          {
+            "Key": "Write",
+            "Mask": 1179926,
+            "State": "Partial"
+          },
+          {
+            "Key": "Modify",
+            "Mask": 1245631,
+            "State": "Partial"
+          },
+          {
+            "Key": "Delete",
+            "Mask": 65536,
+            "State": "Denied"
+          },
+          {
+            "Key": "DeleteChildren",
+            "Mask": 64,
+            "State": "Denied"
+          },
+          {
+            "Key": "ReadPermissions",
+            "Mask": 131072,
+            "State": "Granted"
+          },
+          {
+            "Key": "ChangePermissions",
+            "Mask": 262144,
+            "State": "Denied"
+          },
+          {
+            "Key": "TakeOwnership",
+            "Mask": 524288,
+            "State": "Denied"
+          },
+          {
+            "Key": "FullControl",
+            "Mask": 2032127,
+            "State": "Partial"
+          }
+        ]
+      },
+      "Findings": [
+        {
+          "Rule": "ProtectedDacl",
+          "Severity": "Review",
+          "Path": "C:\\PermissionScope-Demo\\Shared",
+          "Evidence": "Inheritance is disabled on this object.",
+          "Recommendation": "Confirm this permission boundary is intentional."
+        }
+      ],
+      "Error": null
+    },
+    {
+      "Path": "C:\\PermissionScope-Demo\\Private",
+      "IsDirectory": true,
+      "IsReparsePoint": false,
+      "ObservedAt": "2026-01-01T10:00:00+00:00",
+      "Descriptor": {
+        "Sddl": "O:SYG:SYD:P(D;;FA;;;S-1-5-21-111111111-222222222-333333333-1001)(A;;FR;;;S-1-5-21-111111111-222222222-333333333-2002)",
+        "Hash": "54E6AC7ACCC9249CB4FF0C874F9B39032AB436F5DF3A53CD8310F557E0E88CD1",
+        "Owner": "S-1-5-18",
+        "PrimaryGroup": "S-1-5-18",
+        "NullDacl": false,
+        "Protected": true,
+        "Canonical": true,
+        "HasSpecialAces": false,
+        "Aces": [
+          {
+            "Index": 0,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-1001",
+            "Name": "LAB\\Alex",
+            "Type": "AccessDenied",
+            "Mask": 2032127,
+            "Flags": "None",
+            "Inherited": false,
+            "InheritOnly": false,
+            "Supported": true
+          },
+          {
+            "Index": 1,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-2002",
+            "Name": "LAB\\Employees",
+            "Type": "AccessAllowed",
+            "Mask": 1179785,
+            "Flags": "None",
+            "Inherited": false,
+            "InheritOnly": false,
+            "Supported": true
+          }
+        ]
+      },
+      "Share": null,
+      "Decision": {
+        "Sid": "S-1-5-21-111111111-222222222-333333333-1001",
+        "Identity": "LAB\\Alex",
+        "State": "Denied",
+        "GrantedMask": 0,
+        "ShareMask": null,
+        "Basis": "Synthetic demonstration. Windows Authz evaluates supplied fixture SIDs and descriptors; this is not an actual user logon or file-open test.",
+        "Limitation": null,
+        "Evidence": [
+          {
+            "AceIndex": 0,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-1001",
+            "Identity": "LAB\\Alex",
+            "Relation": "DeniedBy",
+            "Mask": 2032127,
+            "ContributingMask": 2032127,
+            "Flags": "None",
+            "Source": "C:\\PermissionScope-Demo\\Private",
+            "MembershipPath": []
+          },
+          {
+            "AceIndex": 1,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-2002",
+            "Identity": "LAB\\Employees",
+            "Relation": "GrantedBy",
+            "Mask": 1179785,
+            "ContributingMask": 0,
+            "Flags": "None",
+            "Source": "C:\\PermissionScope-Demo\\Private",
+            "MembershipPath": [
+              {
+                "MemberSid": "S-1-5-21-111111111-222222222-333333333-1001",
+                "GroupSid": "S-1-5-21-111111111-222222222-333333333-2002",
+                "Source": "Synthetic fixture membership; supplied to Authz"
+              }
+            ]
+          }
+        ],
+        "EffectiveMask": 0,
+        "Capabilities": [
+          {
+            "Key": "ListReadData",
+            "Mask": 1,
+            "State": "Denied"
+          },
+          {
+            "Key": "TraverseExecute",
+            "Mask": 32,
+            "State": "Denied"
+          },
+          {
+            "Key": "Read",
+            "Mask": 1179785,
+            "State": "Denied"
+          },
+          {
+            "Key": "CreateWriteData",
+            "Mask": 2,
+            "State": "Denied"
+          },
+          {
+            "Key": "CreateFoldersAppend",
+            "Mask": 4,
+            "State": "Denied"
+          },
+          {
+            "Key": "Write",
+            "Mask": 1179926,
+            "State": "Denied"
+          },
+          {
+            "Key": "Modify",
+            "Mask": 1245631,
+            "State": "Denied"
+          },
+          {
+            "Key": "Delete",
+            "Mask": 65536,
+            "State": "Denied"
+          },
+          {
+            "Key": "DeleteChildren",
+            "Mask": 64,
+            "State": "Denied"
+          },
+          {
+            "Key": "ReadPermissions",
+            "Mask": 131072,
+            "State": "Denied"
+          },
+          {
+            "Key": "ChangePermissions",
+            "Mask": 262144,
+            "State": "Denied"
+          },
+          {
+            "Key": "TakeOwnership",
+            "Mask": 524288,
+            "State": "Denied"
+          },
+          {
+            "Key": "FullControl",
+            "Mask": 2032127,
+            "State": "Denied"
+          }
+        ]
+      },
+      "Findings": [
+        {
+          "Rule": "ProtectedDacl",
+          "Severity": "Review",
+          "Path": "C:\\PermissionScope-Demo\\Private",
+          "Evidence": "Inheritance is disabled on this object.",
+          "Recommendation": "Confirm this permission boundary is intentional."
+        }
+      ],
+      "Error": null
+    },
+    {
+      "Path": "\\\\LAB-FILESERVER\\Shared",
+      "IsDirectory": true,
+      "IsReparsePoint": false,
+      "ObservedAt": "2026-01-01T10:00:00+00:00",
+      "Descriptor": {
+        "Sddl": "O:SYG:SYD:P(A;;FR;;;S-1-5-21-111111111-222222222-333333333-2002)",
+        "Hash": "9309201A68AC9D6D8BC095C9F0C2D68C2E1B2A1863824BE02E42EFDDD2C2253C",
+        "Owner": "S-1-5-18",
+        "PrimaryGroup": "S-1-5-18",
+        "NullDacl": false,
+        "Protected": true,
+        "Canonical": true,
+        "HasSpecialAces": false,
+        "Aces": [
+          {
+            "Index": 0,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-2002",
+            "Name": "LAB\\Employees",
+            "Type": "AccessAllowed",
+            "Mask": 1179785,
+            "Flags": "None",
+            "Inherited": false,
+            "InheritOnly": false,
+            "Supported": true
+          }
+        ]
+      },
+      "Share": {
+        "Server": "LAB-FILESERVER",
+        "Share": "Shared",
+        "LocalPath": null,
+        "Descriptor": {
+          "Sddl": "O:SYG:SYD:P(A;;FR;;;S-1-5-21-111111111-222222222-333333333-2002)",
+          "Hash": "9309201A68AC9D6D8BC095C9F0C2D68C2E1B2A1863824BE02E42EFDDD2C2253C",
+          "Owner": "S-1-5-18",
+          "PrimaryGroup": "S-1-5-18",
+          "NullDacl": false,
+          "Protected": true,
+          "Canonical": true,
+          "HasSpecialAces": false,
+          "Aces": [
+            {
+              "Index": 0,
+              "Sid": "S-1-5-21-111111111-222222222-333333333-2002",
+              "Name": "LAB\\Employees",
+              "Type": "AccessAllowed",
+              "Mask": 1179785,
+              "Flags": "None",
+              "Inherited": false,
+              "InheritOnly": false,
+              "Supported": true
+            }
+          ]
+        },
+        "Error": "Synthetic server; no connection is made"
+      },
+      "Decision": {
+        "Sid": "S-1-5-21-111111111-222222222-333333333-1001",
+        "Identity": "LAB\\Alex",
+        "State": "Unknown",
+        "GrantedMask": 1179785,
+        "ShareMask": 1179785,
+        "Basis": "Synthetic demonstration. Windows Authz evaluates supplied fixture SIDs and descriptors; this is not an actual user logon or file-open test.",
+        "Limitation": "Synthetic remote example: the server logon token is not established.",
+        "Evidence": [
+          {
+            "AceIndex": 0,
+            "Sid": "S-1-5-21-111111111-222222222-333333333-2002",
+            "Identity": "LAB\\Employees",
+            "Relation": "GrantedBy",
+            "Mask": 1179785,
+            "ContributingMask": 1179785,
+            "Flags": "None",
+            "Source": "\\\\LAB-FILESERVER\\Shared",
+            "MembershipPath": [
+              {
+                "MemberSid": "S-1-5-21-111111111-222222222-333333333-1001",
+                "GroupSid": "S-1-5-21-111111111-222222222-333333333-2002",
+                "Source": "Synthetic fixture membership; supplied to Authz"
+              }
+            ]
+          }
+        ],
+        "EffectiveMask": 1179785,
+        "Capabilities": [
+          {
+            "Key": "ListReadData",
+            "Mask": 1,
+            "State": "Unknown"
+          },
+          {
+            "Key": "TraverseExecute",
+            "Mask": 32,
+            "State": "Unknown"
+          },
+          {
+            "Key": "Read",
+            "Mask": 1179785,
+            "State": "Unknown"
+          },
+          {
+            "Key": "CreateWriteData",
+            "Mask": 2,
+            "State": "Unknown"
+          },
+          {
+            "Key": "CreateFoldersAppend",
+            "Mask": 4,
+            "State": "Unknown"
+          },
+          {
+            "Key": "Write",
+            "Mask": 1179926,
+            "State": "Unknown"
+          },
+          {
+            "Key": "Modify",
+            "Mask": 1245631,
+            "State": "Unknown"
+          },
+          {
+            "Key": "Delete",
+            "Mask": 65536,
+            "State": "Unknown"
+          },
+          {
+            "Key": "DeleteChildren",
+            "Mask": 64,
+            "State": "Unknown"
+          },
+          {
+            "Key": "ReadPermissions",
+            "Mask": 131072,
+            "State": "Unknown"
+          },
+          {
+            "Key": "ChangePermissions",
+            "Mask": 262144,
+            "State": "Unknown"
+          },
+          {
+            "Key": "TakeOwnership",
+            "Mask": 524288,
+            "State": "Unknown"
+          },
+          {
+            "Key": "FullControl",
+            "Mask": 2032127,
+            "State": "Unknown"
+          }
+        ]
+      },
+      "Findings": [
+        {
+          "Rule": "ProtectedDacl",
+          "Severity": "Review",
+          "Path": "\\\\LAB-FILESERVER\\Shared",
+          "Evidence": "Inheritance is disabled on this object.",
+          "Recommendation": "Confirm this permission boundary is intentional."
+        }
+      ],
+      "Error": null
+    }
+  ],
+  "Groups": [
+    {
+      "MemberSid": "S-1-5-21-111111111-222222222-333333333-1001",
+      "GroupSid": "S-1-5-21-111111111-222222222-333333333-2001",
+      "Source": "Synthetic fixture membership; supplied to Authz"
+    },
+    {
+      "MemberSid": "S-1-5-21-111111111-222222222-333333333-1001",
+      "GroupSid": "S-1-5-21-111111111-222222222-333333333-2002",
+      "Source": "Synthetic fixture membership; supplied to Authz"
+    }
+  ],
+  "IdentityWarnings": [
+    "Synthetic demonstration: LAB identities, resource names, descriptors and timestamps are fictional. No machine inventory was collected."
+  ],
+  "DirectoryIdentity": null,
+  "FixtureId": "permissionscope-demo-v1"
+}

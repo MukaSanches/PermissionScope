@@ -23,11 +23,11 @@ public static class ReportExporter
     }
     public static string Csv(PermissionSnapshot snapshot)
     {
-        var output = new StringBuilder("\uFEFFPath,Identity,Decision,NTFS mask,Share mask,Effective mask,Observed UTC,Limitation,Error\r\n");
+        var output = new StringBuilder("\uFEFFPath,Identity,Decision,NTFS mask,Share mask,Effective mask,Observed UTC,Limitation,Error,Fixture\r\n");
         foreach (var r in snapshot.Resources)
             output.AppendLine(string.Join(',', new[] { r.Path, r.Decision?.Identity, r.Decision?.State.ToString(),
                 Hex(r.Decision?.GrantedMask), Hex(r.Decision?.ShareMask), r.Decision?.State == AccessState.Unknown ? "Unknown" : Hex(r.Decision?.EffectiveMask),
-                r.ObservedAt.ToString("O"), r.Decision?.Limitation, r.Error?.Message }.Select(Cell)));
+                r.ObservedAt.ToString("O"), r.Decision?.Limitation, r.Error?.Message, snapshot.FixtureId }.Select(Cell)));
         return output.ToString();
     }
     private static string Cell(string? value)
@@ -47,6 +47,7 @@ public static class ReportExporter
         html.Append("</tbody></table><h2>Access for the selected identity</h2><table><thead><tr><th>Path / identity</th><th>Decision</th><th>NTFS / share projection</th><th>Limitations</th></tr></thead><tbody>");
         foreach (var r in snapshot.Resources) html.Append($"<tr><td>{H(r.Path)}<br><small>{H(r.Decision?.Identity)}</small></td><td>{H(r.Decision?.State.ToString() ?? "Unknown")}</td><td><code>{Hex(r.Decision?.GrantedMask)} / {Hex(r.Decision?.ShareMask)}</code></td><td>{H(r.Decision?.Limitation ?? r.Error?.Message)}</td></tr>");
         html.Append("</tbody></table><h2>Why · Technical evidence</h2>");
+        if (snapshot.FixtureId != null) html.Append("<p class=\"note\">Synthetic demonstration: fictional identities, resources and permissions evaluated by Windows Authz. No machine inventory was collected.</p>");
         foreach (var r in snapshot.Resources)
         {
             html.Append($"<details><summary>{H(r.Path)}</summary><p>{H(r.Decision?.Basis)}</p><table><tr><th>Principal</th><th>Relation</th><th>Mask / contribution</th><th>Source</th></tr>");
@@ -63,7 +64,7 @@ public static class ReportExporter
     {
         var sheets = new (string Name, string[] Headers, IEnumerable<string[]> Rows)[]
         {
-            ("Summary", ["Field", "Value"], new[] { new[] { "Root", snapshot.Root }, ["Snapshot", snapshot.Id], ["Observed UTC", snapshot.CreatedAt.ToString("O")], ["Objects", snapshot.Resources.Count.ToString(CultureInfo.InvariantCulture)], ["Cancelled", snapshot.Cancelled.ToString()], ["Scope", "Discretionary permissions; remote masks are projections."] }),
+            ("Summary", ["Field", "Value"], new[] { new[] { "Root", snapshot.Root }, ["Snapshot", snapshot.Id], ["Fixture", snapshot.FixtureId ?? "Not a synthetic fixture"], ["Observed UTC", snapshot.CreatedAt.ToString("O")], ["Objects", snapshot.Resources.Count.ToString(CultureInfo.InvariantCulture)], ["Cancelled", snapshot.Cancelled.ToString()], ["Scope", "Discretionary permissions; remote masks are projections."] }),
             ("Access", ["Path", "Identity", "State", "NTFS mask", "Share mask", "Limitation"], snapshot.Resources.Select(r => new[] { r.Path, r.Decision?.Identity ?? "", r.Decision?.State.ToString() ?? "Unknown", Hex(r.Decision?.GrantedMask), Hex(r.Decision?.ShareMask), r.Decision?.Limitation ?? "" })),
             ("Findings", ["Path", "Rule", "Category", "Evidence", "Recommendation"], snapshot.Resources.SelectMany(r => r.Findings).Select(f => new[] { f.Path, f.Rule, f.Severity.ToString(), f.Evidence, f.Recommendation })),
             ("Identities", ["SID", "Name"], snapshot.Resources.SelectMany(r => r.Descriptor?.Aces ?? []).DistinctBy(a => a.Sid).Select(a => new[] { a.Sid, a.Name })),

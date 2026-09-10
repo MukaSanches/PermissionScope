@@ -1,64 +1,69 @@
+<!-- Generated from docs/content/locales.json by build/Build-Documentation.mjs. -->
 # PermissionScope
 
-Windows access analysis and permission explainability.
+[English](README.md) · [Português](README.pt-BR.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [العربية](README.ar.md) · [日本語](README.ja.md) · [简体中文](README.zh-Hans.md)
 
-See who has access. Understand why. Calculated. Not guessed.
+Understand who can access a folder — and inspect the rules behind the answer.
 
-![PermissionScope](docs/permissionscope.png)
+[Release downloads](https://github.com/MukaSanches/PermissionScope/releases) · [Visual walkthrough](docs/guides/en-US.md) · [Try the synthetic HTML report](https://mukasanches.github.io/PermissionScope/reports/permissionscope-demo.html)
 
-Native C# / WinUI 3 application and CLI. Free forever, local by default, no telemetry, accounts or paid features. Created by Samuel Sanches.
+![LAB\Alex receives Modify through LAB\Finance. These are native application captures using a synthetic Authz fixture, not a real company or altered results.](docs/screenshots/en-US/access-light.png)
 
-## Start with one question
+## Start in two minutes
 
-Select **Analyze**, choose a file or folder, and leave the identity blank to check your current Windows token. Open **Access Path** to inspect the applicable rules and available group evidence. **Technical details** retains the descriptor and masks for verification.
+1. Download the complete installer or portable ZIP from Releases. Choose x64 for Intel/AMD or ARM64 for an ARM PC.
+2. Install for your account, or extract the entire ZIP and open PermissionScope.exe.
+3. Choose Explore the demo to learn safely with LAB\Alex. For your files, choose Analyze and enter a folder.
+4. Leave the identity blank to use your current Windows token. Open Access Path to inspect the evidence.
 
-**Granted** means the discretionary rules allow a capability. **Denied** means they do not. **Unknown** means the available context cannot establish a reliable result. Other Windows restrictions can still prevent opening a file.
+## Read the result
 
-![Illustrative access-evidence flow; synthetic example, not an application screenshot](docs/access-path.svg)
+Granted allows the named action under the evaluated discretionary rules. Partial means only some actions are allowed. Denied means those rules grant no access. Unknown means the available context cannot confirm the answer; it is never treated as granted.
 
-## Use
+## Verify the explanation
 
-Run `PermissionScope.exe` from the complete portable directory, or use the per-user Setup installer. No separate .NET or Windows App Runtime installation is required. Keep the accompanying files together; the CLI is also the isolated scan worker.
+Windows Authz calculates the mask. Access Path shows contributing entries and recorded membership evidence. Inherited flags do not prove the originating ancestor. Full control in the discretionary ACL does not guarantee a successful file open.
 
-Analyze a file, folder, UNC path or mapped drive. Inspect discretionary capabilities for your Windows token, ACL principals, individual contributing ACEs, findings and raw descriptors. Save snapshots locally, compare observations and export HTML, CSV, JSON, XLSX or PDF.
+![LAB\Alex receives Modify through LAB\Finance. These are native application captures using a synthetic Authz fixture, not a real company or altered results.](docs/screenshots/en-US/access-path-light.png)
 
-Simulation changes a descriptor in memory. The optional apply workflow is restricted to ordinary local files and requires a typed path confirmation, a saved observation, a durable rollback record and a Windows reread. Directories, reparse points and hard links are excluded from remediation.
+## Keep the evidence
 
-## Calculation and scope
-
-Windows `AuthzAccessCheck` determines the discretionary mask. PermissionScope does not infer group membership from account names or replace Authz with shell scripts. Remote/S4U projections and conditional contexts are marked **Unknown**. An ACL principal is not a count of people. A missing observation does not prove deletion.
-
-Read [the access model](docs/access-model.md) and [supported scope](docs/release-status.md) before relying on an audit.
-
-The [Access Test Corpus](tests/PermissionScope.Tests/corpus/README.md) contains synthetic, executable Windows permission cases. Translation coverage and review boundaries are recorded in [language quality](docs/translation-quality.md).
-
-## Privacy
-
-No file contents are collected during analysis. Snapshots and settings live under `%LOCALAPPDATA%\PermissionScope`. The engine contacts only the Windows resources and directories necessary for the requested scope. No application server or generative model is used.
-
-See the [privacy policy](docs/privacy.md) and [security reporting policy](SECURITY.md). For isolated desktop tests, set the child process's `PERMISSIONSCOPE_DATA_DIR` to an absolute test directory; it does not change the normal data location for other processes. Scheduled tasks use their own process environment.
-
-## Build and test
-
-Requires Windows 10 1809 or later, .NET 10 SDK and Windows SDK build tools. Builds on Windows; x64 is exercised locally. The supplied isolated SDK is development tooling, not part of the source or installer.
+Save local snapshots, compare observations, simulate removing a permission entry in memory, and export HTML, CSV, JSON, XLSX or PDF. Missing resources in a later observation are not assumed deleted.
 
 ```powershell
-dotnet build PermissionScope.sln -c Release -p:Platform=x64
-dotnet run --project tests/PermissionScope.Tests -c Release -- --results artifacts/test-results.json
-./build/Package.ps1 -Architecture x64
-```
-
-The test project is an executable Windows integration harness; use the command above rather than `dotnet test`. Packaging uses NSIS 3.12 when available in `.toolchain/nsis-3.12`.
-
-```powershell
+./permissionscope-cli.exe demo --output ./demo-reports
 ./permissionscope-cli.exe explain "C:\Finance"
-./permissionscope-cli.exe scan "C:\Finance" --files --save
-./permissionscope-cli.exe list
+./permissionscope-cli.exe scan "C:\Finance" --save
 ./permissionscope-cli.exe export <snapshot-id> --format html --output report.html
 ```
 
-## Reporting problems
+## Scope and privacy
 
-Include the app version, Windows version, operation and error code. Prefer a minimal synthetic SDDL fixture over a real environment export. Never attach credentials or confidential paths without reviewing them.
+Remote logons, S4U contexts, conditional rules and unverified reparse targets remain Unknown. Integrity policy, encryption, locks and administrative privileges are outside this decision. No application telemetry, accounts or cloud service. Paths and account names in real exports can be sensitive.
 
-Public contact: Samuel Sanches · ssanches011@gmail.com. For vulnerabilities, follow [SECURITY.md](SECURITY.md).
+Analysis and simulation are read only. Applying a change is a separate, explicitly confirmed workflow for ordinary local files, with a saved observation, durable journal, verification and rollback. Directories, links and multi-link files are excluded.
+
+## Download and verify
+
+Windows 10 1809 or later. Complete packages include their runtimes. Installers are currently unsigned; verify SHA-256 against the release checksums. ARM64 is cross-built in CI; physical ARM execution is not certified. Store and WinGet availability must be checked in release status.
+
+## Choose your next step
+
+- [Visual walkthrough](docs/guides/en-US.md)
+- [Technical model](docs/access-model.md)
+- [FAQ and troubleshooting](docs/faq.md)
+- [Plain-language glossary](docs/glossary.md)
+- [Privacy](docs/privacy.md)
+- [Release status](docs/release-status.md)
+
+## Build and test
+
+Use Windows and .NET 10 SDK. Tests are an executable integration harness, not dotnet test. See the development guide for packaging and documentation verification.
+
+[Development](docs/development.md)
+
+## Help and contribution
+
+Include the version, Windows version, operation and error code. The Technical tab can copy a diagnostic without paths, account names or SIDs. Language packs are previews; technical evidence can remain in English. Native speaker review and assistive-technology certification are not claimed.
+
+Created by Samuel Sanches · ssanches011@gmail.com · [Apache-2.0](LICENSE) · [Security](SECURITY.md)

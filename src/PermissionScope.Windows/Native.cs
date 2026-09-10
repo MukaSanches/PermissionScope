@@ -44,6 +44,9 @@ internal static class Native
     internal static extern bool AuthzInitializeContextFromSid(uint flags, byte[] sid, ResourceManagerHandle manager, IntPtr expiration, Luid id, IntPtr args, out ContextHandle context);
     [DllImport("authz.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool AuthzAddSidsToContext(ContextHandle context, IntPtr sids, uint count, IntPtr restricted, uint restrictedCount, out ContextHandle result);
+    [DllImport("authz.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool AuthzAccessCheck(uint flags, ContextHandle context, ref AccessRequest request, IntPtr audit, byte[] descriptor, IntPtr optional, uint optionalCount, ref AccessReply reply, IntPtr results);
     [DllImport("authz.dll")][return: MarshalAs(UnmanagedType.Bool)] internal static extern bool AuthzFreeResourceManager(IntPtr handle);
     [DllImport("authz.dll")][return: MarshalAs(UnmanagedType.Bool)] internal static extern bool AuthzFreeContext(IntPtr handle);

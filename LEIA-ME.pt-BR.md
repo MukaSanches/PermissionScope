@@ -20,4 +20,4 @@ Leia a orientação exibida e abra **Detalhes técnicos**. O diagnóstico perman
 
 O instalador ainda não tem assinatura comercial; o Windows pode mostrar um aviso de editor desconhecido. O pacote MSIX sem assinatura é um artefato de distribuição, não o instalador recomendado.
 
-O código está sob licença MIT. Não há cobrança, assinatura, conta nem serviço próprio em nuvem. Consulte `docs/release-status.md` para os limites funcionais verificados.
+O código está sob licença Apache-2.0. Não há cobrança, assinatura, conta nem serviço próprio em nuvem. Consulte `docs/release-status.md` para os limites funcionais verificados.

@@ -1,0 +1,6 @@
+﻿Path,Identity,Decision,NTFS mask,Share mask,Effective mask,Observed UTC,Limitation,Error,Fixture
+"C:\PermissionScope-Demo\Finance","LAB\Alex","Partial","0x001301BF","","0x001301BF","2026-01-01T10:00:00.0000000+00:00","","","permissionscope-demo-v1"
+"C:\PermissionScope-Demo\Projects","LAB\Alex","Granted","0x001F01FF","","0x001F01FF","2026-01-01T10:00:00.0000000+00:00","","","permissionscope-demo-v1"
+"C:\PermissionScope-Demo\Shared","LAB\Alex","Partial","0x00120089","","0x00120089","2026-01-01T10:00:00.0000000+00:00","","","permissionscope-demo-v1"
+"C:\PermissionScope-Demo\Private","LAB\Alex","Denied","0x00000000","","0x00000000","2026-01-01T10:00:00.0000000+00:00","","","permissionscope-demo-v1"
+"\\LAB-FILESERVER\Shared","LAB\Alex","Unknown","0x00120089","0x00120089","Unknown","2026-01-01T10:00:00.0000000+00:00","Synthetic remote example: the server logon token is not established.","","permissionscope-demo-v1"
