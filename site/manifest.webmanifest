@@ -1,0 +1,24 @@
+{
+  "name": "PermissionScope",
+  "short_name": "PermissionScope",
+  "description": "Local-first Windows permission analysis with inspectable evidence.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#111722",
+  "theme_color": "#17315C",
+  "orientation": "any",
+  "lang": "en-US",
+  "dir": "auto",
+  "categories": ["utilities", "developer", "security", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {"src":"pwa-icon-192.svg","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"},
+    {"src":"pwa-icon-512.svg","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}
+  ],
+  "shortcuts": [
+    {"name":"Download","short_name":"Download","url":"./#download-premium"},
+    {"name":"Verify SHA-256","short_name":"Verify","url":"./#local-verification"}
+  ]
+}
