@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+// This post-processes the single README generator so every locale receives the same visual system.
 const root=path.resolve(import.meta.dirname,'..');
 const file=path.join(root,'build/Build-Documentation.mjs');
 let src=fs.readFileSync(file,'utf8');
