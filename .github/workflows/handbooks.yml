@@ -1,0 +1,50 @@
+name: Multilingual handbooks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'build/Generate-Handbooks.mjs'
+      - 'docs/content/locales.json'
+      - '.github/workflows/handbooks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: handbooks-main
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: node build/Generate-Handbooks.mjs
+      - name: Verify PDFs
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(find docs/handbooks -maxdepth 1 -name 'PermissionScope-Handbook-*.pdf' | wc -l)" -eq 8
+          test -f docs/handbooks/README.md
+      - name: Commit generated handbooks
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/handbooks
+          if git diff --cached --quiet; then
+            echo 'Handbooks already current.'
+            exit 0
+          fi
+          git commit -m 'Generate official multilingual PermissionScope handbooks'
+          git push
