@@ -89,6 +89,13 @@ jobs:
           subject-path: |
             artifacts/PermissionScope-1.0.0-${{ matrix.architecture }}-Setup.exe
             artifacts/PermissionScope-1.0.0-win-${{ matrix.architecture }}.zip
+      - name: Attest package SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            artifacts/PermissionScope-1.0.0-${{ matrix.architecture }}-Setup.exe
+            artifacts/PermissionScope-1.0.0-win-${{ matrix.architecture }}.zip
+          sbom-path: artifacts/PermissionScope-1.0.0-win-${{ matrix.architecture }}/sbom.cdx.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: PermissionScope-v1.0.0-${{ matrix.architecture }}
