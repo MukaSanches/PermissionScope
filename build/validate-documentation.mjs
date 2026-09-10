@@ -5,12 +5,16 @@ const root=path.resolve(import.meta.dirname,'..');
 const locales=JSON.parse(fs.readFileSync(path.join(root,'docs/content/locales.json'),'utf8'));
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'docs/screenshots/manifest.json'),'utf8').replace(/^\uFEFF/,''));
 const scenes=['home','analyze','access','access-path','compare','simulation','technical','unknown'];
+const canonicalReadme=fs.readFileSync(path.join(root,'README.md'),'utf8');
+const expectedReadmeSections=(canonicalReadme.match(/^## /gm)||[]).length;
+if(expectedReadmeSections<9)throw Error(`README canonical structure unexpectedly small: ${expectedReadmeSections}`);
 for(const locale of Object.keys(locales)) {
   for(const scene of scenes) if(!manifest.captures.some(c=>c.locale===locale&&c.scene===scene&&c.theme==='Light'))throw Error(`Missing capture ${locale}/${scene}`);
   if(!manifest.captures.some(c=>c.locale===locale&&c.scene==='access'&&c.theme==='Dark'))throw Error(`Missing dark capture ${locale}`);
-  const readme=fs.readFileSync(path.join(root,locale==='en-US'?'README.md':`README.${locale}.md`),'utf8');
+  const readme=locale==='en-US'?canonicalReadme:fs.readFileSync(path.join(root,`README.${locale}.md`),'utf8');
   if(!readme.includes(`docs/screenshots/${locale}/access-light.png`))throw Error(`README screenshot locale mismatch: ${locale}`);
-  if((readme.match(/^## /gm)||[]).length!==9)throw Error(`README section parity: ${locale}`);
+  const sectionCount=(readme.match(/^## /gm)||[]).length;
+  if(sectionCount!==expectedReadmeSections)throw Error(`README section parity: ${locale} has ${sectionCount}, expected ${expectedReadmeSections}`);
 }
 for(const capture of manifest.captures) {
   const file=path.resolve(root,'docs/screenshots',capture.path);
