@@ -1,0 +1,86 @@
+name: Publish PermissionScope 1.0.0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-v1.0.0.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-v1.0.0
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Package ${{ matrix.architecture }}
+    runs-on: windows-2022
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, arm64]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install NSIS
+        run: choco install nsis --version=3.12 -y --no-progress
+      - name: Package
+        shell: pwsh
+        run: ./build/Package.ps1 -Architecture ${{ matrix.architecture }}
+      - name: Smoke-test installer
+        if: matrix.architecture == 'x64'
+        shell: pwsh
+        run: ./build/Test-Installer.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: PermissionScope-release-${{ matrix.architecture }}
+          path: |
+            artifacts/PermissionScope-1.0.0-${{ matrix.architecture }}-Setup.exe
+            artifacts/PermissionScope-1.0.0-win-${{ matrix.architecture }}.zip
+            artifacts/SHA256SUMS-${{ matrix.architecture }}.txt
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Download packaged artifacts
+        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --dir release-assets
+      - name: Verify release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected=(
+            PermissionScope-1.0.0-x64-Setup.exe
+            PermissionScope-1.0.0-win-x64.zip
+            SHA256SUMS-x64.txt
+            PermissionScope-1.0.0-arm64-Setup.exe
+            PermissionScope-1.0.0-win-arm64.zip
+            SHA256SUMS-arm64.txt
+          )
+          for file in "${expected[@]}"; do
+            match="$(find release-assets -type f -name "$file" -print -quit)"
+            test -n "$match" || { echo "Missing release asset: $file"; exit 1; }
+          done
+      - name: Create release and upload binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh release view v1.0.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create v1.0.0 \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "PermissionScope 1.0.0" \
+              --notes "First public PermissionScope release. Free, local Windows permission analysis with x64 and ARM64 packages. Installers are currently unsigned; verify SHA-256 using the published checksum files. ARM64 is cross-built in CI and is not yet certified on physical ARM hardware."
+          fi
+          mapfile -t assets < <(find release-assets -type f \( -name 'PermissionScope-1.0.0-*-Setup.exe' -o -name 'PermissionScope-1.0.0-win-*.zip' -o -name 'SHA256SUMS-*.txt' \) -print)
+          gh release upload v1.0.0 "${assets[@]}" --repo "$GITHUB_REPOSITORY" --clobber
