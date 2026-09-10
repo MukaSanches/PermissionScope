@@ -27,3 +27,5 @@ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const updateScroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;document.documentElement.style.setProperty('--ps-scroll',max>0?String(Math.min(1,scrollY/max)):'0');};
 addEventListener('scroll',updateScroll,{passive:true});addEventListener('resize',updateScroll,{passive:true});updateScroll();
 if(!reduce&&'IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting){entry.target.classList.add('ps-in');observer.unobserve(entry.target);}}},{threshold:.08,rootMargin:'0px 0px -7% 0px'});document.querySelectorAll('main>section,.trust').forEach(el=>{el.classList.add('ps-reveal');observer.observe(el);});}
+const futureStyle=document.createElement('link');futureStyle.rel='stylesheet';futureStyle.href='future.css';document.head.appendChild(futureStyle);
+const futureScript=document.createElement('script');futureScript.src='future.js';futureScript.async=false;document.body.appendChild(futureScript);
