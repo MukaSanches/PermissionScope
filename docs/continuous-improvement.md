@@ -1,5 +1,40 @@
 # Continuous improvement ledger
 
+## Rodada 2026-09-10 17:07 UTC — implementada e validada, integração adiada
+
+- Apache-2.0 já implementada em `c79d101` e presente no PR #8; não repetir a migração. PR #8 ainda aberto no início desta rodada, head `c8e66fe`: CI x64 falhou, ARM64 e CodeQL passaram. A tarefa de publicação está corrigindo o fingerprint SVG (LF/CRLF) e preparando os pacotes.
+- Coordenação confirmada: prioridade do usuário na outra tarefa é publicar a entrega existente, sem novas capturas/refactors. Não editar seu checkout, integrar este lote ou executar carga pesada durante a publicação.
+- Trabalho isolado em `PermissionScope-benchmarks`, branch `codex/scan-scale-benchmark`, base `c8e66fe`. Escopo: harness reproduzível de benchmark, smoke pequeno e documentação. Nenhuma alteração no motor, app ou site.
+- Próximo passo: após a entrega ativa, integrar o lote isolado `codex/scan-scale-benchmark`, confirmar a versão do CLI/pacote e executar os cenários de 10 mil/100 mil em ambiente controlado. Não repetir a licença nem considerar os resultados pequenos prova de escala.
+- Equipe: engenharia implementou o harness; produto revisou concorrentes e prioridades; qualidade revisou segurança e semântica das medições. Produto e engenharia concordaram em priorizar CI/publicação e medir antes de mudar a arquitetura de scans.
+
+### Relatório de implementação e validação
+
+- Implementado: `build/Measure-Scan.ps1` com fixture exclusiva, limite de tempo, coleta de memória do CLI e saída em arquivos, validação do snapshot e teste separado de término forçado. Default de 100 arquivos; opt-in para mais de 10 mil. Nenhuma exclusão automática, alteração de ACL ou snapshot salvo na base do aplicativo.
+- Documentado em `docs/benchmarks.md`: comandos, escopo, limites e cuidado com dados de identidade presentes nas saídas brutas. Apenas métricas sanitizadas aparecem neste relatório.
+- QA encontrou e corrigiu falso positivo na execução que termina antes do pedido de cancelamento: agora exige exit 0 e snapshot válido/completo. Contagem de Unknown inclui decisões ausentes. Root e schema também são verificados.
+- Validação final: parser PowerShell aprovado; smoke em NTFS com 100 arquivos e 101 diretórios (201 objetos), zero erros/Unknown, exit 0 e snapshot válido. Tempo 546,923 ms; pico observado CLI 40.783.872 bytes em sete amostras. Término forçado do processo: 26,2765 ms. Não mede GUI.
+- O smoke inicial, antes das correções de QA, levou 13.006,3774 ms para os mesmos 201 objetos. A variabilidade e as tarefas concorrentes impedem tratar esses tempos como benchmark estável ou ganho de desempenho.
+- `npm run check`, `node build/validate-documentation.mjs` (42 documentos, 72 imagens, oito idiomas) e `git diff --check` passaram. Sem build completo, novo harness Windows ou teste visual: nenhuma lógica do app/site foi alterada. Os cenários de timeout e conclusão antes do cancelamento foram revisados no código, mas não reproduzidos por testes controlados nesta rodada.
+- Entrega: branch separada `codex/scan-scale-benchmark`, sem merge, release ou deploy deste lote. A publicação do PR #8 continua sob responsabilidade da tarefa ativa. A ausência de benchmark pesado é uma decisão de coordenação, não um resultado de performance.
+
+### Autoanálise competitiva — 10/09/2026, segunda rodada
+
+As fontes oficiais foram reabertas nesta rodada. Nenhuma mudança material nas capacidades anunciadas foi identificada.
+
+| Dimensão | Comparação e evolução desde a rodada anterior |
+| --- | --- |
+| Recursos e cobertura | AccessChk também cobre Registro, serviços e processos. Netwrix/SolarWinds destacam usuários, grupos e herança. PermissionScope mantém foco em arquivos, evidências por ACE, snapshots e rollback; o harness não amplia cobertura funcional. |
+| Correção e confiabilidade | Authz e Unknown preservam explicações e limites. Domínios/DFS ainda têm limitações. Não executamos corpus comparativo. A falha x64 do PR torna sua correção e validação do pacote prioridades imediatas. |
+| Desempenho | Ainda não há medição comparativa nem scan 10k/100k concluído. O harness proposto mede CLI/worker, não memória total da GUI nem latência do botão de cancelar. Uma execução pequena serve para validar o instrumento, não para declarar escala. |
+| UX e acessibilidade | Evolução proposta no PR #8: oito idiomas, 72 capturas e zero achados axe relatados em três larguras. São evidências do site/documentação; não certificam acessibilidade WinUI, traduções ou usabilidade comparativa. |
+| Privacidade | Execução local, sem conta ou telemetria, permanece compromisso do projeto. Não houve auditoria comparativa de privacidade. Saídas brutas de benchmark podem conter caminhos e identidades do token local e devem permanecer locais. |
+| Documentação, distribuição e manutenção | A migração Apache-2.0 está implementada no PR, com verificações de LICENSE/NOTICE. Documentação e entrega avançaram desde a rodada anterior, mas o PR estava aberto na consulta inicial. Publicação e aprovação de canais não podem ser presumidas. |
+
+Síntese: o projeto avançou em apresentação e verificabilidade, mas segue sem evidência de superioridade corporativa ou de desempenho. A prioridade discutida entre produto e engenharia foi publicação verificável, depois medição real de escala; qualidade revisa o instrumento antes do uso. Nenhuma nota numérica foi atribuída por falta de critérios e testes equivalentes.
+
+Fontes oficiais consultadas em 10/09/2026: [Microsoft AccessChk](https://learn.microsoft.com/en-us/sysinternals/downloads/accesschk), [Netwrix Effective Permissions Reporting Tool](https://netwrix.com/en/resources/freeware/effective-permissions-reporting-tool/) e [SolarWinds Permissions Analyzer](https://www.solarwinds.com/free-tools/permissions-analyzer-for-active-directory).
+
 ## Current checkpoint — 2026-09-10
 
 Working branch: `codex/documentation-and-explainability`. Base main: `6335eed`. Repository: [MukaSanches/PermissionScope](https://github.com/MukaSanches/PermissionScope).
