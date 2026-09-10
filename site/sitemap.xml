@@ -1,11 +1,99 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  <url><loc>https://mukasanches.github.io/PermissionScope/index.html</loc><xhtml:link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html"/><xhtml:link rel="alternate" hreflang="en-US" href="https://mukasanches.github.io/PermissionScope/index.html"/><xhtml:link rel="alternate" hreflang="pt-BR" href="https://mukasanches.github.io/PermissionScope/index.pt-BR.html"/><xhtml:link rel="alternate" hreflang="es" href="https://mukasanches.github.io/PermissionScope/index.es.html"/><xhtml:link rel="alternate" hreflang="fr" href="https://mukasanches.github.io/PermissionScope/index.fr.html"/><xhtml:link rel="alternate" hreflang="de" href="https://mukasanches.github.io/PermissionScope/index.de.html"/><xhtml:link rel="alternate" hreflang="ar" href="https://mukasanches.github.io/PermissionScope/index.ar.html"/><xhtml:link rel="alternate" hreflang="ja" href="https://mukasanches.github.io/PermissionScope/index.ja.html"/><xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"/></url>
-  <url><loc>https://mukasanches.github.io/PermissionScope/index.pt-BR.html</loc></url>
-  <url><loc>https://mukasanches.github.io/PermissionScope/index.es.html</loc></url>
-  <url><loc>https://mukasanches.github.io/PermissionScope/index.fr.html</loc></url>
-  <url><loc>https://mukasanches.github.io/PermissionScope/index.de.html</loc></url>
-  <url><loc>https://mukasanches.github.io/PermissionScope/index.ar.html</loc></url>
-  <url><loc>https://mukasanches.github.io/PermissionScope/index.ja.html</loc></url>
-  <url><loc>https://mukasanches.github.io/PermissionScope/index.zh-Hans.html</loc></url>
+  <url>
+    <loc>https://mukasanches.github.io/PermissionScope/index.html</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mukasanches.github.io/PermissionScope/index.pt-BR.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mukasanches.github.io/PermissionScope/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mukasanches.github.io/PermissionScope/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://mukasanches.github.io/PermissionScope/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://mukasanches.github.io/PermissionScope/index.ar.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://mukasanches.github.io/PermissionScope/index.ja.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"/>
+  </url>
+  <url>
+    <loc>https://mukasanches.github.io/PermissionScope/index.pt-BR.html</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mukasanches.github.io/PermissionScope/index.pt-BR.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mukasanches.github.io/PermissionScope/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mukasanches.github.io/PermissionScope/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://mukasanches.github.io/PermissionScope/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://mukasanches.github.io/PermissionScope/index.ar.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://mukasanches.github.io/PermissionScope/index.ja.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"/>
+  </url>
+  <url>
+    <loc>https://mukasanches.github.io/PermissionScope/index.es.html</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mukasanches.github.io/PermissionScope/index.pt-BR.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mukasanches.github.io/PermissionScope/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mukasanches.github.io/PermissionScope/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://mukasanches.github.io/PermissionScope/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://mukasanches.github.io/PermissionScope/index.ar.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://mukasanches.github.io/PermissionScope/index.ja.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"/>
+  </url>
+  <url>
+    <loc>https://mukasanches.github.io/PermissionScope/index.fr.html</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mukasanches.github.io/PermissionScope/index.pt-BR.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mukasanches.github.io/PermissionScope/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mukasanches.github.io/PermissionScope/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://mukasanches.github.io/PermissionScope/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://mukasanches.github.io/PermissionScope/index.ar.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://mukasanches.github.io/PermissionScope/index.ja.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"/>
+  </url>
+  <url>
+    <loc>https://mukasanches.github.io/PermissionScope/index.de.html</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mukasanches.github.io/PermissionScope/index.pt-BR.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mukasanches.github.io/PermissionScope/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mukasanches.github.io/PermissionScope/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://mukasanches.github.io/PermissionScope/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://mukasanches.github.io/PermissionScope/index.ar.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://mukasanches.github.io/PermissionScope/index.ja.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"/>
+  </url>
+  <url>
+    <loc>https://mukasanches.github.io/PermissionScope/index.ar.html</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mukasanches.github.io/PermissionScope/index.pt-BR.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mukasanches.github.io/PermissionScope/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mukasanches.github.io/PermissionScope/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://mukasanches.github.io/PermissionScope/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://mukasanches.github.io/PermissionScope/index.ar.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://mukasanches.github.io/PermissionScope/index.ja.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"/>
+  </url>
+  <url>
+    <loc>https://mukasanches.github.io/PermissionScope/index.ja.html</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mukasanches.github.io/PermissionScope/index.pt-BR.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mukasanches.github.io/PermissionScope/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mukasanches.github.io/PermissionScope/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://mukasanches.github.io/PermissionScope/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://mukasanches.github.io/PermissionScope/index.ar.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://mukasanches.github.io/PermissionScope/index.ja.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"/>
+  </url>
+  <url>
+    <loc>https://mukasanches.github.io/PermissionScope/index.zh-Hans.html</loc>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://mukasanches.github.io/PermissionScope/index.html"/>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://mukasanches.github.io/PermissionScope/index.pt-BR.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://mukasanches.github.io/PermissionScope/index.es.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://mukasanches.github.io/PermissionScope/index.fr.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://mukasanches.github.io/PermissionScope/index.de.html"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://mukasanches.github.io/PermissionScope/index.ar.html"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://mukasanches.github.io/PermissionScope/index.ja.html"/>
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"/>
+  </url>
 </urlset>
