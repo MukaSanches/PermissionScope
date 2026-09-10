@@ -1,15 +1,59 @@
-const CACHE='permissionscope-shell-v2';
-const CORE=['./','./index.html','./index.pt-BR.html','./style.css','./premium.css','./experience.css','./future.css','./responsive.css','./intelligence.css','./site.js','./experience.js','./future.js','./intelligence.js','./logo.svg','./manifest.webmanifest','./pwa-icon-192.svg','./pwa-icon-512.svg'];
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));});
-self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
+const CACHE='permissionscope-shell-v3';
+const PAGES=['./index.html','./index.pt-BR.html','./index.es.html','./index.fr.html','./index.de.html','./index.ar.html','./index.ja.html','./index.zh-Hans.html'];
+const CORE=['./',...PAGES,'./404.html','./style.css','./premium.css','./experience.css','./future.css','./responsive.css','./intelligence.css','./site.js','./experience.js','./future.js','./intelligence.js','./logo.svg','./manifest.webmanifest','./pwa-icon-192.svg','./pwa-icon-512.svg'];
+
+self.addEventListener('install',event=>{
+  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));
+});
+
+self.addEventListener('activate',event=>{
+  event.waitUntil((async()=>{
+    await Promise.all((await caches.keys()).filter(key=>key!==CACHE).map(key=>caches.delete(key)));
+    if(self.registration.navigationPreload)await self.registration.navigationPreload.enable();
+    await self.clients.claim();
+  })());
+});
+
+const offlinePage=request=>{
+  const name=new URL(request.url).pathname.split('/').pop();
+  return PAGES.includes(`./${name}`)?`./${name}`:'./index.html';
+};
+
 self.addEventListener('fetch',event=>{
-  const req=event.request;
-  if(req.method!=='GET')return;
-  const url=new URL(req.url);
+  const request=event.request;
+  if(request.method!=='GET'||request.headers.has('range'))return;
+  const url=new URL(request.url);
   if(url.origin!==self.location.origin)return;
-  if(req.mode==='navigate'){
-    event.respondWith(fetch(req).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));return res;}).catch(()=>caches.match(req).then(r=>r||caches.match('./index.html'))));
+
+  if(request.mode==='navigate'){
+    event.respondWith((async()=>{
+      try{
+        const response=(await event.preloadResponse)||await fetch(request);
+        if(response?.ok){
+          const copy=response.clone();
+          event.waitUntil(caches.open(CACHE).then(cache=>cache.put(request,copy)));
+        }
+        return response;
+      }catch{
+        return (await caches.match(request))||(await caches.match(offlinePage(request)))||(await caches.match('./index.html'));
+      }
+    })());
     return;
   }
-  event.respondWith(caches.match(req).then(hit=>hit||fetch(req).then(res=>{if(res.ok&&url.pathname.includes('/PermissionScope/')){const copy=res.clone();caches.open(CACHE).then(c=>c.put(req,copy));}return res;})));
+
+  event.respondWith((async()=>{
+    const cached=await caches.match(request);
+    const network=fetch(request).then(async response=>{
+      if(response.ok&&response.type==='basic'){
+        const cache=await caches.open(CACHE);
+        await cache.put(request,response.clone());
+      }
+      return response;
+    });
+    if(cached){
+      event.waitUntil(network.catch(()=>undefined));
+      return cached;
+    }
+    try{return await network;}catch{return new Response('',{status:504,statusText:'Offline'});}
+  })());
 });
