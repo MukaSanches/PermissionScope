@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup><ProjectReference Include="../PermissionScope.Core/PermissionScope.Core.csproj" /></ItemGroup>
+  <ItemGroup><PackageReference Include="System.DirectoryServices.Protocols" Version="10.0.12" /></ItemGroup>
+</Project>

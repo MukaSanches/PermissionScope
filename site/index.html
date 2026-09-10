@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Native Windows permission analysis. Follow the evidence, compare changes, and test permissions. Free forever, local, no account.">
+  <meta name="color-scheme" content="light dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>PermissionScope — See who has access. Understand why.</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main" data-text="skip">Skip to content</a>
+  <header class="shell navigation">
+    <a class="wordmark" href="./" aria-label="PermissionScope home"><img src="logo.svg" width="30" height="34" alt="">PermissionScope</a>
+    <nav aria-label="Main navigation"><a href="#evidence" data-text="navEvidence">Evidence</a><a href="#download" data-text="navDownload">Download</a><a href="https://github.com/MukaSanches/PermissionScope">GitHub</a></nav>
+    <label class="language"><span class="sr-only" data-text="language">Language</span><select id="language"><option value="en">English</option><option value="pt-BR">Português</option></select></label>
+  </header>
+  <main id="main">
+    <section class="shell hero">
+      <p class="eyebrow" data-text="eyebrow">Windows access intelligence</p>
+      <h1 data-text="hero">See who has access.<br>Understand why.</h1>
+      <p class="lede" data-text="intro">Read the permissions. Follow the evidence. Know what changed — without sending your environment to a cloud service.</p>
+      <div class="actions"><a class="primary" href="#download" data-text="download">Get PermissionScope</a><a class="text-link" href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/access-model.md" data-text="model">Read the access model <span aria-hidden="true">→</span></a></div>
+      <p class="promise" data-text="promise">Free forever · Local · No account</p>
+      <figure class="product"><img src="application.png" width="2048" height="1152" alt="PermissionScope's native Windows interface with folder analysis and saved scans" fetchpriority="high"><figcaption data-text="caption">The actual Windows application. No web wrapper. No fabricated results.</figcaption></figure>
+    </section>
+    <section class="shell section" id="evidence">
+      <div class="section-heading"><p class="eyebrow" data-text="calculated">Calculated. Not guessed.</p><h2 data-text="evidenceTitle">A result you can question.</h2><p data-text="evidenceIntro">A permission answer is only useful when you can inspect what supports it. Access Path keeps that evidence attached to the result.</p></div>
+      <div class="features">
+        <article><span class="index" aria-hidden="true">01</span><h3 data-text="whoTitle">Who</h3><p data-text="who">Inspect the accounts and groups in a folder's access rules. Evaluate one selected Windows identity — not an invented count of everyone who could have access.</p></article>
+        <article><span class="index" aria-hidden="true">02</span><h3 data-text="whyTitle">Why</h3><p data-text="why">Follow contributing permission entries, token membership and proven group relationships. Open the original security descriptor when you need the raw evidence.</p></article>
+        <article><span class="index" aria-hidden="true">03</span><h3 data-text="changeTitle">What changed</h3><p data-text="change">Save local observations and compare descriptors and evaluated access. A resource absent from a later scan is not automatically called deleted.</p></article>
+        <article><span class="index" aria-hidden="true">04</span><h3 data-text="simulationTitle">What if</h3><p data-text="simulation">Remove a permission entry in memory and recalculate. Applying a change is separate: local files only, explicit confirmation, a journal and verified rollback.</p></article>
+      </div>
+    </section>
+    <section class="trust section" id="trust"><div class="shell trust-grid">
+      <div><p class="eyebrow" data-text="trustLabel">Technical trust</p><h2 data-text="unknownTitle">“Unknown” is an honest answer.</h2></div>
+      <div><p data-text="unknown">Windows Authz calculates discretionary access. A remote token, a conditional rule or an unproven inheritance origin is not filled in with a guess.</p><p data-text="limits">An allowed permission does not guarantee a successful file open. Encryption, locks, integrity policies and other Windows restrictions can still apply. Remote results are deliberately conservative.</p><a class="text-link" href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md" data-text="scope">Read the supported scope →</a></div>
+    </div></section>
+    <section class="shell section download-grid" id="download">
+      <div><p class="eyebrow" data-text="downloadLabel">PermissionScope for Windows</p><h2 data-text="downloadTitle">Your permissions.<br>Your machine.</h2><p data-text="requirements">Windows 10 1809 or later. Native WinUI 3. The complete packages include the .NET and Windows App SDK runtimes.</p></div>
+      <div class="downloads">
+        <a class="download-row" href="https://github.com/MukaSanches/PermissionScope/releases/download/v1.0.0/PermissionScope-1.0.0-x64-Setup.exe"><span><strong data-text="x64">Windows x64 installer</strong><small data-text="x64Hint">Most Intel and AMD computers</small></span><span aria-hidden="true">↓</span></a>
+        <a class="download-row" href="https://github.com/MukaSanches/PermissionScope/releases/download/v1.0.0/PermissionScope-1.0.0-win-x64.zip"><span><strong data-text="portable">Portable x64 ZIP</strong><small data-text="portableHint">Extract the entire folder; no installation</small></span><span aria-hidden="true">↓</span></a>
+        <a class="download-row" href="https://github.com/MukaSanches/PermissionScope/releases/download/v1.0.0/PermissionScope-1.0.0-arm64-Setup.exe"><span><strong data-text="arm">Windows ARM64 installer</strong><small data-text="armHint">Cross-compiled; not runtime-tested on an ARM device</small></span><span aria-hidden="true">↓</span></a>
+        <p class="small" data-text="unsigned">The installers are currently unsigned. Windows may display an unknown-publisher warning. Check the release hashes before use.</p>
+        <div class="actions"><a href="https://github.com/MukaSanches/PermissionScope/releases/tag/v1.0.0" data-text="release">Release notes and hashes</a><a href="https://github.com/MukaSanches/PermissionScope" data-text="source">Source code</a></div>
+      </div>
+    </section>
+    <section class="shell section privacy" id="privacy"><h2 data-text="privacyTitle">Privacy is part of the architecture.</h2><p data-text="privacy">No account, advertising, application telemetry or paid tier. Snapshots stay on your computer. Windows contacts only the network resources needed for your requested analysis. Review reports before sharing: paths and account names can be sensitive.</p><p class="small" data-text="hosting">This site has no analytics or external fonts. GitHub, as the hosting and download provider, processes normal web requests under its own policies.</p><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/privacy.md" data-text="privacyLink">Privacy details →</a></section>
+  </main>
+  <footer class="shell"><span>PermissionScope</span><span data-text="footer">Free forever. Open source under MIT.</span><a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md" data-text="security">Report a security issue</a></footer>
+</body>
+</html>

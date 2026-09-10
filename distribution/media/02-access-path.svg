@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+<title id="title">PermissionScope: understand the evidence</title><desc id="desc">Synthetic illustrative access path; a diagram, not an application screenshot.</desc>
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#2764E7" stroke-width="1.6"/></marker></defs>
+<rect width="1440" height="900" fill="#F5F7FB"/><rect width="1440" height="16" fill="#2764E7"/>
+<g font-family="Segoe UI, Arial, sans-serif" fill="#17315C">
+<text x="80" y="105" font-size="27" font-weight="600">PermissionScope</text><text x="80" y="200" font-size="55" font-weight="600">See who has access.</text><text x="80" y="266" font-size="55" font-weight="600">Understand why.</text><text x="80" y="324" font-size="23" fill="#49566B">Follow the evidence behind a Windows permission result.</text>
+<g fill="#FFFFFF" stroke="#D6DEEB" stroke-width="2"><rect x="80" y="400" width="225" height="185" rx="10"/><rect x="355" y="400" width="225" height="185" rx="10"/><rect x="630" y="400" width="225" height="185" rx="10"/><rect x="905" y="400" width="455" height="185" rx="10"/></g>
+<g stroke="#2764E7" stroke-width="3" marker-end="url(#arrow)"><path d="M310 490 H343"/><path d="M585 490 H618"/><path d="M860 490 H893"/></g>
+<g font-size="17" fill="#49566B"><text x="104" y="436">IDENTITY</text><text x="379" y="436">GROUP</text><text x="654" y="436">PERMISSION ENTRY</text><text x="929" y="436">RESOURCE + RESULT</text></g>
+<g font-size="26" font-weight="600"><text x="104" y="488">Example user</text><text x="379" y="488">Project readers</text><text x="654" y="488">Allow read</text><text x="929" y="488">Project file</text></g>
+<g font-size="19" fill="#49566B"><text x="104" y="533">Selected context</text><text x="379" y="533">Membership evidence</text><text x="654" y="533">Inspectable rule</text><text x="929" y="533">Windows Authz discretionary decision</text></g>
+<rect x="80" y="635" width="1280" height="105" rx="8" fill="#E8EEFA"/><text x="105" y="676" font-size="23" font-weight="600">Calculated. Not guessed.</text><text x="105" y="714" font-size="21">Missing context stays Unknown. A permission result is not proof that a file will open.</text>
+<text x="80" y="805" font-size="24" font-weight="600">Free forever · Local · No account</text><text x="80" y="851" font-size="18" fill="#49566B">Illustrative synthetic example · Diagram, not an application screenshot · Created by Samuel Sanches</text></g></svg>

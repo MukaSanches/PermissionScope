@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../src/PermissionScope.Windows/PermissionScope.Windows.csproj" /></ItemGroup>
+  <ItemGroup><Content Include="corpus/*.json" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+</Project>

@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><AssemblyName>permissionscope-cli</AssemblyName></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../PermissionScope.Windows/PermissionScope.Windows.csproj" /></ItemGroup>
+</Project>

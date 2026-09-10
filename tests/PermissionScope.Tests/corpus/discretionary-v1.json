@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "identitySid": "S-1-5-21-111111111-222222222-333333333-1001",
+  "context": "Authz isolated SID fixture; not a real logon token",
+  "cases": [
+    { "name": "Null DACL permits all discretionary rights", "sddl": "O:SYG:SYD:NO_ACCESS_CONTROL", "mask": "001F01FF" },
+    { "name": "Empty DACL gives a non-owner no rights", "sddl": "O:SYG:SYD:", "mask": "00000000" },
+    { "name": "Generic read maps to file rights", "sddl": "O:SYG:SYD:(A;;GR;;;S-1-5-21-111111111-222222222-333333333-1001)", "mask": "00120089" },
+    { "name": "Generic all maps to full control", "sddl": "O:SYG:SYD:(A;;GA;;;S-1-5-21-111111111-222222222-333333333-1001)", "mask": "001F01FF" },
+    { "name": "Delete denial does not erase unrelated rights", "sddl": "O:SYG:SYD:(D;;SD;;;S-1-5-21-111111111-222222222-333333333-1001)(A;;FA;;;S-1-5-21-111111111-222222222-333333333-1001)", "mask": "001E01FF" },
+    { "name": "Inherit-only ACE does not grant this object", "sddl": "O:SYG:SYD:(A;CIIO;FA;;;S-1-5-21-111111111-222222222-333333333-1001)", "mask": "00000000" },
+    { "name": "A prior allow matters in a noncanonical ACL", "sddl": "O:SYG:SYD:(A;;0x1;;;S-1-5-21-111111111-222222222-333333333-1001)(D;;0x1;;;S-1-5-21-111111111-222222222-333333333-1001)", "mask": "00000001" },
+    { "name": "Creator Owner does not match an existing object's unrelated user", "sddl": "O:SYG:SYD:(A;;FA;;;CO)", "mask": "00000000" }
+  ]
+}

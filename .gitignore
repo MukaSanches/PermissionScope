@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+.vs/
+artifacts/
+*.user
+*.db*
+TestResults/
+.toolchain/
+node_modules/
+playwright-report/
+test-results/

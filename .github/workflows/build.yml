@@ -1,0 +1,47 @@
+name: Windows build
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-fund
+      - run: npm run check
+      - name: Build
+        run: dotnet build PermissionScope.sln -c Release -p:Platform=${{ matrix.architecture }}
+      - name: Test
+        if: matrix.architecture == 'x64'
+        run: dotnet run --project tests/PermissionScope.Tests -c Release -- --results artifacts/test-results.json
+      - name: Website regression and accessibility
+        if: matrix.architecture == 'x64'
+        run: npm run test:site
+      - name: Install packaging tool
+        run: choco install nsis --version=3.12 -y --no-progress
+      - name: Package
+        run: ./build/Package.ps1 -Architecture ${{ matrix.architecture }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PermissionScope-windows-${{ matrix.architecture }}
+          path: |
+            artifacts/*.exe
+            artifacts/*.zip
+            artifacts/*.json
+            artifacts/SHA256SUMS-*.txt
+          if-no-files-found: error

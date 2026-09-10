@@ -1,0 +1,12 @@
+{
+  "name": "permissionscope-verification",
+  "private": true,
+  "scripts": {
+    "check": "node build/validate-resources.mjs && node --check site/site.js",
+    "test:site": "node build/test-site.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "axe-core": "4.10.3"
+  }
+}
