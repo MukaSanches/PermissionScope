@@ -13,6 +13,9 @@ try {
     $account = Invoke-GitHub api user --jq .login
     if ($account -ne 'MukaSanches') { throw 'Expected the MukaSanches account. Stop and verify the intended publisher.' }
     if (git status --porcelain) { throw 'Review and commit all source changes before publishing.' }
+    if ((git branch --show-current) -ne 'main') { throw 'Publish only from the verified main branch.' }
+    $existingTag = git tag --list v1.0.0
+    if ($existingTag -and (git rev-parse 'v1.0.0^{commit}') -ne (git rev-parse HEAD)) { throw 'Existing release tag targets another commit. Do not replace it; prepare a new version.' }
     $repo = "$account/PermissionScope"
     & $gh repo view $repo --json name *> $null
     if ($LASTEXITCODE -ne 0) { Invoke-GitHub repo create $repo --public --description 'See who has access. Understand why. Free, local Windows permission analysis.' }

@@ -3,6 +3,9 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 & (Join-Path $PSScriptRoot 'Verify-Documentation.ps1') -SkipBrowser
 . (Join-Path $PSScriptRoot 'Get-SourceFingerprint.ps1')
 $fingerprint = Get-SourceFingerprint -Root $root
+$manifest = Get-Content -LiteralPath (Join-Path $root 'artifacts/release-manifest.json') -Raw | ConvertFrom-Json
+$head = git -C $root rev-parse HEAD
+if ($manifest.commit -ne $head -or $manifest.sourceSha256 -ne $fingerprint) { throw 'Release manifest does not describe the current commit and source.' }
 foreach ($architecture in @('x64','arm64')) {
     $directory = Join-Path $root "artifacts/PermissionScope-1.0.0-win-$architecture"
     $info = Get-Content -LiteralPath (Join-Path $directory 'build-info.json') -Raw | ConvertFrom-Json
@@ -31,4 +34,13 @@ foreach ($line in Get-Content -LiteralPath (Join-Path $root 'artifacts/SHA256SUM
     $checked[$name] = $true
 }
 foreach ($name in $expected) { if (-not $checked.ContainsKey($name)) { throw "Missing release checksum: $name" } }
+if (-not $checked.ContainsKey('release-manifest.json')) { throw 'Missing checksum for the release manifest.' }
+if (@($manifest.files).Count -ne $expected.Count) { throw 'Unexpected release manifest file count.' }
+$seen = @{}
+foreach ($entry in $manifest.files) {
+    if ($entry.name -notin $expected -or $seen.ContainsKey($entry.name)) { throw 'Unexpected or duplicate manifest artifact.' }
+    $seen[$entry.name]=$true
+    $file=Get-Item -LiteralPath (Join-Path $root "artifacts/$($entry.name)")
+    if ($entry.sha256 -ne (Get-FileHash $file.FullName -Algorithm SHA256).Hash -or $entry.bytes -ne $file.Length) { throw "Release manifest artifact mismatch: $($entry.name)" }
+}
 "Release preparation verified: $($tests.Passed) tests, current x64/ARM64 source fingerprints, package files and checksums. Remote CI, desktop accessibility and platform certification are separate checks."
