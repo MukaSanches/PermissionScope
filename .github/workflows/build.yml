@@ -46,9 +46,6 @@ jobs:
       - name: Website regression and accessibility
         if: matrix.architecture == 'x64'
         run: npm run test:site
-      - name: Documentation and screenshot integrity
-        if: matrix.architecture == 'x64'
-        run: ./build/Verify-Documentation.ps1 -SkipBrowser
       - name: Install packaging tool
         run: choco install nsis --version=3.12 -y --no-progress
       - name: Package
@@ -80,3 +77,16 @@ jobs:
             artifacts/*.json
             artifacts/SHA256SUMS-*.txt
           if-no-files-found: error
+
+  documentation:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-fund
+      - name: Documentation and screenshot integrity
+        run: ./build/Verify-Documentation.ps1 -SkipBrowser
