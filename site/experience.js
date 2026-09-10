@@ -1,4 +1,5 @@
 "use strict";
+(()=>{
 const psLang=document.documentElement.lang||'en-US';
 const psCopy={
 'en-US':{states:'Four answers. No guessing.',statesBody:'PermissionScope keeps uncertainty visible. That distinction is part of the product, not an edge case.',g:'Granted',gd:'The evaluated discretionary rules allow the requested action.',p:'Partial',pd:'Some requested actions are available while others are not.',d:'Denied',dd:'The evaluated discretionary rules do not grant the requested action.',u:'Unknown',ud:'The available context is not sufficient for a safe conclusion.',formats:'One observation. Five portable formats.',formatsBody:'Move from on-screen evidence to reports without changing the underlying story: HTML, CSV, JSON, XLSX and PDF.',sig:'One visual language',sigBody:'The same PermissionScope mark, color system and evidence-first principles connect the application, website, documentation and releases.'},
@@ -29,3 +30,4 @@ addEventListener('scroll',updateScroll,{passive:true});addEventListener('resize'
 if(!reduce&&'IntersectionObserver'in window){const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting){entry.target.classList.add('ps-in');observer.unobserve(entry.target);}}},{threshold:.08,rootMargin:'0px 0px -7% 0px'});document.querySelectorAll('main>section,.trust').forEach(el=>{el.classList.add('ps-reveal');observer.observe(el);});}
 const futureStyle=document.createElement('link');futureStyle.rel='stylesheet';futureStyle.href='future.css';document.head.appendChild(futureStyle);
 const futureScript=document.createElement('script');futureScript.src='future.js';futureScript.async=false;document.body.appendChild(futureScript);
+})();
