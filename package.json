@@ -3,8 +3,9 @@
   "private": true,
   "license": "Apache-2.0",
   "scripts": {
-    "check": "node build/validate-resources.mjs && node --check site/site.js",
-    "test:site": "node build/test-site.mjs"
+    "check": "node build/validate-resources.mjs && node --check site/site.js && node --check site/experience.js && node --check site/future.js && node --check site/intelligence.js",
+    "test:site": "node build/test-site.mjs",
+    "test:site:compat": "node build/test-site-compat.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
