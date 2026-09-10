@@ -1,6 +1,7 @@
 {
   "name": "permissionscope-verification",
   "private": true,
+  "license": "Apache-2.0",
   "scripts": {
     "check": "node build/validate-resources.mjs && node --check site/site.js",
     "test:site": "node build/test-site.mjs"

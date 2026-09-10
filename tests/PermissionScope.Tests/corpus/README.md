@@ -1,6 +1,6 @@
 # PermissionScope Access Test Corpus
 
-Small, synthetic, redistributable permission fixtures under the repository's MIT license. No production descriptor or real domain account is included.
+Small, synthetic, redistributable permission fixtures under the repository's Apache-2.0 license. No production descriptor or real domain account is included.
 
 Version 1 covers discretionary rights for an isolated synthetic SID. The harness passes each descriptor to Windows Authz after file generic-right mapping and checks the recorded hexadecimal mask. These expectations are verified by the harness; they are not a replacement for Windows access checks in the product.
 

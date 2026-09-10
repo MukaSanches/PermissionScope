@@ -7,7 +7,7 @@ Material preparado; nenhum post enviado. Publicar somente após confirmar que c�
 | Comunidade | Conteúdo adequado | Antes de enviar |
 |---|---|---|
 | [r/SideProject](https://www.reddit.com/r/SideProject/) | Apresentação, imagem e pedido de feedback sobre clareza | Conferir [regras](https://www.reddit.com/r/SideProject/about/rules/) e elegibilidade |
-| [r/opensource](https://www.reddit.com/r/opensource/) | Código MIT, modelo de acesso, corpus de testes | Conferir [regras](https://www.reddit.com/r/opensource/about/rules/) e flair promocional quando exigido |
+| [r/opensource](https://www.reddit.com/r/opensource/) | Código Apache-2.0, modelo de acesso, corpus de testes | Conferir [regras](https://www.reddit.com/r/opensource/about/rules/) e flair promocional quando exigido |
 | [r/sysadmin](https://www.reddit.com/r/sysadmin/) | Caso técnico reproduzível no espaço permitido para projetos/fornecedores | Conferir [regras](https://www.reddit.com/r/sysadmin/about/rules/) e tópico vigente; não anunciar indiscriminadamente |
 | [r/github](https://www.reddit.com/r/github/) | Resumo com link do código | Usar o megathread vigente, seguindo a [orientação dos moderadores](https://www.reddit.com/r/github/comments/1jy8rea/promote_your_projects_here_selfpromotion/) |
 
@@ -23,7 +23,7 @@ It is a Windows desktop app for checking file and folder permissions and inspect
 
 The engine uses Windows Authz. You can save scans, compare observations, remove an entry in a simulation, and export reports. There is also a CLI. Analysis and simulation do not change permissions.
 
-It runs locally, requires no account and has no telemetry or paid tier. The source is MIT licensed.
+It runs locally, requires no account and has no telemetry or paid tier. The source is Apache-2.0 licensed.
 
 There are limits: a remote server's actual logon context is not verified, some conditional policies need information the app cannot establish, and inherited entries do not yet identify the exact originating ancestor. Results remain Unknown or explicitly scoped. The direct downloads are currently unsigned.
 
@@ -35,7 +35,7 @@ I'd appreciate feedback on whether the explanation is understandable without alr
 
 ## Variante técnica
 
-**Title:** PermissionScope: Windows Authz results with inspectable ACL evidence (MIT)
+**Title:** PermissionScope: Windows Authz results with inspectable ACL evidence (Apache-2.0)
 
 Use a apresentação acima, substituindo o pedido final por:
 
@@ -51,7 +51,7 @@ Sou Samuel Sanches, criador do PermissionScope. Ele ajuda a verificar permissõe
 
 O cálculo usa o Windows Authz. A interface mostra as entradas de permissão e as evidências disponíveis de grupos. É possível salvar análises, comparar observações, simular a remoção de uma regra e exportar relatórios. Também há uma CLI.
 
-Não exige conta, não tem telemetria nem versão paga. Analisar e simular não altera as permissões. O código é MIT.
+Não exige conta, não tem telemetria nem versão paga. Analisar e simular não altera as permissões. O código é Apache-2.0.
 
 Há limites documentados: o programa não comprova o contexto real de logon de um servidor remoto e não resolve todas as políticas condicionais. Quando faltam informações, mostra Unknown. Os instaladores diretos ainda não têm assinatura digital.
 
@@ -68,7 +68,7 @@ Não usar `artifacts/analysis.png`: contém nomes de máquina, perfil e caminhos
 
 ## Respostas curtas
 
-- **É grátis?** Sim. Não há versão paga, conta obrigatória ou limite comercial. O código é MIT; a política Free Forever descreve o compromisso do projeto.
+- **É grátis?** Sim. Não há versão paga, conta obrigatória ou limite comercial. O código é Apache-2.0; a política Free Forever descreve o compromisso do projeto.
 - **Por que Unknown?** Porque o contexto disponível não sustenta uma conclusão confiável. A evidência e a limitação ficam visíveis.
 - **É seguro?** Código, modelo de acesso e testes são inspecionáveis. Análise é somente leitura; mudanças reais são separadas. Os binários diretos ainda são unsigned; comece em um ambiente de teste.
 - **Foi feito com IA?** Houve assistência de IA no desenvolvimento e na revisão. Samuel Sanches é o criador e mantenedor. As conclusões devem ser sustentadas pelo Windows e pelos testes, não por essa assistência.
