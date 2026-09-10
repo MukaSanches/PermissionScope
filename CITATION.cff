@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use PermissionScope in research, documentation, training, auditing, or published technical work, please cite the software using this metadata."
+title: "PermissionScope"
+type: software
+authors:
+  - family-names: "Sanches"
+    given-names: "Samuel"
+version: "1.0.0"
+date-released: "2026-09-10"
+license: Apache-2.0
+repository-code: "https://github.com/MukaSanches/PermissionScope"
+url: "https://mukasanches.github.io/PermissionScope/"
+keywords:
+  - Windows
+  - permissions
+  - access control
+  - ACL
+  - Authz
+  - security
+  - effective access
