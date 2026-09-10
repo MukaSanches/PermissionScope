@@ -37,7 +37,7 @@ public static class RemediationService
         if (Read(handle).Hash != plan.OriginalHash) throw new InvalidOperationException("Permissions changed during preparation. Nothing was applied.");
         WriteDacl(handle, plan.ProposedSddl);
         var verified = Read(handle);
-        if (!SameDacl(verified.Sddl, plan.ProposedSddl)) throw new InvalidOperationException("Write completed but verification differs. Original descriptor is recorded in " + journal);
+        if (!DescriptorParser.SameDacl(verified.Sddl, plan.ProposedSddl)) throw new InvalidOperationException("Write completed but verification differs. Original descriptor is recorded in " + journal);
         var receipt = new RemediationReceipt(plan, verified.Hash, DateTimeOffset.UtcNow, false);
         AtomicFile.WriteText(journal, JsonSerializer.Serialize(receipt, SnapshotJson.Options));
         return receipt;
@@ -50,7 +50,7 @@ public static class RemediationService
         if (Read(handle).Hash != receipt.VerifiedHash) throw new InvalidOperationException("Permissions changed after application. Automatic rollback would overwrite a newer change.");
         WriteDacl(handle, receipt.Plan.OriginalSddl);
         var verified = Read(handle);
-        if (!SameDacl(verified.Sddl, receipt.Plan.OriginalSddl)) throw new InvalidOperationException("Rollback could not be verified.");
+        if (!DescriptorParser.SameDacl(verified.Sddl, receipt.Plan.OriginalSddl)) throw new InvalidOperationException("Rollback could not be verified.");
         var rolledBack = receipt with { RolledBack = true, VerifiedHash = verified.Hash };
         AtomicFile.WriteText(JournalPath(receipt.Plan.Id, journalDirectory), JsonSerializer.Serialize(rolledBack, SnapshotJson.Options));
         return rolledBack;
@@ -100,15 +100,11 @@ public static class RemediationService
         try
         {
             if (!Native.GetSecurityDescriptorDacl(bytes, out _, out var dacl, out _)) throw new Win32Exception(Marshal.GetLastWin32Error());
-            var protection = (raw.ControlFlags & ControlFlags.DiscretionaryAclProtected) != 0 ? 0x80000000u : 0x20000000u;
+            var protectedDacl = (raw.ControlFlags & ControlFlags.DiscretionaryAclProtected) != 0;
+            var protection = Read(handle).Protected == protectedDacl ? 0u : protectedDacl ? 0x80000000u : 0x20000000u;
             var result = Native.SetSecurityInfo(handle, 1, 4 | protection, IntPtr.Zero, IntPtr.Zero, dacl, IntPtr.Zero);
             if (result != 0) throw new Win32Exception((int)result);
         }
         finally { pinned.Free(); }
-    }
-    private static bool SameDacl(string first, string second)
-    {
-        var a = new RawSecurityDescriptor(first); var b = new RawSecurityDescriptor(second);
-        return a.GetSddlForm(AccessControlSections.Access) == b.GetSddlForm(AccessControlSections.Access);
     }
 }

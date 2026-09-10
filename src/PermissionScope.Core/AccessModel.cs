@@ -75,6 +75,17 @@ public static class Rights
 
 public static class DescriptorParser
 {
+    public static bool SameDacl(string first, string second)
+    {
+        var a = new RawSecurityDescriptor(first); var b = new RawSecurityDescriptor(second);
+        const ControlFlags semanticFlags = ControlFlags.DiscretionaryAclPresent | ControlFlags.DiscretionaryAclProtected;
+        if ((a.ControlFlags & semanticFlags) != (b.ControlFlags & semanticFlags)) return false;
+        if (a.DiscretionaryAcl is null || b.DiscretionaryAcl is null) return a.DiscretionaryAcl is null && b.DiscretionaryAcl is null;
+        var left = new byte[a.DiscretionaryAcl.BinaryLength]; var right = new byte[b.DiscretionaryAcl.BinaryLength];
+        a.DiscretionaryAcl.GetBinaryForm(left, 0); b.DiscretionaryAcl.GetBinaryForm(right, 0);
+        return left.AsSpan().SequenceEqual(right);
+    }
+
     public static DescriptorInfo Parse(string sddl, Func<string, string>? resolve = null)
     {
         var raw = new RawSecurityDescriptor(sddl);

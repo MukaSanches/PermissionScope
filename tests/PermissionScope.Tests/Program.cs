@@ -309,10 +309,20 @@ Test("Verified file remediation and rollback", () =>
     var reader = new AclReader(resolver); var before = reader.Read(path);
     var proposed = ImpactSimulator.AddAce(before.Sddl, fixtureSid, 1, false);
     var plan = RemediationService.Prepare(path, before.Hash, proposed);
-    var receipt = RemediationService.Apply(plan, path, Path.Combine(testRoot, "changes"));
+    RemediationReceipt receipt;
+    try { receipt = RemediationService.Apply(plan, path, Path.Combine(testRoot, "changes")); }
+    catch (InvalidOperationException error) { throw new InvalidOperationException($"{error.Message}\nSynthetic expected: {plan.ProposedSddl}\nSynthetic actual: {reader.Read(path).Sddl}", error); }
     Assert(reader.Read(path).Aces.Any(a => a.Sid == fixtureSid));
     var rollback = RemediationService.Rollback(receipt, path, Path.Combine(testRoot, "changes"));
     Assert(rollback.RolledBack); Assert(!reader.Read(path).Aces.Any(a => a.Sid == fixtureSid));
+});
+Test("DACL verification ignores only automatic-inheritance bookkeeping", () =>
+{
+    Assert(DescriptorParser.SameDacl("O:SYG:SYD:(A;;FR;;;SY)", "O:SYG:SYD:AI(A;;FR;;;SY)"));
+    Assert(!DescriptorParser.SameDacl("O:SYG:SYD:(A;;FR;;;SY)", "O:SYG:SYD:P(A;;FR;;;SY)"));
+    Assert(!DescriptorParser.SameDacl("O:SYG:SYD:(A;;FR;;;SY)", "O:SYG:SYD:(A;ID;FR;;;SY)"));
+    Assert(!DescriptorParser.SameDacl("O:SYG:SYD:(A;;FR;;;SY)", "O:SYG:SYD:(A;;FA;;;SY)"));
+    Assert(!DescriptorParser.SameDacl("O:SYG:SYD:", "O:SYG:SYD:NO_ACCESS_CONTROL"));
 });
 Test("Stale remediation refuses overwrite", () =>
 {

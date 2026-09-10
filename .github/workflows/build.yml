@@ -25,7 +25,13 @@ jobs:
       - run: npm ci --ignore-scripts --no-fund
       - run: npm run check
       - name: Build
-        run: dotnet build PermissionScope.sln -c Release -p:Platform=${{ matrix.architecture }}
+        shell: pwsh
+        run: |
+          if ('${{ matrix.architecture }}' -eq 'arm64') {
+            dotnet build src/PermissionScope.App/PermissionScope.App.csproj -c Release -p:Platform=ARM64 -r win-arm64
+          } else {
+            dotnet build PermissionScope.sln -c Release -p:Platform=x64
+          }
       - name: Test
         if: matrix.architecture == 'x64'
         run: dotnet run --project tests/PermissionScope.Tests -c Release -- --results artifacts/test-results.json
