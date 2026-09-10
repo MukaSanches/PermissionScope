@@ -1,0 +1,50 @@
+name: Site compatibility
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'build/test-site*.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/site-compatibility.yml'
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'build/test-site*.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/site-compatibility.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-compatibility-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Syntax and resource checks
+        run: npm run check
+      - name: Universal compatibility suite
+        run: npm run test:site:compat
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: site-compatibility-report
+          path: artifacts/site-compatibility.json
+          if-no-files-found: warn
