@@ -10,7 +10,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const site = path.join(root, 'site');
 const server = http.createServer((request, response) => {
   const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-  if (pathname === '/__test/axe.js') { response.writeHead(200, { 'Content-Type': 'text/javascript' }); fs.createReadStream(require.resolve('axe-core/axe.min.js')).pipe(response); return; }
+  if (pathname === '/__test/axe.js') { response.writeHead(200, { 'Content-Type':'text/javascript' }); fs.createReadStream(require.resolve('axe-core/axe.min.js')).pipe(response); return; }
   const file = path.resolve(site, '.' + (pathname === '/' ? '/index.html' : pathname));
   if (!file.startsWith(site + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) { response.writeHead(404).end(); return; }
   const mime = { '.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.svg':'image/svg+xml','.png':'image/png','.json':'application/json','.webmanifest':'application/manifest+json' };
@@ -28,6 +28,27 @@ const viewports = [
 const locales = ['en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'];
 const report = { passed:true, engines:{}, viewports:viewports.map(v=>v[0]), locales };
 const errors = [];
+
+async function assertNoHorizontalOverflow(page, label) {
+  const diagnostics = await page.evaluate(() => {
+    const viewport = innerWidth;
+    const scrollWidth = document.documentElement.scrollWidth;
+    const offenders = [...document.querySelectorAll('body *')]
+      .map((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0 || (rect.left >= -1 && rect.right <= viewport + 1)) return null;
+        const id = el.id ? `#${el.id}` : '';
+        const classes = typeof el.className === 'string' && el.className.trim() ? '.' + el.className.trim().split(/\s+/).join('.') : '';
+        return { node:`${el.tagName.toLowerCase()}${id}${classes}`, left:Math.round(rect.left * 10) / 10, right:Math.round(rect.right * 10) / 10, width:Math.round(rect.width * 10) / 10 };
+      })
+      .filter(Boolean)
+      .sort((a,b) => Math.max(-a.left, a.right - viewport) - Math.max(-b.left, b.right - viewport))
+      .slice(-12);
+    return { viewport, scrollWidth, offenders };
+  });
+  assert(diagnostics.scrollWidth <= diagnostics.viewport + 1, `${label}: horizontal overflow viewport=${diagnostics.viewport}px scrollWidth=${diagnostics.scrollWidth}px offenders=${JSON.stringify(diagnostics.offenders)}`);
+}
+
 try {
   for (const [engineName, type] of engines) {
     const browser = await type.launch({ headless:true });
@@ -41,7 +62,7 @@ try {
         page.on('pageerror', e => pageErrors.push(e.message));
         await page.goto(origin + '/index.html', { waitUntil:'domcontentloaded' });
         await page.getByRole('heading', { level:1 }).waitFor();
-        assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${engineName}/${name}: horizontal overflow`);
+        await assertNoHorizontalOverflow(page, `${engineName}/${name}`);
         assert(await page.locator('.wordmark').isVisible(), `${engineName}/${name}: wordmark hidden`);
         assert(await page.locator('.ps-command-launch').isVisible(), `${engineName}/${name}: command launch hidden`);
         assert(await page.locator('.ps-assistant-launch').isVisible(), `${engineName}/${name}: assistant launch hidden`);
@@ -69,7 +90,7 @@ try {
         await page.goto(origin + '/' + filename, { waitUntil:'domcontentloaded' });
         assert.equal(await page.locator('html').getAttribute('lang'), locale);
         assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
-        assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${engineName}/${locale}: localized mobile overflow`);
+        await assertNoHorizontalOverflow(page, `${engineName}/${locale}`);
         assert(await page.locator('#download-premium').count() === 1, `${engineName}/${locale}: premium downloads missing`);
         assert(await page.locator('.ps-hash-tool').count() === 1, `${engineName}/${locale}: SHA tool missing`);
       }
