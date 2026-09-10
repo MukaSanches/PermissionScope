@@ -1,0 +1,5 @@
+Contact: mailto:ssanches011@gmail.com
+Expires: 2027-09-10T23:59:59Z
+Preferred-Languages: en, pt-BR
+Canonical: https://mukasanches.github.io/PermissionScope/.well-known/security.txt
+Policy: https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md
