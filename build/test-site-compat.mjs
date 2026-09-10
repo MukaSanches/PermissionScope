@@ -29,6 +29,20 @@ const locales = ['en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'];
 const report = { passed:true, engines:{}, viewports:viewports.map(v=>v[0]), locales };
 const errors = [];
 
+async function waitForProgressiveStyles(page) {
+  await page.waitForFunction(() => {
+    const command = document.querySelector('.ps-command-launch');
+    const assistant = document.querySelector('.ps-assistant-launch');
+    const hashInput = document.querySelector('.ps-hash-input');
+    if (!command || !assistant || !hashInput) return false;
+    const sheets = [...document.styleSheets];
+    const expected = ['premium.css','experience.css','future.css','intelligence.css'];
+    if (!expected.every(name => sheets.some(sheet => sheet.href?.endsWith('/' + name)))) return false;
+    return getComputedStyle(hashInput).width === '1px';
+  }, null, { timeout:10000 });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+}
+
 async function assertNoHorizontalOverflow(page, label) {
   const diagnostics = await page.evaluate(() => {
     const viewport = innerWidth;
@@ -62,6 +76,7 @@ try {
         page.on('pageerror', e => pageErrors.push(e.message));
         await page.goto(origin + '/index.html', { waitUntil:'domcontentloaded' });
         await page.getByRole('heading', { level:1 }).waitFor();
+        await waitForProgressiveStyles(page);
         await assertNoHorizontalOverflow(page, `${engineName}/${name}`);
         assert(await page.locator('.wordmark').isVisible(), `${engineName}/${name}: wordmark hidden`);
         assert(await page.locator('.ps-command-launch').isVisible(), `${engineName}/${name}: command launch hidden`);
@@ -88,6 +103,7 @@ try {
       for (const locale of locales) {
         const filename = locale === 'en-US' ? 'index.html' : `index.${locale}.html`;
         await page.goto(origin + '/' + filename, { waitUntil:'domcontentloaded' });
+        await waitForProgressiveStyles(page);
         assert.equal(await page.locator('html').getAttribute('lang'), locale);
         assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
         await assertNoHorizontalOverflow(page, `${engineName}/${locale}`);
