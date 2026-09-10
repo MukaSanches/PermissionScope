@@ -1,6 +1,6 @@
 # PermissionScope · Guide visuel
 
-[Choisir la suite](../../README.fr.md)
+[Choisir la suite](https://github.com/MukaSanches/PermissionScope/blob/main/README.fr.md)
 
 LAB\Alex obtient Modification via LAB\Finance. Captures natives d’un scénario synthétique évalué par Authz, sans données d’entreprise réelles ni résultats retouchés.
 

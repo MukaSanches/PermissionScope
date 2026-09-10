@@ -1,6 +1,6 @@
 # PermissionScope · 画面付きガイド
 
-[次の手順](../../README.ja.md)
+[次の手順](https://github.com/MukaSanches/PermissionScope/blob/main/README.ja.md)
 
 LAB\Alex は LAB\Finance を通じて変更権限を得ます。Authz で評価した合成シナリオのネイティブ画面です。実際の企業データや加工した結果ではありません。
 

@@ -1,6 +1,6 @@
 # PermissionScope · Visuelle Anleitung
 
-[Nächsten Schritt wählen](../../README.de.md)
+[Nächsten Schritt wählen](https://github.com/MukaSanches/PermissionScope/blob/main/README.de.md)
 
 LAB\Alex erhält Ändern über LAB\Finance. Native Aufnahmen eines synthetischen Authz-Szenarios, ohne echte Unternehmensdaten oder nachträglich veränderte Ergebnisse.
 

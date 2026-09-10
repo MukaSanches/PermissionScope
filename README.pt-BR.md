@@ -1,13 +1,23 @@
-<!-- Generated from docs/content/locales.json by build/Build-Documentation.mjs. -->
-# PermissionScope
+<!-- Generated from docs/content/locales.json by build/Build-Documentation.mjs. Do not edit generated localized READMEs by hand. -->
+<p align="center"><img src="https://raw.githubusercontent.com/MukaSanches/PermissionScope/main/docs/brand/repository-banner.svg" alt="PermissionScope" width="100%"></p>
 
-[English](README.md) · [Português](README.pt-BR.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [العربية](README.ar.md) · [日本語](README.ja.md) · [简体中文](README.zh-Hans.md)
+<p align="center">
+  <a href="https://github.com/MukaSanches/PermissionScope/actions/workflows/build.yml"><img alt="Windows build" src="https://github.com/MukaSanches/PermissionScope/actions/workflows/build.yml/badge.svg"></a>
+  <a href="https://github.com/MukaSanches/PermissionScope/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/MukaSanches/PermissionScope/actions/workflows/codeql.yml/badge.svg"></a>
+  <a href="https://github.com/MukaSanches/PermissionScope/blob/main/LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-2764E7"></a>
+  <a href="https://github.com/MukaSanches/PermissionScope/releases"><img alt="Release" src="https://img.shields.io/github/v/release/MukaSanches/PermissionScope?display_name=tag&color=2764E7"></a>
+</p>
 
-Entenda quem pode acessar uma pasta e confira as regras que sustentam a resposta.
+<p align="center"><strong>Permissões do Windows, finalmente inspecionáveis.</strong><br>Entenda quem pode acessar uma pasta e confira as regras que sustentam a resposta.</p>
+<p align="center"><a href="https://mukasanches.github.io/PermissionScope/index.pt-BR.html">Website</a> · <a href="https://github.com/MukaSanches/PermissionScope/releases/latest">Downloads da versão</a> · <a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md">Trust Center</a> · <a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/README.md">Academy</a> · <a href="https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md">Roadmap</a> · <a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">Security</a></p>
 
-[Downloads da versão](https://github.com/MukaSanches/PermissionScope/releases) · [Guia visual](docs/guides/pt-BR.md) · [Experimente o relatório HTML sintético](https://mukasanches.github.io/PermissionScope/reports/permissionscope-demo.html)
+<p align="center">[English](https://github.com/MukaSanches/PermissionScope/blob/main/README.md) · [Português](https://github.com/MukaSanches/PermissionScope/blob/main/README.pt-BR.md) · [Español](https://github.com/MukaSanches/PermissionScope/blob/main/README.es.md) · [Français](https://github.com/MukaSanches/PermissionScope/blob/main/README.fr.md) · [Deutsch](https://github.com/MukaSanches/PermissionScope/blob/main/README.de.md) · [العربية](https://github.com/MukaSanches/PermissionScope/blob/main/README.ar.md) · [日本語](https://github.com/MukaSanches/PermissionScope/blob/main/README.ja.md) · [简体中文](https://github.com/MukaSanches/PermissionScope/blob/main/README.zh-Hans.md)</p>
 
-![LAB\Alex recebe Modificar por LAB\Finance. As capturas são do aplicativo nativo com uma demonstração sintética avaliada por Authz, sem dados de uma empresa real nem resultados alterados.](docs/screenshots/pt-BR/access-light.png)
+---
+
+<table><tr><td width="33%"><strong>Local-first</strong><br><sub>Sem conta PermissionScope, telemetria do aplicativo ou serviço de nuvem obrigatório.</sub></td><td width="33%"><strong>Decisão nativa do Windows</strong><br><sub>O acesso efetivo é avaliado com Windows Authz, não por uma aproximação criada à mão.</sub></td><td width="33%"><strong>Desconhecido continua Desconhecido</strong><br><sub>Contexto ausente nunca é transformado silenciosamente em Permitido ou Negado.</sub></td></tr></table>
+
+<p align="center"><img src="https://raw.githubusercontent.com/MukaSanches/PermissionScope/main/docs/screenshots/pt-BR/access-light.png" alt="LAB\Alex recebe Modificar por LAB\Finance. As capturas são do aplicativo nativo com uma demonstração sintética avaliada por Authz, sem dados de uma empresa real nem resultados alterados." width="94%"></p>
 
 ## Comece em dois minutos
 
@@ -15,6 +25,24 @@ Entenda quem pode acessar uma pasta e confira as regras que sustentam a resposta
 2. Instale para sua conta ou extraia o ZIP inteiro e abra PermissionScope.exe.
 3. Escolha Explorar demonstração para aprender com LAB\Alex. Para seus arquivos, escolha Analisar e informe uma pasta.
 4. Deixe a identidade vazia para usar seu token Windows atual. Abra Access Path para conferir as evidências.
+
+## Do resultado à evidência
+
+O Windows Authz calcula a máscara. Access Path mostra as entradas que contribuem e as associações registradas. O sinalizador de herança não comprova a pasta de origem. Controle total na ACL discricionária não garante que um arquivo possa ser aberto.
+
+```text
+Windows identity
+      ↓
+SID + recorded membership context
+      ↓
+ACL / discretionary permission entries
+      ↓
+Windows Authz evaluation
+      ↓
+Granted · Partial · Denied · Unknown
+      ↓
+Access Path → contributing evidence
+```
 
 ## Entenda o resultado
 
@@ -24,7 +52,11 @@ Permitido autoriza a ação indicada pelas regras discricionárias avaliadas. Pa
 
 O Windows Authz calcula a máscara. Access Path mostra as entradas que contribuem e as associações registradas. O sinalizador de herança não comprova a pasta de origem. Controle total na ACL discricionária não garante que um arquivo possa ser aberto.
 
-![LAB\Alex recebe Modificar por LAB\Finance. As capturas são do aplicativo nativo com uma demonstração sintética avaliada por Authz, sem dados de uma empresa real nem resultados alterados.](docs/screenshots/pt-BR/access-path-light.png)
+<p align="center"><img src="https://raw.githubusercontent.com/MukaSanches/PermissionScope/main/docs/screenshots/pt-BR/access-path-light.png" alt="Access Path" width="94%"></p>
+
+## Superfície do produto
+
+<table><tr><td><strong>Analisar</strong><br><sub>Inspecione o acesso efetivo de uma pasta e identidade.</sub></td><td><strong>Explicar</strong><br><sub>Siga o Access Path e as evidências que contribuíram.</sub></td><td><strong>Snapshot</strong><br><sub>Salve observações locais para revisar depois.</sub></td></tr><tr><td><strong>Comparar</strong><br><sub>Compare observações sem presumir que recursos ausentes foram excluídos.</sub></td><td><strong>Simular</strong><br><sub>Modele a remoção de uma regra em memória antes de considerar uma alteração real.</sub></td><td><strong>Exportar</strong><br><sub>Saídas HTML, CSV, JSON, XLSX e PDF.</sub></td></tr></table>
 
 ## Preserve as evidências
 
@@ -41,29 +73,61 @@ Salve snapshots locais, compare observações, simule a remoção de uma regra e
 
 Logons remotos, contextos S4U, regras condicionais e destinos de links não verificados permanecem Desconhecidos. Integridade, criptografia, bloqueios e privilégios administrativos ficam fora dessa decisão. Sem telemetria, conta ou serviço em nuvem. Caminhos e nomes em exportações reais podem ser sensíveis.
 
-Análise e simulação apenas leem. Aplicar é um fluxo separado, confirmado explicitamente, para arquivos locais comuns, com observação salva, registro durável, verificação e reversão. Pastas, links e arquivos com vários hard links são excluídos.
+> Análise e simulação apenas leem. Aplicar é um fluxo separado, confirmado explicitamente, para arquivos locais comuns, com observação salva, registro durável, verificação e reversão. Pastas, links e arquivos com vários hard links são excluídos.
 
 ## Baixe e confira
 
 Windows 10 1809 ou posterior. Pacotes completos incluem os runtimes. Instaladores ainda sem assinatura digital; confira SHA-256 com os hashes da release. ARM64 é compilado no CI, sem certificação em hardware ARM. Consulte o status para disponibilidade na Store e no WinGet.
 
+[Downloads da versão](https://github.com/MukaSanches/PermissionScope/releases/latest) · [SHA-256](https://github.com/MukaSanches/PermissionScope/releases/latest) · [Status da versão](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
+
+## Construído para ser verificado
+
+| Construído para ser verificado | |
+|---|---|
+| Código-fonte | Repositório público e histórico de commits |
+| Releases | Artefatos versionados e checksums SHA-256 |
+| Cadeia de fornecimento | SBOM CycloneDX e automações fixadas quando documentado |
+| Segurança | Modelo de segurança, divulgação responsável e CodeQL |
+| Plataforma | Builds x64 e ARM64 |
+| Documentação | Oito handbooks localizados, guias visuais e cursos da Academy |
+| Privacidade | Arquitetura local-first e orientação explícita sobre dados sensíveis em exports |
+
+[Abrir o Trust Center](https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md)
+
+## Aprenda o modelo, não só os botões
+
+- [Fundamentos de permissões](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/fundamentals.md)
+- [Lendo o Access Path](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/access-path.md)
+- [Diagnóstico seguro](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/troubleshooting.md)
+- [Handbooks PDF · 8 languages](https://github.com/MukaSanches/PermissionScope/tree/main/docs/handbooks)
+
 ## Escolha o próximo passo
 
-- [Guia visual](docs/guides/pt-BR.md)
-- [Modelo técnico](docs/access-model.md)
-- [Perguntas e solução de problemas](docs/faq.md)
-- [Glossário em linguagem simples](docs/glossary.md)
-- [Privacidade](docs/privacy.md)
-- [Status da versão](docs/release-status.md)
+- [Guia visual](https://github.com/MukaSanches/PermissionScope/blob/main/docs/guides/pt-BR.md)
+- [Modelo técnico](https://github.com/MukaSanches/PermissionScope/blob/main/docs/access-model.md)
+- [Perguntas e solução de problemas](https://github.com/MukaSanches/PermissionScope/blob/main/docs/faq.md)
+- [Glossário em linguagem simples](https://github.com/MukaSanches/PermissionScope/blob/main/docs/glossary.md)
+- [Privacidade](https://github.com/MukaSanches/PermissionScope/blob/main/docs/privacy.md)
+- [Status da versão](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
+- [Governance](https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md)
+- [Support](https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md)
+- [Citation](https://github.com/MukaSanches/PermissionScope/blob/main/CITATION.cff)
+
+## Limites de engenharia
+
+O PermissionScope não finge que a ACL discricionária explica todo resultado possível ao abrir arquivos. Integridade, criptografia, bloqueios, alguns contextos remotos/S4U, regras condicionais, privilégios administrativos e destinos de reparse não verificados podem ficar fora do contexto disponível. Esses limites são documentados, não escondidos.
 
 ## Compile e teste
 
 Use Windows e o SDK .NET 10. Os testes usam um executável de integração, não dotnet test. Veja o guia de desenvolvimento para empacotamento e verificação documental.
 
-[Development](docs/development.md)
+[Development](https://github.com/MukaSanches/PermissionScope/blob/main/docs/development.md) · [Benchmarks](https://github.com/MukaSanches/PermissionScope/blob/main/docs/benchmarks.md) · [Roadmap](https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md)
 
 ## Ajuda e contribuição
 
 Informe versão, Windows, operação e código de erro. A aba Técnica copia um diagnóstico sem caminhos, contas ou SIDs. Traduções são prévias; evidências técnicas podem permanecer em inglês. Não alegamos revisão por falantes nativos nem certificação assistiva.
 
-Criado por Samuel Sanches · ssanches011@gmail.com · [Apache-2.0](LICENSE) · [Security](SECURITY.md)
+---
+
+<p align="center"><sub>Criado por Samuel Sanches · ssanches011@gmail.com · <a href="https://github.com/MukaSanches/PermissionScope/blob/main/LICENSE">Apache-2.0</a> · <a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">Security</a> · <a href="https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md">Support</a></sub></p>

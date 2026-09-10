@@ -1,6 +1,6 @@
 # PermissionScope · Visual walkthrough
 
-[Choose your next step](../../README.md)
+[Choose your next step](https://github.com/MukaSanches/PermissionScope/blob/main/README.md)
 
 LAB\Alex receives Modify through LAB\Finance. These are native application captures using a synthetic Authz fixture, not a real company or altered results.
 

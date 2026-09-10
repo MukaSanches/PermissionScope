@@ -1,6 +1,6 @@
 # PermissionScope · دليل مرئي
 
-[اختر الخطوة التالية](../../README.ar.md)
+[اختر الخطوة التالية](https://github.com/MukaSanches/PermissionScope/blob/main/README.ar.md)
 
 يحصل LAB\Alex على التعديل عبر LAB\Finance. لقطات أصلية لسيناريو اصطناعي يقيّمه Authz، بلا بيانات شركة حقيقية أو نتائج معدّلة.
 

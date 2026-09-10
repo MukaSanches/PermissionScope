@@ -1,6 +1,6 @@
 # PermissionScope · Guia visual
 
-[Escolha o próximo passo](../../README.pt-BR.md)
+[Escolha o próximo passo](https://github.com/MukaSanches/PermissionScope/blob/main/README.pt-BR.md)
 
 LAB\Alex recebe Modificar por LAB\Finance. As capturas são do aplicativo nativo com uma demonstração sintética avaliada por Authz, sem dados de uma empresa real nem resultados alterados.
 

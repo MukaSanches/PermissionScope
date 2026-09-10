@@ -1,6 +1,6 @@
 # PermissionScope · 图文指南
 
-[选择下一步](../../README.zh-Hans.md)
+[选择下一步](https://github.com/MukaSanches/PermissionScope/blob/main/README.zh-Hans.md)
 
 LAB\Alex 通过 LAB\Finance 获得修改权限。这些是由 Authz 评估合成场景的原生应用截图，不包含真实企业数据或经修改的结果。
 
