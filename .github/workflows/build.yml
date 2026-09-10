@@ -13,6 +13,10 @@ jobs:
   verify:
     runs-on: windows-2022
     timeout-minutes: 30
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -52,6 +56,13 @@ jobs:
       - name: Install and uninstall on disposable runner
         if: matrix.architecture == 'x64'
         run: ./build/Test-Installer.ps1
+      - name: Attest package provenance
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            artifacts/*.exe
+            artifacts/*.zip
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: PermissionScope-windows-${{ matrix.architecture }}
