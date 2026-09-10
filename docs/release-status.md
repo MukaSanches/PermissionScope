@@ -21,7 +21,7 @@ Use `build/Test-ReleaseReadiness.ps1` for the local preflight and `docs/release-
 
 ## Current 1.0.0 release-candidate checkpoint — 2026-09-10
 
-The consolidated candidate was validated on commit `7d03f5da7bd2193d597d2213fa68af14e2060134` before this status-only documentation update.
+The consolidated candidate was validated on commit `7d03f5da7bd2193d597d2213fa68af14e2060134` before the documentation refresh.
 
 Validated evidence:
 
@@ -35,9 +35,11 @@ Validated evidence:
 - resource/site validation passed for eight resource catalogs and eight localized Pages;
 - documentation structural validation passed for 55 documents, 72 image hashes, eight locale mappings and the synthetic SID allowlist.
 
-The remaining release blocker is deliberate: the native screenshot provenance gate reports the existing capture set as stale after application-source changes. The first reported stale capture is `ar/access-dark.png`. The 72 native captures must be regenerated from the current application on an interactive Windows desktop and visually reviewed. The capture manifest fingerprint must not be advanced manually to bypass this check.
+The stale-capture blocker was then resolved legitimately on commit `57e64c0993f273ec85c96b7cc892e0bd4f5d2693`. A Windows runner published the current x64 WinUI application and CLI, created the synthetic demo environment, generated the complete native screenshot set from the running application, rebuilt the generated documentation and passed `Verify-Documentation.ps1` before committing the refreshed captures. The capture manifest now records the current source fingerprint instead of a manually advanced value.
 
-Until that evidence is refreshed and the x64 workflow proceeds through package/install/CLI/uninstall validation, this state is a release candidate and must not be tagged or published as the final `v1.0.0` release.
+The temporary screenshot-refresh workflow used for that one-time migration was removed after it completed successfully. Native screenshot provenance remains enforced by the ordinary documentation gate; future application-source changes must regenerate the captures through the documented Windows procedure.
+
+Before the final public `v1.0.0` tag is created, the regenerated images still require the checklist's visual review and the exact release commit must pass the normal CI/package/install/CLI/uninstall gates. No Store, WinGet, signing or physical ARM64 certification claim is implied by this checkpoint.
 
 ## Implemented product surface
 
