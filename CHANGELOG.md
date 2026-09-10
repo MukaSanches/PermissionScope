@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- License PermissionScope's own source and documentation under Apache-2.0, preserving Samuel Sanches's attribution and third-party licenses. Include NOTICE and license metadata in newly built packages. Previously distributed artifacts are unchanged.
+
 ## 1.0.0
 
 Initial public release candidate. Publication and certification status are tracked separately from the version number.

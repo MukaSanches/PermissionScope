@@ -24,7 +24,7 @@ try {
     }
     $buildInfo = Get-Content -LiteralPath (Join-Path $distribution 'build-info.json') -Raw | ConvertFrom-Json
     if ($buildInfo.sourceSha256 -ne $sourceFingerprint) { throw 'Existing binaries do not match the current source. Run packaging without SkipBuild.' }
-    foreach ($name in @('LICENSE','FREE-FOREVER.md','README.md','LEIA-ME.pt-BR.md','THIRD-PARTY-NOTICES.md','SECURITY.md','CHANGELOG.md')) { Copy-Item -LiteralPath (Join-Path $repository $name) -Destination $distribution }
+    foreach ($name in @('LICENSE','NOTICE','FREE-FOREVER.md','README.md','LEIA-ME.pt-BR.md','THIRD-PARTY-NOTICES.md','SECURITY.md','CHANGELOG.md')) { Copy-Item -LiteralPath (Join-Path $repository $name) -Destination $distribution }
     Copy-Item -LiteralPath (Join-Path $repository 'docs') -Destination $distribution -Recurse -Force
     $legal = Join-Path $distribution 'ThirdParty'
     New-Item -ItemType Directory -Path $legal -Force | Out-Null
@@ -45,7 +45,7 @@ try {
             }
         }
     }
-    $sbom = @{bomFormat='CycloneDX';specVersion='1.5';version=1;metadata=@{component=@{type='application';name='PermissionScope';version='1.0.0'}};components=$components}
+    $sbom = @{bomFormat='CycloneDX';specVersion='1.5';version=1;metadata=@{component=@{type='application';name='PermissionScope';version='1.0.0';licenses=@(@{license=@{id='Apache-2.0'}})}};components=$components}
     $sbom | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $distribution 'sbom.cdx.json') -Encoding UTF8
     $files = Get-ChildItem -LiteralPath $distribution -File -Recurse
     $uninstall = @()

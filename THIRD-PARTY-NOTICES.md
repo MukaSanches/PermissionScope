@@ -1,6 +1,6 @@
 # Third-party notices
 
-PermissionScope source: MIT, copyright 2026 Samuel Sanches.
+PermissionScope source: Apache-2.0, copyright 2026 Samuel Sanches.
 
 | Component | Purpose | License |
 |---|---|---|

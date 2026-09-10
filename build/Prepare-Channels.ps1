@@ -32,7 +32,7 @@ Publisher: Samuel Sanches
 PublisherUrl: https://github.com/$Repository
 PackageName: PermissionScope
 PackageUrl: https://github.com/$Repository
-License: MIT
+License: Apache-2.0
 LicenseUrl: https://github.com/$Repository/blob/main/LICENSE
 Copyright: Copyright 2026 Samuel Sanches
 ShortDescription: Native Windows permission analysis with inspectable access evidence.

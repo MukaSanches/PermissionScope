@@ -22,4 +22,4 @@ The test project is an executable integration harness, not a `dotnet test` proje
 - Keep dependencies minimal and disclose their licenses. No telemetry, accounts, paywalls or cloud requirement.
 - Include before/after screenshots for visual changes and test compact, wide, light, dark and high-contrast layouts.
 
-Contributions are accepted under the project's MIT license. Translation review must state which locales were actually reviewed; generated translations are not represented as human-certified.
+Contributions are accepted under the project's Apache-2.0 license. Translation review must state which locales were actually reviewed; generated translations are not represented as human-certified.
