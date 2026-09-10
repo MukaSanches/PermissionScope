@@ -32,9 +32,6 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts --no-fund
       - run: npm run check
-      - name: Documentation and screenshot integrity
-        if: matrix.architecture == 'x64'
-        run: ./build/Verify-Documentation.ps1 -SkipBrowser
       - name: Build
         shell: pwsh
         run: |
@@ -49,6 +46,9 @@ jobs:
       - name: Website regression and accessibility
         if: matrix.architecture == 'x64'
         run: npm run test:site
+      - name: Documentation and screenshot integrity
+        if: matrix.architecture == 'x64'
+        run: ./build/Verify-Documentation.ps1 -SkipBrowser
       - name: Install packaging tool
         run: choco install nsis --version=3.12 -y --no-progress
       - name: Package
