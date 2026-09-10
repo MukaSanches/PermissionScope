@@ -172,7 +172,10 @@ jobs:
             echo "Publication is only allowed when this workflow is run from tag v1.0.0. Current ref: $GITHUB_REF"
             exit 1
           }
-          git rev-parse v1.0.0^{commit} | grep -qx "$GITHUB_SHA"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA" || {
+            echo "Checked-out commit does not match the workflow release commit."
+            exit 1
+          }
           if gh release view v1.0.0 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "v1.0.0 already exists. Refusing to overwrite an existing public release."
             exit 1

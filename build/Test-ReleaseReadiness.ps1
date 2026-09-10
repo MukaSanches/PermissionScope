@@ -16,8 +16,9 @@ function Invoke-ReadinessStep {
     Write-Host "`n=== $Name ===" -ForegroundColor Cyan
     $clock = [Diagnostics.Stopwatch]::StartNew()
     try {
+        $global:LASTEXITCODE = 0
         & $Action
-        if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) { throw "$Name failed with exit code $LASTEXITCODE." }
+        if ($LASTEXITCODE -ne 0) { throw "$Name failed with exit code $LASTEXITCODE." }
         $steps.Add([pscustomobject]@{ Step=$Name; Status='PASS'; Seconds=[Math]::Round($clock.Elapsed.TotalSeconds,2) })
     }
     catch {
