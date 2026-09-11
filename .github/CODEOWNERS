@@ -1,0 +1,23 @@
+# PermissionScope repository ownership
+#
+# CODEOWNERS provides review routing and visible stewardship. It does not by
+# itself enforce review requirements; repository rules/branch protection are
+# the enforcement layer when enabled.
+
+* @MukaSanches
+
+/.github/ @MukaSanches
+/build/ @MukaSanches
+/distribution/ @MukaSanches
+/docs/ @MukaSanches
+/samples/ @MukaSanches
+/src/ @MukaSanches
+/tests/ @MukaSanches
+
+/SECURITY.md @MukaSanches
+/GOVERNANCE.md @MukaSanches
+/CONTRIBUTING.md @MukaSanches
+/CODE_OF_CONDUCT.md @MukaSanches
+/FREE-FOREVER.md @MukaSanches
+/CHANGELOG.md @MukaSanches
+/CITATION.cff @MukaSanches

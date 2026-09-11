@@ -37,6 +37,12 @@ jobs:
         run: |
           node build/Enhance-Pages.mjs
           node build/Enhance-Pages.mjs --check
+      - name: Preserve independent repository operations hub
+        shell: bash
+        run: |
+          # .github/README.md is intentionally not a generated localized README.
+          # Restore its committed institutional content before diff/commit logic.
+          git restore --worktree -- .github/README.md
       - name: Commit generated parity update
         shell: bash
         env:
@@ -49,7 +55,7 @@ jobs:
           fi
           git config user.name 'permissionscope-docs-bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add README.md README.*.md .github/README.md docs/guides site/index*.html
+          git add README.md README.*.md docs/guides site/index*.html
           git commit -m 'Synchronize multilingual product documentation'
           for attempt in 1 2 3; do
             if git push origin HEAD:main; then

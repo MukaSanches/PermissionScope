@@ -1,0 +1,65 @@
+name: Architecture / governance proposal
+description: Propose a high-impact change to architecture, trust boundaries, governance or long-lived project policy.
+title: "[Proposal]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for changes that are broader than an ordinary feature request. Start with the problem and constraints, not a predetermined implementation. Read GOVERNANCE.md before submitting.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What durable problem requires a project-level decision?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Primary area
+      options:
+        - Permission / identity semantics
+        - Security or trust boundary
+        - Filesystem mutation / rollback
+        - Architecture / dependency
+        - Packaging / release integrity
+        - Governance / project policy
+        - Repository operations
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: List security, compatibility, privacy, accessibility, maintenance or release constraints that matter.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Link reproducible examples, Windows behavior, tests, benchmarks or prior decisions where relevant.
+  - type: textarea
+    id: options
+    attributes:
+      label: Options considered
+      description: Describe at least the leading alternative and why it may or may not fit.
+    validations:
+      required: true
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequences and failure modes
+      description: What can become harder, riskier or less compatible if this proposal is accepted?
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgement
+    attributes:
+      label: Proposal quality
+      options:
+        - label: I read GOVERNANCE.md and understand that high-impact changes require evidence and may need a durable decision record.
+          required: true
+        - label: I did not include secrets, confidential production data or unpatched vulnerability details.
+          required: true
