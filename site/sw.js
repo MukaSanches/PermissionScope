@@ -1,4 +1,5 @@
 const CACHE='permissionscope-shell-v10';
+const SHELL_PREFIX='permissionscope-shell-';
 const PAGES=['./index.html','./index.pt-BR.html','./index.es.html','./index.fr.html','./index.de.html','./index.ar.html','./index.ja.html','./index.zh-Hans.html'];
 const CORE=['./',...PAGES,'./404.html','./style.css','./premium.css','./device.css','./experience.css','./future.css','./responsive.css','./progressive.css','./intelligence.css','./quality.css','./site.js','./release-sync.js','./experience.js','./future.js','./intelligence.js','./quality.js','./platform.js','./logo.svg','./manifest.webmanifest','./pwa-icon-192.svg','./pwa-icon-512.svg','./screenshots/en-US/access-light.png'];
 const ATELIER=['./atelier.css','./atelier.js'];
@@ -17,15 +18,20 @@ self.addEventListener('install',event=>{
 
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
-    await Promise.all((await caches.keys()).filter(key=>key!==CACHE).map(key=>caches.delete(key)));
+    const keys=await caches.keys();
+    const obsolete=keys.filter(key=>key!==CACHE);
+    const upgradedFromOlderShell=obsolete.some(key=>key.startsWith(SHELL_PREFIX));
+    await Promise.all(obsolete.map(key=>caches.delete(key)));
     if(self.registration.navigationPreload)await self.registration.navigationPreload.enable();
     await self.clients.claim();
 
-    // An updated worker may arrive after the current document already loaded old
-    // cached CSS/JS. Refresh existing tabs once so the newly activated worker
-    // serves the current deployment immediately instead of on a later visit.
-    const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-    await Promise.allSettled(windows.map(client=>client.navigate(client.url)));
+    // Only users upgrading from an older PermissionScope shell need a one-time
+    // refresh. Fresh installs are left untouched, avoiding needless reloads and
+    // races while the first page is still constructing its UI.
+    if(upgradedFromOlderShell){
+      const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+      await Promise.allSettled(windows.map(client=>client.navigate(client.url)));
+    }
   })());
 });
 
@@ -53,9 +59,9 @@ self.addEventListener('fetch',event=>{
     return;
   }
 
-  // Online: always revalidate/fetch the current deployment first. Offline: fall
-  // back to the pre-cached shell. This prevents a successful Pages deployment
-  // from looking unchanged because an older CSS/JS response won the cache race.
+  // Online: always fetch the current deployment first. Offline: fall back to
+  // the pre-cached shell. This prevents a successful Pages deployment from
+  // looking unchanged because an older CSS/JS response won the cache race.
   event.respondWith((async()=>{
     try{
       const response=await fetch(request,{cache:'no-cache'});
