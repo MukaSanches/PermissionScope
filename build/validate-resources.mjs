@@ -36,10 +36,7 @@ const pageFor = locale => locale === 'en-US' ? 'index.html' : `index.${locale}.h
 const sw = fs.readFileSync(path.join(siteDir, 'sw.js'), 'utf8');
 const requiredProgressiveMarkup = [
   '<link rel="manifest" href="manifest.webmanifest">',
-  '<link rel="stylesheet" href="future.css">',
   '<link rel="stylesheet" href="responsive.css">',
-  '<script src="future.js" defer></script>',
-  '<script src="intelligence.js" defer></script>',
   '<script src="platform.js" defer></script>',
   'hreflang="x-default"'
 ];
@@ -53,10 +50,20 @@ for (const locale of webLocales) {
   for (const marker of requiredProgressiveMarkup) {
     if (!localized.includes(marker)) throw new Error(`Localized Page lost progressive platform integration: ${page} / ${marker}`);
   }
+  if (localized.includes('<script src="future.js" defer></script>') || localized.includes('<script src="intelligence.js" defer></script>')) {
+    throw new Error(`Localized Page directly initializes dynamically chained feature scripts: ${page}`);
+  }
 }
 for (const requiredSiteFile of ['404.html','manifest.webmanifest','robots.txt','sitemap.xml','.well-known/security.txt','platform.js']) {
   if (!fs.existsSync(path.join(siteDir, requiredSiteFile))) throw new Error(`Missing Pages platform file: ${requiredSiteFile}`);
 }
+
+const siteScript = fs.readFileSync(path.join(siteDir, 'site.js'), 'utf8');
+const experience = fs.readFileSync(path.join(siteDir, 'experience.js'), 'utf8');
+const future = fs.readFileSync(path.join(siteDir, 'future.js'), 'utf8');
+if (!siteScript.includes("experienceScript.src='experience.js'")) throw new Error('Primary site script no longer chains the experience layer');
+if (!experience.includes("futureScript.src='future.js'") || !experience.includes("futureStyle.href='future.css'")) throw new Error('Experience layer no longer chains the future feature layer');
+if (!future.includes("intelligence.src='intelligence.js'")) throw new Error('Future layer no longer chains the local intelligence layer');
 
 const manifest = JSON.parse(fs.readFileSync(path.join(siteDir, 'manifest.webmanifest'), 'utf8'));
 if (manifest.id !== '/PermissionScope/') throw new Error('PWA manifest must keep a stable explicit app id');
@@ -80,4 +87,4 @@ if (!cacheGeneration || Number(cacheGeneration) < 5) throw new Error('Unexpected
 const platform = fs.readFileSync(path.join(siteDir, 'platform.js'), 'utf8');
 if (!platform.includes("serviceWorker.register('./sw.js'")) throw new Error('Service worker registration is missing');
 if (!platform.includes("updateViaCache:'none'")) throw new Error('Service worker update checks must bypass HTTP cache');
-console.log(`PASS local website assets, ${webLocales.length} localized Pages, stable/localized PWA metadata, progressive integration, offline parity and platform metadata`);
+console.log(`PASS local website assets, ${webLocales.length} localized Pages, stable/localized PWA metadata, single-load progressive integration, offline parity and platform metadata`);
