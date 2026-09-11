@@ -87,7 +87,7 @@ try {
     assert.equal(await page.locator('.ps-release-rail').count(), 1, `${locale}: release rail duplicated`);
     assert.equal(await page.locator('.ps-desk-plane,.ps-desk-keyboard,.ps-desk-mouse,.ps-desk-node,.ps-desk-cable').count(), 0, `${locale}: desk peripherals must not render`);
     assert.equal(await page.evaluate(() => document.documentElement.dataset.localeLeak), 'false', `${locale}: locale leak audit failed`);
-    const pageText = await page.locator('body').innerText();
+    const pageText = await page.locator('body').textContent();
     for (const marker of localizedMarkers[locale]) assert(pageText.includes(marker), `${locale}: missing localized marker ${marker}`);
     const downloadHrefs = await page.locator('.ps-download-card').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
     assert.equal(downloadHrefs.length, 4, `${locale}: expected four primary download choices`);
