@@ -6,6 +6,16 @@ const site=path.join(root,'site');
 const check=process.argv.includes('--check');
 const pages=['index.html','index.pt-BR.html','index.es.html','index.fr.html','index.de.html','index.ar.html','index.ja.html','index.zh-Hans.html'];
 const manifestLocales=['pt-BR','es','fr','de','ar','ja','zh-Hans'];
+const skipLabels={
+  'index.html':'Skip to main content',
+  'index.pt-BR.html':'Pular para o conteúdo principal',
+  'index.es.html':'Saltar al contenido principal',
+  'index.fr.html':'Aller au contenu principal',
+  'index.de.html':'Zum Hauptinhalt springen',
+  'index.ar.html':'تخطي إلى المحتوى الرئيسي',
+  'index.ja.html':'メインコンテンツへ移動',
+  'index.zh-Hans.html':'跳到主要内容'
+};
 
 const props=fs.readFileSync(path.join(root,'Directory.Build.props'),'utf8');
 const versionMatch=props.match(/<Version>([^<]+)<\/Version>/);
@@ -24,8 +34,10 @@ const theme='<meta name="theme-color" content="#17315C">';
 const referrer='<meta name="referrer" content="no-referrer">';
 const xDefault='<link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html">';
 
-function enhanced(source){
+function enhanced(source,file){
   let html=source;
+  const skipLabel=skipLabels[file];
+  if(!skipLabel) throw new Error(`Missing localized skip-navigation label for ${file}`);
   html=html.replace(/<html([^>]*)\sdata-release-version="[^"]*"([^>]*)>/,`<html$1 data-release-version="${releaseVersion}"$2>`);
   if(!html.includes('data-release-version=')) html=html.replace(/<html([^>]*)>/,`<html$1 data-release-version="${releaseVersion}">`);
   if(!html.includes(referrer)) html=html.replace('<meta name="viewport" content="width=device-width,initial-scale=1">',`<meta name="viewport" content="width=device-width,initial-scale=1">\n${referrer}`);
@@ -40,6 +52,7 @@ function enhanced(source){
   if(!html.includes(releaseScript)) html=html.replace('<script src="site.js" defer></script>',`<script src="site.js" defer></script>${releaseScript}`);
   if(!html.includes(platformScript)) html=html.replace(releaseScript,`${releaseScript}${platformScript}`);
   html=html.replaceAll('href="#download-premium"','href="#download"');
+  html=html.replace(/<a class="skip" href="#main">[^<]*<\/a>/,`<a class="skip" href="#main">${skipLabel}</a>`);
   return html;
 }
 
@@ -119,7 +132,7 @@ if(serviceWorker.includes('keys.filter(key=>key!==CACHE)')) throw new Error('Ser
 for(const file of pages){
   const target=path.join(site,file);
   const source=fs.readFileSync(target,'utf8');
-  const result=enhanced(source);
+  const result=enhanced(source,file);
   validateInternalAnchors(result,file);
   validateManifestShortcuts(result,file,manifestData);
   if(check){
@@ -128,9 +141,10 @@ for(const file of pages){
     if(!source.includes(appleTouchIcon)) throw new Error(`Missing Safari/iOS touch icon metadata in ${file}`);
     if(!source.includes(enhancementStylePreloads)) throw new Error(`Missing early enhancement stylesheet discovery in ${file}`);
     if(!source.includes(releaseScript)) throw new Error(`Missing release sync script in ${file}`);
+    if(!source.includes(`<a class="skip" href="#main">${skipLabels[file]}</a>`)) throw new Error(`Incorrect localized skip-navigation label in ${file}`);
   } else {
     fs.writeFileSync(target,result);
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, early enhancement stylesheet discovery, conservative installed-window behavior, localized shortcut accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, early enhancement stylesheet discovery, conservative installed-window behavior, localized shortcut and skip-navigation accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
