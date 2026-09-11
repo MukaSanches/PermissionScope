@@ -12,13 +12,17 @@
     'zh-Hans':{release:'当前版本',local:'本地优先',native:'Windows 原生',open:'开源'}
   };
   const t=copy[lang]||copy['en-US'];
+  const currentRelease=(()=>{
+    const href=document.querySelector('.ps-download-card[href*="/releases/download/v"]')?.getAttribute('href')||'';
+    return href.match(/\/releases\/download\/v([^/]+)\//)?.[1]||document.querySelector('.ps-release-chip span')?.textContent?.match(/\d+\.\d+\.\d+/)?.[0]||'current';
+  })();
 
   const hero=document.querySelector('.hero');
   if(hero&&!hero.querySelector('.ps-release-rail')){
     const rail=document.createElement('div');
     rail.className='ps-release-rail';
     rail.setAttribute('aria-label','PermissionScope product status');
-    rail.innerHTML=`<span><i></i><strong>${t.release} 1.0.1</strong></span><span>${t.local}</span><span>${t.native}</span><span>${t.open} · Apache-2.0</span>`;
+    rail.innerHTML=`<span><i></i><strong>${t.release} ${currentRelease}</strong></span><span>${t.local}</span><span>${t.native}</span><span>${t.open} · Apache-2.0</span>`;
     hero.querySelector('.actions')?.insertAdjacentElement('afterend',rail);
   }
 
@@ -58,6 +62,6 @@
   const device=document.querySelector('.ps-device');
   if(device){
     device.setAttribute('role','img');
-    device.setAttribute('aria-label','PermissionScope application shown on a premium desktop display');
+    device.setAttribute('aria-label','PermissionScope application shown on a precision desktop display');
   }
 })();
