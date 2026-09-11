@@ -17,6 +17,7 @@ const manifest='<link rel="manifest" href="manifest.webmanifest">';
 const appleTouchIcon='<link rel="apple-touch-icon" href="apple-touch-icon.png">';
 const platformStyle='<link rel="stylesheet" href="responsive.css">';
 const progressiveStyle='<link rel="stylesheet" href="progressive.css">';
+const enhancementStylePreloads=['premium.css','device.css','experience.css'].map(href=>`<link rel="preload" href="${href}" as="style">`).join('');
 const releaseScript='<script src="release-sync.js" defer></script>';
 const platformScript='<script src="platform.js" defer></script>';
 const theme='<meta name="theme-color" content="#17315C">';
@@ -34,6 +35,7 @@ function enhanced(source){
   if(!html.includes(manifest)) html=html.replace(appleTouchIcon,`${appleTouchIcon}${manifest}`);
   if(!html.includes(platformStyle)) html=html.replace('<link rel="stylesheet" href="style.css">',`<link rel="stylesheet" href="style.css">${platformStyle}`);
   if(!html.includes(progressiveStyle)) html=html.replace(platformStyle,`${platformStyle}${progressiveStyle}`);
+  if(!html.includes(enhancementStylePreloads)) html=html.replace(progressiveStyle,`${progressiveStyle}${enhancementStylePreloads}`);
   if(!html.includes(releaseScript)) html=html.replace('<script src="site.js" defer></script>',`<script src="site.js" defer></script>${releaseScript}`);
   if(!html.includes(platformScript)) html=html.replace(releaseScript,`${releaseScript}${platformScript}`);
   html=html.replaceAll('href="#download-premium"','href="#download"');
@@ -123,10 +125,11 @@ for(const file of pages){
     if(result!==source) throw new Error(`Stale enhanced Page: ${file}`);
     if(!source.includes(`data-release-version="${releaseVersion}"`)) throw new Error(`Release version drift in ${file}`);
     if(!source.includes(appleTouchIcon)) throw new Error(`Missing Safari/iOS touch icon metadata in ${file}`);
+    if(!source.includes(enhancementStylePreloads)) throw new Error(`Missing early enhancement stylesheet discovery in ${file}`);
     if(!source.includes(releaseScript)) throw new Error(`Missing release sync script in ${file}`);
   } else {
     fs.writeFileSync(target,result);
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, conservative installed-window behavior, localized shortcut accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, early enhancement stylesheet discovery, conservative installed-window behavior, localized shortcut accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
