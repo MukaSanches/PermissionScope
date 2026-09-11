@@ -88,7 +88,7 @@
       "permissionscope.windows": {
         "type": "Project",
         "dependencies": {
-          "PermissionScope.Core": "[1.0.0, )",
+          "PermissionScope.Core": "[1.0.1, )",
           "System.DirectoryServices.Protocols": "[10.0.12, )"
         }
       }
