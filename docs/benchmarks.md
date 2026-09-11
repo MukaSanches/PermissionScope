@@ -52,3 +52,20 @@ A scheduled or manually extended CI run is useful for detecting large regression
 - Physical ARM64 results require the protocol in `hardware-validation.md`.
 
 No 10k/100k production-performance claim is established merely by adding the harness; those measurements must be run and recorded on controlled hardware.
+
+## Local 10,000-file baseline — 11 September 2026
+
+Three consecutive runs used the published PermissionScope 1.0.1 x64 portable package on Windows 10.0.19045, PowerShell 7.6.5, NTFS and four logical processors. The package ZIP matched release SHA-256 `963d0d0795a3f1a274c81a284361b141d576ffb026061687d406aee59f9f3694`; the CLI apphost hash remained `AF573680D678E1DD6F3FE0FDEC5EB13C05BFF8DABFE155E4D2277FDE8C68EB69` during the runs.
+
+Each synthetic fixture contained 10,000 empty files, 100 subdirectories and the root. All three runs returned exactly 10,101 resources with zero scan errors, zero Unknown decisions, matching roots, schema version 1 and a non-cancelled snapshot.
+
+| Run | Elapsed | Observed CLI peak working set | Worker output | Forced process termination |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 5,688.16 ms | 298,483,712 bytes | 46,396,537 bytes | 115.68 ms |
+| 2 | 4,055.48 ms | 296,398,848 bytes | 46,396,537 bytes | 18.86 ms |
+| 3 | 3,860.76 ms | 296,382,464 bytes | 46,396,471 bytes | 16.04 ms |
+| Median | 4,055.48 ms | 296,398,848 bytes | 46,396,537 bytes | 18.86 ms |
+
+This is a local baseline for this package and fixture. It does not measure the WinUI process, JSON parsing in the parent, cooperative cancellation, remote/domain behavior or competing tools. Forced termination was requested after 500 ms and may include startup or identity resolution rather than active enumeration. The slower first run does not establish a cache or warm-up cause.
+
+The approximately 46.4 MB worker response and approximately 296 MB observed child peak at 10,101 objects justify measuring scan, serialization and consumer parsing separately before attempting 100,000 files on this host. They do not establish linear growth, an out-of-memory failure or a single root cause. The 100,000-file run was deferred pending a resource budget and monitoring plan.
