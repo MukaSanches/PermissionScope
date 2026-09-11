@@ -50,7 +50,7 @@
       "short_name":"Verify",
       "name_localized":{"pt-BR":"Verificar SHA-256","es":"Verificar SHA-256","fr":"Vérifier SHA-256","de":"SHA-256 prüfen","ar":"تحقق من SHA-256","ja":"SHA-256 を確認","zh-Hans":"验证 SHA-256"},
       "short_name_localized":{"pt-BR":"Verificar","es":"Verificar","fr":"Vérifier","de":"Prüfen","ar":"تحقق","ja":"確認","zh-Hans":"验证"},
-      "url":"./#local-verification"
+      "url":"./#download"
     }
   ]
 }
