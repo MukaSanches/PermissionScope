@@ -17,7 +17,7 @@ const manifest='<link rel="manifest" href="manifest.webmanifest">';
 const appleTouchIcon='<link rel="apple-touch-icon" href="apple-touch-icon.png">';
 const platformStyle='<link rel="stylesheet" href="responsive.css">';
 const progressiveStyle='<link rel="stylesheet" href="progressive.css">';
-const enhancementStylePreloads=['premium.css','device.css','experience.css'].map(href=>`<link rel="preload" href="${href}" as="style">`).join('');
+const enhancementStylePreloads=['./premium.css','./device.css','./experience.css'].map(href=>`<link rel="preload" href="${href}" as="style">`).join('');
 const releaseScript='<script src="release-sync.js" defer></script>';
 const platformScript='<script src="platform.js" defer></script>';
 const theme='<meta name="theme-color" content="#17315C">';
@@ -35,6 +35,7 @@ function enhanced(source){
   if(!html.includes(manifest)) html=html.replace(appleTouchIcon,`${appleTouchIcon}${manifest}`);
   if(!html.includes(platformStyle)) html=html.replace('<link rel="stylesheet" href="style.css">',`<link rel="stylesheet" href="style.css">${platformStyle}`);
   if(!html.includes(progressiveStyle)) html=html.replace(platformStyle,`${platformStyle}${progressiveStyle}`);
+  html=html.replace(/<link rel="preload" href="(?:premium|device|experience)\.css" as="style">/g,'');
   if(!html.includes(enhancementStylePreloads)) html=html.replace(progressiveStyle,`${progressiveStyle}${enhancementStylePreloads}`);
   if(!html.includes(releaseScript)) html=html.replace('<script src="site.js" defer></script>',`<script src="site.js" defer></script>${releaseScript}`);
   if(!html.includes(platformScript)) html=html.replace(releaseScript,`${releaseScript}${platformScript}`);
