@@ -10,8 +10,10 @@ $repository = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $version = Get-ProjectVersion -Root $repository
 $baseVersion = ($version -split '[-+]')[0]
 $parts = @($baseVersion.Split('.'))
-if ($parts.Count -lt 3 -or $parts[0..2] | Where-Object { $_ -notmatch '^\d+$' }) { throw "MSIX requires a numeric major.minor.patch project version; got '$version'." }
-$msixVersion = '{0}.{1}.{2}.0' -f [int]$parts[0],[int]$parts[1],[int]$parts[2]
+$numericParts = @($parts | Select-Object -First 3)
+$invalidNumericParts = @($numericParts | Where-Object { $_ -notmatch '^\d+$' })
+if ($parts.Count -lt 3 -or $invalidNumericParts.Count -gt 0) { throw "MSIX requires a numeric major.minor.patch project version; got '$version'." }
+$msixVersion = '{0}.{1}.{2}.0' -f [int]$numericParts[0],[int]$numericParts[1],[int]$numericParts[2]
 if ([string]::IsNullOrWhiteSpace($Publisher) -or [string]::IsNullOrWhiteSpace($IdentityName)) { throw 'Publisher and IdentityName are required.' }
 
 $source = Join-Path $repository "artifacts/PermissionScope-$version-win-$Architecture"
