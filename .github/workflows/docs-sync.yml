@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: permissionscope-docs-sync
@@ -36,6 +37,8 @@ jobs:
           node build/Enhance-Pages.mjs --check
       - name: Commit generated parity update
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           if git diff --quiet; then
@@ -47,7 +50,11 @@ jobs:
           git add README.md README.*.md .github/README.md docs/guides site/index*.html
           git commit -m 'Synchronize multilingual product documentation'
           for attempt in 1 2 3; do
-            if git push origin HEAD:main; then exit 0; fi
+            if git push origin HEAD:main; then
+              gh workflow run pages.yml --ref main
+              gh workflow run site-compatibility.yml --ref main
+              exit 0
+            fi
             git fetch origin main
             git rebase origin/main
           done
