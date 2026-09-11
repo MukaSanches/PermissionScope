@@ -113,7 +113,9 @@ try {
         assert.equal(await page.locator('html').getAttribute('lang'), locale);
         assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
         await assertNoHorizontalOverflow(page, `${engineName}/${locale}`);
-        assert(await page.locator('#download-premium').count() === 1, `${engineName}/${locale}: premium downloads missing`);
+        assert.equal(await page.locator('#download').count(), 1, `${engineName}/${locale}: canonical download section missing or duplicated`);
+        assert.equal(await page.locator('#download-premium').count(), 0, `${engineName}/${locale}: legacy download fragment leaked after enhancement`);
+        assert(await page.locator('#download .ps-download-card').count() >= 1, `${engineName}/${locale}: enhanced download cards missing`);
         assert(await page.locator('.ps-hash-tool').count() === 1, `${engineName}/${locale}: SHA tool missing`);
         assert(await page.locator('.ps-workstation-scene').count() === 1, `${engineName}/${locale}: monitor scene missing`);
         assert.equal(await page.locator('.ps-desk-plane,.ps-desk-keyboard,.ps-desk-mouse,.ps-desk-node,.ps-desk-cable').count(), 0, `${engineName}/${locale}: desk peripherals rendered`);
