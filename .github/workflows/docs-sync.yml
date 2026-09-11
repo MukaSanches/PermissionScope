@@ -4,10 +4,12 @@ on:
   push:
     branches: [main]
     paths:
+      - 'Directory.Build.props'
       - 'build/Build-Documentation.mjs'
       - 'build/Enhance-Pages.mjs'
       - 'docs/content/locales.json'
       - 'docs/brand/**'
+      - 'site/release-sync.js'
       - '.github/workflows/docs-sync.yml'
   workflow_dispatch:
 
