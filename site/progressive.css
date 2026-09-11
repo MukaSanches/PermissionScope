@@ -1,0 +1,51 @@
+/* Progressive, cross-browser enhancements for PermissionScope Pages.
+   Everything here is additive: unsupported features simply fall back to the base styles. */
+
+/* Defer below-the-fold rendering work while preserving layout, semantics and find-in-page. */
+@supports (content-visibility:auto){
+  .section:not(.hero),
+  .ps-section,
+  .ps-state-section,
+  .ps-format-section,
+  .ps-lab,
+  .ps-verify,
+  .ps-final,
+  footer{
+    content-visibility:auto;
+    contain-intrinsic-size:auto 760px;
+  }
+}
+
+/* Honor explicit requests for stronger contrast without replacing forced-colors support. */
+@media (prefers-contrast:more){
+  a{text-decoration-thickness:2px}
+  .primary,
+  .features article,
+  .course,
+  .proof-strip,
+  .trust-card,
+  .download-row,
+  .ps-download-card,
+  .ps-state,
+  .ps-format-card,
+  .ps-chain,
+  .ps-hash-drop,
+  .ps-command,
+  .ps-assistant{
+    border-color:currentColor!important;
+  }
+  .spatial-badge,
+  .ps-command-launch,
+  .ps-assistant-launch{
+    background:var(--surface)!important;
+    color:var(--ink)!important;
+    border-color:currentColor!important;
+    backdrop-filter:none!important;
+  }
+  .muted,
+  .small,
+  .product figcaption,
+  .spatial-caption{
+    color:var(--ink)!important;
+  }
+}
