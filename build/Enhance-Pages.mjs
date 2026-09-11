@@ -33,7 +33,16 @@ function enhanced(source){
   if(!html.includes(progressiveStyle)) html=html.replace(platformStyle,`${platformStyle}${progressiveStyle}`);
   if(!html.includes(releaseScript)) html=html.replace('<script src="site.js" defer></script>',`<script src="site.js" defer></script>${releaseScript}`);
   if(!html.includes(platformScript)) html=html.replace(releaseScript,`${releaseScript}${platformScript}`);
+  html=html.replaceAll('href="#download-premium"','href="#download"');
   return html;
+}
+
+function validateInternalAnchors(html,file){
+  const ids=new Set([...html.matchAll(/\sid="([^"]+)"/g)].map(match=>match[1]));
+  for(const match of html.matchAll(/href="#([^"]+)"/g)){
+    const fragment=match[1];
+    if(!ids.has(fragment)) throw new Error(`Broken internal anchor in ${file}: #${fragment}`);
+  }
 }
 
 const releaseSyncPath=path.join(site,'release-sync.js');
@@ -60,6 +69,7 @@ for(const file of pages){
   const target=path.join(site,file);
   const source=fs.readFileSync(target,'utf8');
   const result=enhanced(source);
+  validateInternalAnchors(result,file);
   if(check){
     if(result!==source) throw new Error(`Stale enhanced Page: ${file}`);
     if(!source.includes(`data-release-version="${releaseVersion}"`)) throw new Error(`Release version drift in ${file}`);
@@ -69,4 +79,4 @@ for(const file of pages){
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, internal anchors, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
