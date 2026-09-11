@@ -1,6 +1,6 @@
-const CACHE='permissionscope-shell-v8';
+const CACHE='permissionscope-shell-v9';
 const PAGES=['./index.html','./index.pt-BR.html','./index.es.html','./index.fr.html','./index.de.html','./index.ar.html','./index.ja.html','./index.zh-Hans.html'];
-const CORE=['./',...PAGES,'./404.html','./style.css','./premium.css','./device.css','./experience.css','./future.css','./responsive.css','./progressive.css','./intelligence.css','./site.js','./release-sync.js','./experience.js','./future.js','./intelligence.js','./platform.js','./logo.svg','./manifest.webmanifest','./pwa-icon-192.svg','./pwa-icon-512.svg','./screenshots/en-US/access-light.png'];
+const CORE=['./',...PAGES,'./404.html','./style.css','./premium.css','./device.css','./experience.css','./future.css','./responsive.css','./progressive.css','./intelligence.css','./quality.css','./site.js','./release-sync.js','./experience.js','./future.js','./intelligence.js','./quality.js','./platform.js','./logo.svg','./manifest.webmanifest','./pwa-icon-192.svg','./pwa-icon-512.svg','./screenshots/en-US/access-light.png'];
 const ATELIER=['./atelier.css','./atelier.js'];
 
 self.addEventListener('install',event=>{
