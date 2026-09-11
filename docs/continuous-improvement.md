@@ -1,14 +1,15 @@
 # Continuous improvement ledger
 
-## Rodada 2026-09-11 23:12 UTC — instrumentação por fase em validação
+## Rodada 2026-09-11 23:12 UTC — instrumentação por fase implementada e validada
 
-- PR #24: o head `a66ce57` teve Dependency Review, Windows Build, CodeQL e Production Trust aprovados. Como `main` avançou novamente, a branch foi sincronizada por merge sem force push no head `7920254`; documentação, recursos e site passaram localmente em oito idiomas e três larguras. O novo CI segue pendente; não integrar antes da aprovação completa.
+- PR #24: após nova sincronização no head `7920254`, Dependency Review, Windows Build, CodeQL e Production Trust passaram; o diff continuou restrito à documentação e foi integrado por squash em `c843f36`.
 - Implementado em lote separado `codex/worker-phase-metrics`: opção interna `--worker-metrics <arquivo>`, aceita somente com worker, registra scan, serialização única e escrita em sidecar atômico/best-effort. Sem a opção, stdout, snapshot e exit code permanecem iguais. Arquivos existentes não são sobrescritos; falha do sidecar não invalida o scan.
 - `build/Measure-Scan.ps1 -MeasurePhases` registra leitura, parsing e validação do consumidor, além de memória do monitor antes/depois como observações de fronteira. Não chama esses valores de pico ou memória da GUI. Sidecar ausente/parcial é diagnóstico indisponível, nunca zero.
 - Teste novo cobre protocolo sem flag, equivalência semântica, fases numéricas, falha de escrita, preservação de arquivo existente, argumentos inválidos e interrupção imediata. Build CLI passou sem warnings/erros; smoke 100 validou 201 objetos, zero erros/Unknown e diagnóstico completo. Um probe de 1 ms confirmou término forçado com diagnóstico ausente, sem métricas falsas. QA independente aprovou os três arquivos; ramos de sidecar corrompido e interrupção durante rename não foram injetados.
 - Validação final: build Release x64 com o SDK .NET 10 isolado passou com zero warnings/erros; o harness Windows passou 88 testes e zero falhas; teste específico de métricas passou; verificador de documentação validou 65 documentos/72 imagens; `npm run check` e `git diff --check` passaram. A primeira tentativa de build usou o SDK global .NET 9 e foi rejeitada corretamente pelo `global.json`; a repetição usou a toolchain do projeto. O apphost de teste framework-dependent também exigiu `DOTNET_ROOT` apontado para a mesma toolchain e então passou; isso foi ambiente de teste, não falha do recurso.
 - Medições smoke servem apenas para validar o instrumento e não são baseline. Um exemplo observado separou aproximadamente 300,02 ms de scan, 31,17 ms de serialização, 10,48 ms de escrita, 6,63 ms de leitura, 233,99 ms de parsing PowerShell e 36,84 ms de validação. Não representam GUI, SLA ou concorrentes.
-- Próximo passo: concluir harness Windows e checks do lote; revisar diff; enviar PR separado. Depois repetir 10 mil com métricas por fase e decidir se Scanner ou transporte/consumidor domina o custo antes de qualquer mudança arquitetural ou teste de 100 mil.
+- Entrega: commit `921515b` enviado no PR #25. Após incorporar a baseline de `main`, o conflito no ledger foi resolvido preservando as duas rodadas. O PR aguarda CI; não integrar antes de todas as verificações passarem.
+- Próximo passo: repetir 10 mil com métricas por fase e decidir se Scanner ou transporte/consumidor domina o custo antes de qualquer mudança arquitetural ou teste de 100 mil.
 
 ### Autoanálise competitiva — 11/09/2026, rodada 23:12 UTC
 
@@ -17,6 +18,33 @@ A baseline de 10 mil e a nova instrumentação melhoram a capacidade de diagnost
 Distribuição v1.0.1, Apache-2.0, checksums, CI e documentação multilíngue são avanços públicos. Permanecem lacunas de assinatura Authenticode, Store/WinGet, ARM64 físico, acessibilidade WinUI certificada e ambientes reais de domínio/DFS. A prioridade discutida por produto, engenharia e QA é atribuir custo entre scanner, serialização e consumidor antes de otimizar ou ampliar o escopo.
 
 Fontes oficiais consultadas nesta data: [Microsoft AccessChk](https://learn.microsoft.com/en-us/sysinternals/downloads/accesschk), [Netwrix Effective Permissions Reporting Tool](https://netwrix.com/en/resources/freeware/effective-permissions-reporting-tool/) e [SolarWinds Permissions Analyzer](https://www.solarwinds.com/free-tools/permissions-analyzer-for-active-directory).
+
+## Rodada 2026-09-11 08:09 UTC — baseline de 10 mil concluída
+
+- Estado publicado confirmado: o conteúdo de documentação/licença entrou diretamente em `main`; o PR #8 foi fechado sem merge. A release [v1.0.1](https://github.com/MukaSanches/PermissionScope/releases/tag/v1.0.1) foi publicada em 11/09/2026 01:04 UTC com instaladores e portáteis x64/ARM64, código-fonte e SHA256SUMS. Cinco hashes do manifesto correspondem aos digests publicados pela API. LICENSE do tag é Apache-2.0 e NOTICE preserva autoria e terceiros. Os binários continuam sem assinatura; Store/WinGet e ARM64 físico não estão certificados.
+- Implementado nesta rodada: nenhuma lógica do app foi alterada. Executamos três baselines sintéticas de 10 mil arquivos usando o ZIP x64 publicado e verificado. O resultado sanitizado foi adicionado a `docs/benchmarks.md`; logs brutos, caminhos e identidades locais permanecem fora do repositório.
+- Validado: `git diff --check`; verificador de documentação (65 documentos, 72 imagens, oito idiomas); `npm run check`; e `npm run test:site` em oito idiomas e três larguras, com zero violações axe, links da release atual e bloqueio de requisições externas aprovados. O primeiro teste do site não iniciou por ausência de dependências no worktree isolado; `npm ci` instalou as quatro dependências travadas, auditoria encontrou zero vulnerabilidades e a repetição passou.
+- Resultado: todas as execuções validaram 10.101 objetos, zero erros/Unknown e snapshots completos. Mediana 4.055,48 ms; faixa 3.860,76–5.688,16 ms. Pico observado do processo CLI: mediana 296.398.848 bytes, faixa 296.382.464–298.483.712. Saída do worker: mediana 46.396.537 bytes. Término forçado: mediana 18,86 ms, faixa 16,04–115,68 ms.
+- Limites: mede somente CLI/worker no Windows 10.0.19045, NTFS, PowerShell 7.6.5 e quatro processadores lógicos. Não mede GUI, parsing do processo pai, cancelamento cooperativo, domínio/remoto nem concorrentes. O probe pode terminar o processo ainda na inicialização/resolução de identidade. Os tempos não constituem SLA.
+- Decisão: adiar 100 mil. A saída e o pico de memória são materiais enquanto o custo do consumidor permanece desconhecido. Não há extrapolação linear, causa única ou falha funcional comprovada. Próximo lote: instrumentar separadamente scan, serialização e parsing; então decidir entre armazenamento incremental e protocolo versionado em lotes, preservando esquema, erros, Unknown e cancelamento seguro.
+
+### Autoanálise competitiva — 11/09/2026
+
+| Dimensão | Situação atual e evolução |
+| --- | --- |
+| Recursos/cobertura | PermissionScope oferece explicação por ACE, GUI/CLI, snapshots, comparação e rollback. AccessChk permanece mais amplo em tipos de objeto, incluindo Registro, serviços e processos. Netwrix/SolarWinds destacam usuários, grupos e herança. |
+| Correção/confiabilidade | Authz e Unknown tornam limites explícitos; as três baselines não tiveram erro/Unknown, mas não provam correção universal. Domínios, DFS e contextos remotos ainda exigem validação representativa. |
+| Desempenho | Agora há uma baseline local reproduzível de 10 mil arquivos. Não há benchmark dos concorrentes, teste de 100 mil ou medição da GUI; portanto não existe evidência de superioridade em desempenho. O volume de saída/memória indica a próxima prioridade. |
+| UX/acessibilidade | Site e documentação em oito idiomas e verificações automatizadas melhoram alcance. Não certificam acessibilidade WinUI, qualidade humana das traduções ou usabilidade comparativa. |
+| Privacidade | Processamento local, ausência de conta/telemetria e cuidado com logs continuam atributos do projeto. A privacidade dos concorrentes não foi auditada, então não se afirma vantagem comparativa. |
+| Distribuição/manutenção | A v1.0.1 publicada, checksums, procedência e CI são progresso concreto. Ainda faltam assinatura Authenticode, Store/WinGet e teste físico ARM64; atestações não substituem assinatura Windows. |
+| Licença/documentação | Apache-2.0, NOTICE e documentação multilíngue melhoram reutilização e entendimento. Não medimos adoção, suporte ou documentação dos concorrentes de modo equivalente. |
+
+Síntese: PermissionScope avançou de uma entrega proposta para uma release pública verificável e agora possui uma baseline local de escala. Continua uma ferramenta especializada promissora, sem evidência de liderança geral sobre concorrentes. Produto, engenharia e QA concordaram em medir custos por fase antes de ampliar o benchmark ou alterar a arquitetura.
+
+Fontes oficiais consultadas em 11/09/2026: [Microsoft AccessChk](https://learn.microsoft.com/en-us/sysinternals/downloads/accesschk), [Netwrix Effective Permissions Reporting Tool](https://netwrix.com/en/resources/freeware/effective-permissions-reporting-tool/) e [SolarWinds Permissions Analyzer](https://www.solarwinds.com/free-tools/permissions-analyzer-for-active-directory).
+
+Próximo passo exato: instrumentar scan, serialização e parsing/consumo separadamente, incluindo pico do consumidor; revisar um protocolo incremental compatível; só então executar 100 mil com limites explícitos.
 
 ## Rodada 2026-09-10 17:07 UTC — implementada e validada, integração adiada
 
