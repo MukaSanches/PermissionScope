@@ -13,6 +13,7 @@ const releaseVersion=versionMatch[1].trim();
 if(!/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(releaseVersion)) throw new Error(`Unsupported project version: ${releaseVersion}`);
 
 const manifest='<link rel="manifest" href="manifest.webmanifest">';
+const appleTouchIcon='<link rel="apple-touch-icon" href="apple-touch-icon.png">';
 const platformStyle='<link rel="stylesheet" href="responsive.css">';
 const progressiveStyle='<link rel="stylesheet" href="progressive.css">';
 const releaseScript='<script src="release-sync.js" defer></script>';
@@ -28,7 +29,8 @@ function enhanced(source){
   if(!html.includes(referrer)) html=html.replace('<meta name="viewport" content="width=device-width,initial-scale=1">',`<meta name="viewport" content="width=device-width,initial-scale=1">\n${referrer}`);
   if(!html.includes(theme)) html=html.replace('<meta name="description"',`${theme}\n<meta name="description"`);
   if(!html.includes(xDefault)) html=html.replace(/(<link rel="alternate" hreflang="zh-Hans"[^>]+>)/,`$1\n${xDefault}`);
-  if(!html.includes(manifest)) html=html.replace('<link rel="icon" href="logo.svg" type="image/svg+xml">',`<link rel="icon" href="logo.svg" type="image/svg+xml">${manifest}`);
+  if(!html.includes(appleTouchIcon)) html=html.replace('<link rel="icon" href="logo.svg" type="image/svg+xml">',`<link rel="icon" href="logo.svg" type="image/svg+xml">${appleTouchIcon}`);
+  if(!html.includes(manifest)) html=html.replace(appleTouchIcon,`${appleTouchIcon}${manifest}`);
   if(!html.includes(platformStyle)) html=html.replace('<link rel="stylesheet" href="style.css">',`<link rel="stylesheet" href="style.css">${platformStyle}`);
   if(!html.includes(progressiveStyle)) html=html.replace(platformStyle,`${platformStyle}${progressiveStyle}`);
   if(!html.includes(releaseScript)) html=html.replace('<script src="site.js" defer></script>',`<script src="site.js" defer></script>${releaseScript}`);
@@ -72,6 +74,12 @@ try{
   throw new Error(`Invalid site/manifest.webmanifest: ${error.message}`);
 }
 
+const appleTouchIconPath=path.join(site,'apple-touch-icon.png');
+const officialMarkPath=path.join(root,'docs','brand','project-avatar.png');
+if(!fs.existsSync(appleTouchIconPath)) throw new Error('Missing site/apple-touch-icon.png for Safari/iOS home-screen identity');
+if(!fs.existsSync(officialMarkPath)) throw new Error('Missing official docs/brand/project-avatar.png');
+if(!fs.readFileSync(appleTouchIconPath).equals(fs.readFileSync(officialMarkPath))) throw new Error('Safari/iOS touch icon must reuse the single official PermissionScope mark');
+
 const releaseSyncPath=path.join(site,'release-sync.js');
 if(!fs.existsSync(releaseSyncPath)) throw new Error('Missing site/release-sync.js');
 
@@ -101,10 +109,11 @@ for(const file of pages){
   if(check){
     if(result!==source) throw new Error(`Stale enhanced Page: ${file}`);
     if(!source.includes(`data-release-version="${releaseVersion}"`)) throw new Error(`Release version drift in ${file}`);
+    if(!source.includes(appleTouchIcon)) throw new Error(`Missing Safari/iOS touch icon metadata in ${file}`);
     if(!source.includes(releaseScript)) throw new Error(`Missing release sync script in ${file}`);
   } else {
     fs.writeFileSync(target,result);
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
