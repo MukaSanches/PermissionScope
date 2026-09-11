@@ -37,12 +37,39 @@ function enhanced(source){
   return html;
 }
 
+function pageIds(html){
+  return new Set([...html.matchAll(/\sid="([^"]+)"/g)].map(match=>match[1]));
+}
+
 function validateInternalAnchors(html,file){
-  const ids=new Set([...html.matchAll(/\sid="([^"]+)"/g)].map(match=>match[1]));
+  const ids=pageIds(html);
   for(const match of html.matchAll(/href="#([^"]+)"/g)){
     const fragment=match[1];
     if(!ids.has(fragment)) throw new Error(`Broken internal anchor in ${file}: #${fragment}`);
   }
+}
+
+function validateManifestShortcuts(html,file,manifestData){
+  const ids=pageIds(html);
+  const shortcuts=Array.isArray(manifestData.shortcuts)?manifestData.shortcuts:[];
+  for(const shortcut of shortcuts){
+    if(!shortcut || typeof shortcut.url!=='string') throw new Error('Every manifest shortcut must declare a string url');
+    const resolved=new URL(shortcut.url,'https://mukasanches.github.io/PermissionScope/manifest.webmanifest');
+    if(resolved.origin!=='https://mukasanches.github.io' || !resolved.pathname.startsWith('/PermissionScope/')){
+      throw new Error(`Manifest shortcut escapes PermissionScope scope: ${shortcut.url}`);
+    }
+    const fragment=decodeURIComponent(resolved.hash.slice(1));
+    if(fragment && !ids.has(fragment)) throw new Error(`Broken manifest shortcut in ${file}: #${fragment}`);
+  }
+}
+
+const manifestPath=path.join(site,'manifest.webmanifest');
+if(!fs.existsSync(manifestPath)) throw new Error('Missing site/manifest.webmanifest');
+let manifestData;
+try{
+  manifestData=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
+}catch(error){
+  throw new Error(`Invalid site/manifest.webmanifest: ${error.message}`);
 }
 
 const releaseSyncPath=path.join(site,'release-sync.js');
@@ -70,6 +97,7 @@ for(const file of pages){
   const source=fs.readFileSync(target,'utf8');
   const result=enhanced(source);
   validateInternalAnchors(result,file);
+  validateManifestShortcuts(result,file,manifestData);
   if(check){
     if(result!==source) throw new Error(`Stale enhanced Page: ${file}`);
     if(!source.includes(`data-release-version="${releaseVersion}"`)) throw new Error(`Release version drift in ${file}`);
@@ -79,4 +107,4 @@ for(const file of pages){
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, internal anchors, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
