@@ -3,8 +3,12 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath("$PSScriptRoot/..")
 Push-Location $root
 try {
-    & node build/Build-Documentation.mjs --check
-    if ($LASTEXITCODE -ne 0) { throw 'Generated documentation is stale.' }
+    & node build/Build-Documentation.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'Documentation generation failed.' }
+    & node build/Enhance-Pages.mjs
+    if ($LASTEXITCODE -ne 0) { throw 'Progressive Pages enhancement failed.' }
+    & git diff --exit-code
+    if ($LASTEXITCODE -ne 0) { throw 'Generated documentation or enhanced Pages are stale.' }
     & node build/validate-resources.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Locale validation failed.' }
     & node build/validate-documentation.mjs
