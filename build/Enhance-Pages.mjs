@@ -7,8 +7,8 @@ const check=process.argv.includes('--check');
 const pages=['index.html','index.pt-BR.html','index.es.html','index.fr.html','index.de.html','index.ar.html','index.ja.html','index.zh-Hans.html'];
 
 const manifest='<link rel="manifest" href="manifest.webmanifest">';
-const platformStyles='<link rel="stylesheet" href="future.css"><link rel="stylesheet" href="responsive.css">';
-const platformScripts='<script src="future.js" defer></script><script src="intelligence.js" defer></script><script src="platform.js" defer></script>';
+const platformStyle='<link rel="stylesheet" href="responsive.css">';
+const platformScript='<script src="platform.js" defer></script>';
 const theme='<meta name="theme-color" content="#17315C">';
 const xDefault='<link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html">';
 
@@ -17,8 +17,8 @@ function enhanced(source){
   if(!html.includes(theme)) html=html.replace('<meta name="description"',`${theme}\n<meta name="description"`);
   if(!html.includes(xDefault)) html=html.replace(/(<link rel="alternate" hreflang="zh-Hans"[^>]+>)/,`$1\n${xDefault}`);
   if(!html.includes(manifest)) html=html.replace('<link rel="icon" href="logo.svg" type="image/svg+xml">',`<link rel="icon" href="logo.svg" type="image/svg+xml">${manifest}`);
-  if(!html.includes(platformStyles)) html=html.replace('<link rel="stylesheet" href="style.css">',`<link rel="stylesheet" href="style.css">${platformStyles}`);
-  if(!html.includes(platformScripts)) html=html.replace('<script src="site.js" defer></script>',`<script src="site.js" defer></script>${platformScripts}`);
+  if(!html.includes(platformStyle)) html=html.replace('<link rel="stylesheet" href="style.css">',`<link rel="stylesheet" href="style.css">${platformStyle}`);
+  if(!html.includes(platformScript)) html=html.replace('<script src="site.js" defer></script>',`<script src="site.js" defer></script>${platformScript}`);
   return html;
 }
 
