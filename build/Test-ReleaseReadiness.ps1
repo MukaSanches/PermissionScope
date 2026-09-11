@@ -5,6 +5,8 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+. (Join-Path $PSScriptRoot 'Get-ProjectVersion.ps1')
+$version = Get-ProjectVersion -Root $root
 $started = [Diagnostics.Stopwatch]::StartNew()
 $steps = [Collections.Generic.List[object]]::new()
 
@@ -54,11 +56,11 @@ try {
         Invoke-ReadinessStep 'Package source' { & ./build/Package-Source.ps1 }
 
         $releaseAssets = @(
-            'PermissionScope-1.0.0-x64-Setup.exe',
-            'PermissionScope-1.0.0-win-x64.zip',
-            'PermissionScope-1.0.0-arm64-Setup.exe',
-            'PermissionScope-1.0.0-win-arm64.zip',
-            'PermissionScope-1.0.0-source.zip'
+            "PermissionScope-$version-x64-Setup.exe",
+            "PermissionScope-$version-win-x64.zip",
+            "PermissionScope-$version-arm64-Setup.exe",
+            "PermissionScope-$version-win-arm64.zip",
+            "PermissionScope-$version-source.zip"
         )
         Invoke-ReadinessStep 'Create combined release checksums' {
             $lines = foreach ($name in $releaseAssets) {
@@ -72,7 +74,7 @@ try {
         Invoke-ReadinessStep 'Verify assembled release' { & ./build/Verify-Release.ps1 }
     }
 
-    Write-Host "`nPermissionScope release-readiness summary" -ForegroundColor Green
+    Write-Host "`nPermissionScope $version release-readiness summary" -ForegroundColor Green
     $steps | Format-Table -AutoSize
     Write-Host ("PASS in {0:N1}s. Full packaging: {1}" -f $started.Elapsed.TotalSeconds,$Full.IsPresent) -ForegroundColor Green
 }
