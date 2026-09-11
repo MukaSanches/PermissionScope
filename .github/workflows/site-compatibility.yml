@@ -6,6 +6,10 @@ on:
     paths:
       - 'site/**'
       - 'build/test-site*.mjs'
+      - 'build/validate-resources.mjs'
+      - 'build/Enhance-Pages.mjs'
+      - 'build/Build-Documentation.mjs'
+      - 'docs/content/locales.json'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/site-compatibility.yml'
@@ -13,6 +17,10 @@ on:
     paths:
       - 'site/**'
       - 'build/test-site*.mjs'
+      - 'build/validate-resources.mjs'
+      - 'build/Enhance-Pages.mjs'
+      - 'build/Build-Documentation.mjs'
+      - 'docs/content/locales.json'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/site-compatibility.yml'
