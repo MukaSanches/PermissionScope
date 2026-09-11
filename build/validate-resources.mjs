@@ -34,6 +34,15 @@ if (!html.includes('id="main"') || !html.includes('class="skip"')) throw new Err
 const webLocales = Object.keys(JSON.parse(fs.readFileSync(path.join(root, 'docs/content/locales.json'), 'utf8')));
 const pageFor = locale => locale === 'en-US' ? 'index.html' : `index.${locale}.html`;
 const sw = fs.readFileSync(path.join(siteDir, 'sw.js'), 'utf8');
+const requiredProgressiveMarkup = [
+  '<link rel="manifest" href="manifest.webmanifest">',
+  '<link rel="stylesheet" href="future.css">',
+  '<link rel="stylesheet" href="responsive.css">',
+  '<script src="future.js" defer></script>',
+  '<script src="intelligence.js" defer></script>',
+  '<script src="platform.js" defer></script>',
+  'hreflang="x-default"'
+];
 for (const locale of webLocales) {
   const page = pageFor(locale);
   const pagePath = path.join(siteDir, page);
@@ -41,8 +50,11 @@ for (const locale of webLocales) {
   const localized = fs.readFileSync(pagePath, 'utf8');
   if (!localized.includes(`<html lang="${locale}"`)) throw new Error(`Wrong lang metadata: ${page}`);
   if (!sw.includes(`./${page}`)) throw new Error(`Localized page missing from offline shell: ${page}`);
+  for (const marker of requiredProgressiveMarkup) {
+    if (!localized.includes(marker)) throw new Error(`Localized Page lost progressive platform integration: ${page} / ${marker}`);
+  }
 }
-for (const requiredSiteFile of ['404.html','manifest.webmanifest','robots.txt','sitemap.xml','.well-known/security.txt']) {
+for (const requiredSiteFile of ['404.html','manifest.webmanifest','robots.txt','sitemap.xml','.well-known/security.txt','platform.js']) {
   if (!fs.existsSync(path.join(siteDir, requiredSiteFile))) throw new Error(`Missing Pages platform file: ${requiredSiteFile}`);
 }
 
@@ -55,6 +67,17 @@ for (const screenshot of manifest.screenshots) {
   if (!fs.existsSync(path.join(siteDir, screenshot.src))) throw new Error(`Missing PWA screenshot asset: ${screenshot.src}`);
   if (!sw.includes(`./${screenshot.src}`)) throw new Error(`PWA screenshot missing from offline shell: ${screenshot.src}`);
 }
+for (const locale of webLocales.filter(locale => locale !== 'en-US')) {
+  if (!manifest.description_localized?.[locale]) throw new Error(`Missing localized PWA description: ${locale}`);
+  for (const shortcut of manifest.shortcuts ?? []) {
+    if (!shortcut.name_localized?.[locale] || !shortcut.short_name_localized?.[locale]) throw new Error(`Missing localized PWA shortcut metadata: ${locale}/${shortcut.url}`);
+  }
+}
 if (!sw.includes('navigationPreload.enable()')) throw new Error('Service worker navigation preload is not enabled');
-if (!sw.includes("CACHE='permissionscope-shell-v4'")) throw new Error('Unexpected service worker cache generation');
-console.log(`PASS local website assets, ${webLocales.length} localized Pages, stable PWA identity, install metadata, offline parity and platform metadata`);
+if (!sw.includes("'./platform.js'")) throw new Error('PWA platform bootstrap missing from offline shell');
+const cacheGeneration = sw.match(/CACHE='permissionscope-shell-v(\d+)'/)?.[1];
+if (!cacheGeneration || Number(cacheGeneration) < 5) throw new Error('Unexpected service worker cache generation');
+const platform = fs.readFileSync(path.join(siteDir, 'platform.js'), 'utf8');
+if (!platform.includes("serviceWorker.register('./sw.js'")) throw new Error('Service worker registration is missing');
+if (!platform.includes("updateViaCache:'none'")) throw new Error('Service worker update checks must bypass HTTP cache');
+console.log(`PASS local website assets, ${webLocales.length} localized Pages, stable/localized PWA metadata, progressive integration, offline parity and platform metadata`);
