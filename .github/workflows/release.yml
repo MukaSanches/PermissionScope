@@ -262,7 +262,10 @@ jobs:
             echo "v1.0.1 already exists. Refusing to overwrite an existing public release."
             exit 1
           fi
-          existing="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v1.0.1" --jq '.object.sha' 2>/dev/null || true)"
+          existing=""
+          if tag_json="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v1.0.1" 2>/dev/null)"; then
+            existing="$(jq -r '.object.sha' <<<"$tag_json")"
+          fi
           if [ -n "$existing" ] && [ "$existing" != "$GITHUB_SHA" ]; then
             echo "v1.0.1 already points to $existing, not $GITHUB_SHA. Refusing to move the tag."
             exit 1
