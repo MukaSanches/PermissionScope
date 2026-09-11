@@ -1,45 +1,47 @@
 # Release scope
 
-PermissionScope 1.0.0 is treated as a release candidate until the exact publication commit passes the project release contract. The version number is not evidence by itself.
+PermissionScope 1.0.0 is already a public historical release and remains immutable. PermissionScope 1.0.1 is the current release line for the security, reliability, accessibility, packaging and website work completed after that publication. A version number is not evidence by itself: the exact tagged commit must satisfy the release contract below.
 
 ## Release-readiness contract
 
-Before a public GitHub release is published, the exact commit must satisfy all applicable automated and manual gates:
+Before a new public GitHub release is published, the exact commit must satisfy all applicable automated and manual gates:
 
 - x64 build succeeds and the executable integration harness has zero failures;
 - website regression/accessibility checks pass, including zero Axe violations;
-- Chromium, Firefox and WebKit compatibility checks are green at desktop, tablet, mobile and short-landscape sizes;
+- Chromium, Firefox and WebKit compatibility checks are green at desktop, tablet, mobile and short-landscape sizes where applicable;
 - localized documentation and resources remain in parity;
-- the 72 native application screenshots match the current documentation source fingerprint and have been regenerated rather than re-hashed after source changes;
-- x64 and ARM64 packages are built from the current source fingerprint;
+- the 72 native application screenshots match the current documentation source fingerprint and are regenerated rather than re-hashed after application-source changes;
+- x64 and ARM64 packages are built from the current source fingerprint and project version;
 - the x64 installer passes install/CLI/uninstall smoke testing on a disposable Windows runner;
-- public release assets have SHA-256 checksums and provenance attestations;
-- CodeQL is green on the release commit;
-- publication is performed from the immutable `v1.0.0` tag through the guarded release workflow.
+- public release assets have SHA-256 checksums and provenance/SBOM attestations;
+- CodeQL is green on the exact release commit;
+- publication creates an immutable version tag on the exact validated commit and refuses to overwrite an existing public release or move an existing tag.
 
 Use `build/Test-ReleaseReadiness.ps1` for the local preflight and `docs/release-checklist.md` for the complete go/no-go procedure. A stale native-capture fingerprint is a release blocker, not a warning to bypass.
 
-## Current 1.0.0 release-candidate checkpoint — 2026-09-10
+## Current 1.0.1 checkpoint — 2026-09-10
 
-The consolidated candidate was validated on commit `7d03f5da7bd2193d597d2213fa68af14e2060134` before the documentation refresh.
+The 1.0.1 line incorporates the consolidated security/release-readiness work merged through PR #11 plus subsequent PWA identity/offline fixes and release-tooling corrections.
 
-Validated evidence:
+Established automated evidence on the consolidated code line includes:
 
-- x64 Release build succeeded with 0 warnings and 0 errors;
-- executable integration harness completed with 88 passed and 0 failed;
-- website regression/accessibility passed at 1440, 768 and 375 pixel widths across all eight site locales;
-- Axe reported 0 violations; keyboard skip link, forced-colors behavior and external-request blocking passed;
-- universal Chromium, Firefox and WebKit compatibility passed;
-- CodeQL completed successfully;
-- ARM64 Release build, packaging and artifact upload completed successfully;
-- resource/site validation passed for eight resource catalogs and eight localized Pages;
-- documentation structural validation passed for 55 documents, 72 image hashes, eight locale mappings and the synthetic SID allowlist.
+- x64 Release build and executable integration harness passing;
+- website regression/accessibility coverage across localized pages and responsive widths, with zero Axe violations in the recorded run;
+- Chromium, Firefox and WebKit compatibility coverage;
+- CodeQL coverage on the release line;
+- ARM64 build and package paths;
+- resource/site validation for eight resource catalogs and eight localized Pages;
+- documentation structural/integrity validation for the 72 native captures and locale mappings;
+- x64 install, installed-CLI scan and uninstall smoke testing on a disposable Windows runner;
+- package provenance plus CycloneDX SBOM generation/attestation support.
 
-The stale-capture blocker was then resolved legitimately on commit `57e64c0993f273ec85c96b7cc892e0bd4f5d2693`. A Windows runner published the current x64 WinUI application and CLI, created the synthetic demo environment, generated the complete native screenshot set from the running application, rebuilt the generated documentation and passed `Verify-Documentation.ps1` before committing the refreshed captures. The capture manifest now records the current source fingerprint instead of a manually advanced value.
+The stale-capture blocker from the pre-merge candidate was resolved legitimately on commit `57e64c0993f273ec85c96b7cc892e0bd4f5d2693`. A Windows runner published the current x64 WinUI application and CLI, created the synthetic demo environment, generated the complete native screenshot set from the running application, rebuilt the generated documentation and passed `Verify-Documentation.ps1` before committing the refreshed captures. Native screenshot provenance remains enforced by ordinary CI; future application-source changes must regenerate the captures through the documented Windows procedure.
 
-The temporary screenshot-refresh workflow used for that one-time migration was removed after it completed successfully. Native screenshot provenance remains enforced by the ordinary documentation gate; future application-source changes must regenerate the captures through the documented Windows procedure.
+The release tooling now derives package/installer/source-archive versioning from `Directory.Build.props`, and the CycloneDX document includes the metadata required by GitHub's SBOM attestation action. The publication workflow for 1.0.1 must still finish all exact-commit gates before creating `v1.0.1`.
 
-Before the final public `v1.0.0` tag is created, the regenerated images still require the checklist's visual review and the exact release commit must pass the normal CI/package/install/CLI/uninstall gates. No Store, WinGet, signing or physical ARM64 certification claim is implied by this checkpoint.
+The existing `v1.0.0` tag and public release are intentionally not moved, rewritten or overwritten.
+
+No Store, WinGet, signing or physical ARM64 certification claim is implied by a GitHub release.
 
 ## Implemented product surface
 
@@ -55,8 +57,8 @@ Implemented: native WinUI GUI, shared CLI engine, Authz discretionary decisions,
 - PDF direct export supports Latin, Greek and Cyrillic text. Complex scripts, CJK and emoji require the HTML report and the browser's Print to PDF. XLSX/JSON/HTML preserve Unicode.
 - Comparison shows descriptor and evaluated-context changes where comparable; it does not calculate the impact on every member of a changed group.
 - Scheduling is daily and uses the signed-in user's session. Weekly/custom schedules and retention can be configured in Windows Task Scheduler; no scheduler-management UI is included.
-- English and Brazilian Portuguese catalogs ship alongside six explicitly labeled translation previews. Regional/script fallback and RTL culture resolution are tested. Technical evidence/report translation, exhaustive high-contrast testing, screen-reader certification, full worldwide translation and all requested identity filters remain incomplete. See translation-quality.md for coverage and review status.
-- Direct-distribution artifacts are unsigned. MSIX requires a real publisher identity and signing certificate or Store ingestion. No Store/WinGet submission has been performed.
+- English and Brazilian Portuguese catalogs ship alongside six explicitly labeled translation previews. Regional/script fallback and RTL culture resolution are tested. Technical evidence/report translation, exhaustive high-contrast testing, screen-reader certification, full worldwide translation and all requested identity filters remain incomplete. See `translation-quality.md` for coverage and review status.
+- Direct-distribution artifacts are unsigned. MSIX requires a real publisher identity and signing certificate or Store ingestion. No Store/WinGet approval is implied.
 - ARM64 is cross-built in CI. Physical ARM hardware execution is not certified until a representative ARM device has been tested and recorded.
 
 ## Distribution claims
