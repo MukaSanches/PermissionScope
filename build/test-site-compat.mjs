@@ -26,7 +26,7 @@ const viewports = [
   ['short-landscape',{width:844,height:390}]
 ];
 const locales = ['en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'];
-const report = { passed:true, engines:{}, viewports:viewports.map(v=>v[0]), locales, atelier:true };
+const report = { passed:true, engines:{}, viewports:viewports.map(v=>v[0]), locales, atelier:true, qualityAudit:true, monitorOnly3D:true };
 const errors = [];
 
 async function waitForProgressiveStyles(page) {
@@ -36,9 +36,9 @@ async function waitForProgressiveStyles(page) {
     const hashInput = document.querySelector('.ps-hash-input');
     const workstation = document.querySelector('.ps-workstation-scene');
     const device = document.querySelector('.ps-device');
-    if (!command || !assistant || !hashInput || !workstation || !device) return false;
+    if (!command || !assistant || !hashInput || !workstation || !device || document.documentElement.dataset.qualityAudit !== 'passed') return false;
     const sheets = [...document.styleSheets];
-    const expected = ['premium.css','experience.css','future.css','intelligence.css','atelier.css'];
+    const expected = ['premium.css','experience.css','future.css','intelligence.css','atelier.css','quality.css'];
     if (!expected.every(name => sheets.some(sheet => sheet.href?.endsWith('/' + name)))) return false;
     return getComputedStyle(hashInput).width === '1px';
   }, null, { timeout:10000 });
@@ -83,6 +83,8 @@ try {
         assert(await page.locator('.wordmark').isVisible(), `${engineName}/${name}: wordmark hidden`);
         assert.equal(await page.locator('.ps-device').count(), 1, `${engineName}/${name}: premium device missing or duplicated`);
         assert.equal(await page.locator('.ps-release-rail').count(), 1, `${engineName}/${name}: release rail missing or duplicated`);
+        assert.equal(await page.locator('.ps-desk-plane,.ps-desk-keyboard,.ps-desk-mouse,.ps-desk-node,.ps-desk-cable').count(), 0, `${engineName}/${name}: desk peripherals rendered`);
+        assert.equal(await page.evaluate(() => document.documentElement.dataset.localeLeak), 'false', `${engineName}/${name}: locale leak audit failed`);
         assert(await page.locator('.ps-command-launch').isVisible(), `${engineName}/${name}: command launch hidden`);
         assert(await page.locator('.ps-assistant-launch').isVisible(), `${engineName}/${name}: assistant launch hidden`);
         const cmdBox = await page.locator('.ps-command-launch').boundingBox();
@@ -113,7 +115,9 @@ try {
         await assertNoHorizontalOverflow(page, `${engineName}/${locale}`);
         assert(await page.locator('#download-premium').count() === 1, `${engineName}/${locale}: premium downloads missing`);
         assert(await page.locator('.ps-hash-tool').count() === 1, `${engineName}/${locale}: SHA tool missing`);
-        assert(await page.locator('.ps-workstation-scene').count() === 1, `${engineName}/${locale}: workstation scene missing`);
+        assert(await page.locator('.ps-workstation-scene').count() === 1, `${engineName}/${locale}: monitor scene missing`);
+        assert.equal(await page.locator('.ps-desk-plane,.ps-desk-keyboard,.ps-desk-mouse,.ps-desk-node,.ps-desk-cable').count(), 0, `${engineName}/${locale}: desk peripherals rendered`);
+        assert.equal(await page.evaluate(() => document.documentElement.dataset.localeLeak), 'false', `${engineName}/${locale}: locale leak audit failed`);
       }
       await context.close();
     } finally { await browser.close(); }

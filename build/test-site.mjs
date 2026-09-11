@@ -36,11 +36,16 @@ try {
   await page.locator('.ps-workstation-scene').waitFor();
   await page.locator('.ps-command-launch').waitFor();
   await page.locator('.ps-assistant-launch').waitFor();
+  await page.waitForFunction(() => document.documentElement.dataset.qualityAudit === 'passed');
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(() => document.activeElement.getAttribute('href')), '#main');
   assert.equal(await page.locator('.ps-device').count(), 1, 'premium device should render exactly once');
   assert.equal(await page.locator('.ps-device-port-rail i').count(), 4, 'premium device port rail should expose four physical port details');
+  assert.equal(await page.locator('.ps-device-side').count(), 1, 'monitor side-depth detail is missing');
+  assert.equal(await page.locator('.ps-device-backplane').count(), 1, 'monitor rear-depth detail is missing');
+  assert.equal(await page.locator('.ps-desk-plane,.ps-desk-keyboard,.ps-desk-mouse,.ps-desk-node,.ps-desk-cable').count(), 0, 'monitor render must not include desk peripherals');
   assert.equal(await page.locator('.ps-release-rail').count(), 1, 'hero release rail should render exactly once');
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.localeLeak), 'false', 'English sentinel leaked into the default localized audit');
   await page.locator('.ps-command-launch').click();
   await page.locator('.ps-command').waitFor({ state: 'visible' });
   const commandHrefs = await page.locator('.ps-command-item').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
@@ -60,18 +65,35 @@ try {
   await page.locator('.ps-assistant-close').click();
 
   const locales = ['en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'];
+  const localizedMarkers = {
+    'en-US':['Evidence graph','Local verification','Decision model'],
+    'pt-BR':['Grafo de evidências','Verificação local','Modelo de decisão'],
+    'es':['Grafo de evidencias','Verificación local','Modelo de decisión'],
+    'fr':['Graphe de preuves','Vérification locale','Modèle de décision'],
+    'de':['Evidenzgraph','Lokale Verifizierung','Entscheidungsmodell'],
+    'ar':['رسم الأدلة','تحقق محلي','نموذج القرار'],
+    'ja':['証拠グラフ','ローカル検証','判断モデル'],
+    'zh-Hans':['证据图谱','本地验证','决策模型']
+  };
   for (const locale of locales) {
     const filename = locale === 'en-US' ? 'index.html' : `index.${locale}.html`;
     await Promise.all([page.waitForURL(origin + '/' + filename), page.selectOption('#language', filename)]);
     await page.locator('.ps-workstation-scene').waitFor({ state: 'attached' });
+    await page.waitForFunction(() => document.documentElement.dataset.qualityAudit === 'passed');
     assert.equal(await page.locator('html').getAttribute('lang'), locale);
     assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
     assert((await page.locator('.product img').getAttribute('src')).includes(`/${locale}/`));
     assert.equal(await page.locator('.ps-device').count(), 1, `${locale}: premium device duplicated`);
     assert.equal(await page.locator('.ps-release-rail').count(), 1, `${locale}: release rail duplicated`);
+    assert.equal(await page.locator('.ps-desk-plane,.ps-desk-keyboard,.ps-desk-mouse,.ps-desk-node,.ps-desk-cable').count(), 0, `${locale}: desk peripherals must not render`);
+    assert.equal(await page.evaluate(() => document.documentElement.dataset.localeLeak), 'false', `${locale}: locale leak audit failed`);
+    const pageText = await page.locator('body').textContent();
+    for (const marker of localizedMarkers[locale]) assert(pageText.includes(marker), `${locale}: missing localized marker ${marker}`);
     const downloadHrefs = await page.locator('.ps-download-card').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
     assert.equal(downloadHrefs.length, 4, `${locale}: expected four primary download choices`);
     assert(downloadHrefs.every(href => href?.includes(releasePrefix)), `${locale}: stale primary download URL`);
+    const languageBox = await page.locator('#language').boundingBox();
+    assert(languageBox && languageBox.height <= 44 && languageBox.width <= 170, `${locale}: language selector lost compact visual contract`);
     for (const width of [1440, 768, 375]) {
       await page.setViewportSize({ width, height: 1000 });
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale}: horizontal overflow at ${width}px`);
@@ -92,11 +114,12 @@ try {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(origin);
   await page.locator('.ps-workstation-scene').waitFor();
+  await page.waitForFunction(() => document.documentElement.dataset.qualityAudit === 'passed');
   await page.screenshot({ path: path.join(root, 'artifacts/site-desktop.png'), fullPage: true });
   await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
   assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
   assert.deepEqual(errors, []);
-  const result = { passed: true, version, widths: [1440, 768, 375], locales, axeViolations: 0, keyboardSkipLink: true, premiumWorkstation: true, intentionalMobileSimplification: true, currentReleaseLinks: true, assistantSmokeTest: true, forcedColors: true, externalRequestsBlocked: true };
+  const result = { passed: true, version, widths: [1440, 768, 375], locales, axeViolations: 0, keyboardSkipLink: true, monitorOnly3D: true, localeLeakAudit: true, compactLanguageSelector: true, currentReleaseLinks: true, assistantSmokeTest: true, forcedColors: true, externalRequestsBlocked: true };
   fs.writeFileSync(path.join(root, 'artifacts/site-tests.json'), JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result));
 } finally { await browser?.close(); server.close(); }
