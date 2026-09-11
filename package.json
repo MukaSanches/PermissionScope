@@ -3,7 +3,7 @@
   "private": true,
   "license": "Apache-2.0",
   "scripts": {
-    "check": "node build/validate-resources.mjs && node build/validate-site-downloads.mjs && node --check site/site.js && node --check site/experience.js && node --check site/future.js && node --check site/intelligence.js && node --check site/atelier.js",
+    "check": "node build/validate-resources.mjs && node build/validate-site-downloads.mjs && node build/validate-site-localization.mjs && node --check site/site.js && node --check site/experience.js && node --check site/future.js && node --check site/intelligence.js && node --check site/atelier.js && node --check site/quality.js",
     "test:site": "node build/test-site.mjs",
     "test:site:compat": "node build/test-site-compat.mjs"
   },
