@@ -1,6 +1,6 @@
-const CACHE='permissionscope-shell-v3';
+const CACHE='permissionscope-shell-v4';
 const PAGES=['./index.html','./index.pt-BR.html','./index.es.html','./index.fr.html','./index.de.html','./index.ar.html','./index.ja.html','./index.zh-Hans.html'];
-const CORE=['./',...PAGES,'./404.html','./style.css','./premium.css','./experience.css','./future.css','./responsive.css','./intelligence.css','./site.js','./experience.js','./future.js','./intelligence.js','./logo.svg','./manifest.webmanifest','./pwa-icon-192.svg','./pwa-icon-512.svg'];
+const CORE=['./',...PAGES,'./404.html','./style.css','./premium.css','./experience.css','./future.css','./responsive.css','./intelligence.css','./site.js','./experience.js','./future.js','./intelligence.js','./logo.svg','./manifest.webmanifest','./pwa-icon-192.svg','./pwa-icon-512.svg','./screenshots/en-US/access-light.png'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));
