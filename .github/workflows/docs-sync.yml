@@ -26,13 +26,13 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-      - name: Generate all localized READMEs, guides and Pages
-        run: node build/Build-Documentation.mjs
-      - name: Apply shared progressive Pages layer
-        run: node build/Enhance-Pages.mjs
-      - name: Verify generated surfaces and progressive layer
+      - name: Generate and verify localized source surfaces
         run: |
+          node build/Build-Documentation.mjs
           node build/Build-Documentation.mjs --check
+      - name: Apply and verify shared progressive Pages layer
+        run: |
+          node build/Enhance-Pages.mjs
           node build/Enhance-Pages.mjs --check
       - name: Commit generated parity update
         shell: bash
