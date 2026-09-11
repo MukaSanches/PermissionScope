@@ -35,8 +35,10 @@ const webLocales = Object.keys(JSON.parse(fs.readFileSync(path.join(root, 'docs/
 const pageFor = locale => locale === 'en-US' ? 'index.html' : `index.${locale}.html`;
 const sw = fs.readFileSync(path.join(siteDir, 'sw.js'), 'utf8');
 const requiredProgressiveMarkup = [
+  '<meta name="referrer" content="no-referrer">',
   '<link rel="manifest" href="manifest.webmanifest">',
   '<link rel="stylesheet" href="responsive.css">',
+  '<link rel="stylesheet" href="progressive.css">',
   '<script src="platform.js" defer></script>',
   'hreflang="x-default"'
 ];
@@ -54,9 +56,13 @@ for (const locale of webLocales) {
     throw new Error(`Localized Page directly initializes dynamically chained feature scripts: ${page}`);
   }
 }
-for (const requiredSiteFile of ['404.html','manifest.webmanifest','robots.txt','sitemap.xml','.well-known/security.txt','platform.js']) {
+for (const requiredSiteFile of ['404.html','manifest.webmanifest','robots.txt','sitemap.xml','.well-known/security.txt','platform.js','progressive.css']) {
   if (!fs.existsSync(path.join(siteDir, requiredSiteFile))) throw new Error(`Missing Pages platform file: ${requiredSiteFile}`);
 }
+
+const progressiveCss = fs.readFileSync(path.join(siteDir, 'progressive.css'), 'utf8');
+if (!progressiveCss.includes('content-visibility:auto') || !progressiveCss.includes('contain-intrinsic-size:auto 760px')) throw new Error('Progressive rendering optimization is missing');
+if (!progressiveCss.includes('@media (prefers-contrast:more)')) throw new Error('High-contrast preference enhancement is missing');
 
 const siteScript = fs.readFileSync(path.join(siteDir, 'site.js'), 'utf8');
 const experience = fs.readFileSync(path.join(siteDir, 'experience.js'), 'utf8');
@@ -82,9 +88,10 @@ for (const locale of webLocales.filter(locale => locale !== 'en-US')) {
 }
 if (!sw.includes('navigationPreload.enable()')) throw new Error('Service worker navigation preload is not enabled');
 if (!sw.includes("'./platform.js'")) throw new Error('PWA platform bootstrap missing from offline shell');
+if (!sw.includes("'./progressive.css'")) throw new Error('Progressive rendering stylesheet missing from offline shell');
 const cacheGeneration = sw.match(/CACHE='permissionscope-shell-v(\d+)'/)?.[1];
-if (!cacheGeneration || Number(cacheGeneration) < 5) throw new Error('Unexpected service worker cache generation');
+if (!cacheGeneration || Number(cacheGeneration) < 7) throw new Error('Unexpected service worker cache generation');
 const platform = fs.readFileSync(path.join(siteDir, 'platform.js'), 'utf8');
 if (!platform.includes("serviceWorker.register('./sw.js'")) throw new Error('Service worker registration is missing');
 if (!platform.includes("updateViaCache:'none'")) throw new Error('Service worker update checks must bypass HTTP cache');
-console.log(`PASS local website assets, ${webLocales.length} localized Pages, stable/localized PWA metadata, single-load progressive integration, offline parity and platform metadata`);
+console.log(`PASS local website assets, ${webLocales.length} localized Pages, privacy metadata, adaptive contrast, rendering optimization, stable/localized PWA metadata, single-load progressive integration, offline parity and platform metadata`);
