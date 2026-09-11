@@ -8,16 +8,20 @@ const pages=['index.html','index.pt-BR.html','index.es.html','index.fr.html','in
 
 const manifest='<link rel="manifest" href="manifest.webmanifest">';
 const platformStyle='<link rel="stylesheet" href="responsive.css">';
+const progressiveStyle='<link rel="stylesheet" href="progressive.css">';
 const platformScript='<script src="platform.js" defer></script>';
 const theme='<meta name="theme-color" content="#17315C">';
+const referrer='<meta name="referrer" content="no-referrer">';
 const xDefault='<link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html">';
 
 function enhanced(source){
   let html=source;
+  if(!html.includes(referrer)) html=html.replace('<meta name="viewport" content="width=device-width,initial-scale=1">',`<meta name="viewport" content="width=device-width,initial-scale=1">\n${referrer}`);
   if(!html.includes(theme)) html=html.replace('<meta name="description"',`${theme}\n<meta name="description"`);
   if(!html.includes(xDefault)) html=html.replace(/(<link rel="alternate" hreflang="zh-Hans"[^>]+>)/,`$1\n${xDefault}`);
   if(!html.includes(manifest)) html=html.replace('<link rel="icon" href="logo.svg" type="image/svg+xml">',`<link rel="icon" href="logo.svg" type="image/svg+xml">${manifest}`);
   if(!html.includes(platformStyle)) html=html.replace('<link rel="stylesheet" href="style.css">',`<link rel="stylesheet" href="style.css">${platformStyle}`);
+  if(!html.includes(progressiveStyle)) html=html.replace(platformStyle,`${platformStyle}${progressiveStyle}`);
   if(!html.includes(platformScript)) html=html.replace('<script src="site.js" defer></script>',`<script src="site.js" defer></script>${platformScript}`);
   return html;
 }
@@ -33,4 +37,4 @@ for(const file of pages){
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} PWA/platform integration across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration across ${pages.length} localized Pages`);
