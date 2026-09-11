@@ -54,6 +54,7 @@ const platformScript='<script src="platform.js" defer></script>';
 const theme='<meta name="theme-color" content="#17315C">';
 const referrer='<meta name="referrer" content="no-referrer">';
 const xDefault='<link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html">';
+const ogType='<meta property="og:type" content="website">';
 
 function languageFallback(file){
   const label=languageLabels[file];
@@ -72,6 +73,18 @@ function enhanced(source,file){
   if(!html.includes(referrer)) html=html.replace('<meta name="viewport" content="width=device-width,initial-scale=1">',`<meta name="viewport" content="width=device-width,initial-scale=1">\n${referrer}`);
   if(!html.includes(theme)) html=html.replace('<meta name="description"',`${theme}\n<meta name="description"`);
   if(!html.includes(xDefault)) html=html.replace(/(<link rel="alternate" hreflang="zh-Hans"[^>]+>)/,`$1\n${xDefault}`);
+  const canonicalMatch=html.match(/<link rel="canonical" href="([^"]+)">/);
+  if(!canonicalMatch) throw new Error(`Missing canonical URL in ${file}`);
+  const canonicalUrl=canonicalMatch[1];
+  const imageAltMatch=html.match(/<figure class="product"><img[^>]*\salt="([^"]*)"/);
+  if(!imageAltMatch || !imageAltMatch[1].trim()) throw new Error(`Missing localized product image alternative text in ${file}`);
+  const ogUrl=`<meta property="og:url" content="${canonicalUrl}">`;
+  const ogImageAlt=`<meta property="og:image:alt" content="${imageAltMatch[1]}">`;
+  html=html.replace(/<meta property="og:type" content="[^"]*">/g,'');
+  html=html.replace(/<meta property="og:url" content="[^"]*">/g,'');
+  html=html.replace(/<meta property="og:image:alt" content="[^"]*">/g,'');
+  html=html.replace(/(<meta property="og:title" content="[^"]*">)/,`$1${ogType}${ogUrl}`);
+  html=html.replace(/(<meta property="og:image" content="[^"]*">)/,`$1${ogImageAlt}`);
   if(!html.includes(appleTouchIcon)) html=html.replace('<link rel="icon" href="logo.svg" type="image/svg+xml">',`<link rel="icon" href="logo.svg" type="image/svg+xml">${appleTouchIcon}`);
   if(!html.includes(manifest)) html=html.replace(appleTouchIcon,`${appleTouchIcon}${manifest}`);
   if(!html.includes(platformStyle)) html=html.replace('<link rel="stylesheet" href="style.css">',`<link rel="stylesheet" href="style.css">${platformStyle}`);
@@ -98,6 +111,16 @@ function validateInternalAnchors(html,file){
     const fragment=match[1];
     if(!ids.has(fragment)) throw new Error(`Broken internal anchor in ${file}: #${fragment}`);
   }
+}
+
+function validateOpenGraph(html,file){
+  const canonical=html.match(/<link rel="canonical" href="([^"]+)">/)?.[1];
+  const ogUrl=html.match(/<meta property="og:url" content="([^"]+)">/)?.[1];
+  const ogImageAlt=html.match(/<meta property="og:image:alt" content="([^"]+)">/)?.[1];
+  if(!canonical) throw new Error(`Missing canonical URL in ${file}`);
+  if(!html.includes(ogType)) throw new Error(`Open Graph type must be website in ${file}`);
+  if(ogUrl!==canonical) throw new Error(`Open Graph URL must match the canonical URL in ${file}`);
+  if(!ogImageAlt?.trim()) throw new Error(`Open Graph image must include localized alternative text in ${file}`);
 }
 
 function validateManifestShortcuts(html,file,manifestData){
@@ -169,6 +192,7 @@ for(const file of pages){
   const source=fs.readFileSync(target,'utf8');
   const result=enhanced(source,file);
   validateInternalAnchors(result,file);
+  validateOpenGraph(result,file);
   validateManifestShortcuts(result,file,manifestData);
   if(check){
     if(result!==source) throw new Error(`Stale enhanced Page: ${file}`);
@@ -184,4 +208,4 @@ for(const file of pages){
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, no-script language navigation, early enhancement stylesheet discovery, conservative installed-window behavior, localized shortcut and skip-navigation accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, complete localized Open Graph metadata, no-script language navigation, early enhancement stylesheet discovery, conservative installed-window behavior, localized shortcut and skip-navigation accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
