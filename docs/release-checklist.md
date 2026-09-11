@@ -1,11 +1,11 @@
-# PermissionScope 1.0.0 release checklist
+# PermissionScope release checklist
 
-This checklist is the release contract for the first public PermissionScope version. A version number alone does not make a build release-ready: the evidence below must agree with the exact commit that is tagged and published.
+This checklist is the release contract for PermissionScope. A version number alone does not make a build release-ready: the evidence below must agree with the exact commit that is tagged and published. The current release line is 1.0.1; the existing 1.0.0 tag/release is historical and must not be moved or overwritten.
 
 ## 1. Source freeze
 
 - [ ] The intended release commit is on `main`.
-- [ ] `CHANGELOG.md`, `docs/release-status.md` and `docs/releases/v1.0.0.md` describe the same product boundaries.
+- [ ] `Directory.Build.props`, `CHANGELOG.md`, `CITATION.cff`, `docs/release-status.md` and the matching `docs/releases/v<version>.md` describe the same version and boundaries.
 - [ ] No generated README, localized site page or handbook was edited by hand.
 - [ ] Dependency lock files are current and `npm ci` / NuGet restore report no unresolved audit failure.
 
@@ -41,7 +41,7 @@ node build/Build-Documentation.mjs
 
 ## 3. Cross-platform website evidence
 
-- [ ] `Site compatibility` is green for Chromium, Firefox and WebKit.
+- [ ] Site compatibility is green for Chromium, Firefox and WebKit when the workflow is applicable to the release commit.
 - [ ] 320 px mobile and short-landscape layouts have no horizontal overflow.
 - [ ] Keyboard skip link works.
 - [ ] Forced-colors checks pass.
@@ -65,33 +65,36 @@ For the full local verification path:
 
 Required result:
 
-- [ ] x64 installer and portable ZIP are produced from the current source fingerprint.
-- [ ] ARM64 installer and portable ZIP are produced from the same source revision.
-- [ ] x64 installer installs, launches its CLI smoke test and uninstalls on a disposable Windows environment.
-- [ ] Source archive is produced.
+- [ ] x64 installer and portable ZIP are produced from the current source fingerprint and project version.
+- [ ] ARM64 installer and portable ZIP are produced from the same source revision/version.
+- [ ] x64 installer installs, runs its CLI smoke test and uninstalls on a disposable Windows environment.
+- [ ] Source archive is produced for the same version.
 - [ ] `SHA256SUMS.txt` covers the five public release assets.
-- [ ] Package directories contain the license, notice, third-party notices, SBOM and build metadata.
+- [ ] Package directories contain the license, notice, third-party notices, CycloneDX SBOM and build metadata.
+- [ ] Provenance and SBOM attestations succeed for the release packages.
 
 ARM64 is cross-built until physical ARM hardware validation is explicitly recorded; do not describe it as hardware-certified before then.
 
 ## 6. Publication
 
-The release workflow is intentionally manual. A dry run can be started from a branch with `publish=false`.
+For 1.0.1, `.github/workflows/release.yml` is the guarded publisher. Its pull-request run is a dry run and must not create a tag or release. After the release preparation is merged to `main`, the workflow:
 
-To publish:
-
-1. Confirm every required check above is green on the intended commit.
-2. Create the immutable tag `v1.0.0` on that exact commit.
-3. Open **Actions → Release PermissionScope 1.0.0**.
-4. Run the workflow from tag `v1.0.0` with `publish=true`.
-5. The workflow must refuse publication from any other ref and must refuse to overwrite an existing `v1.0.0` release.
+1. rebuilds/tests the exact merge commit;
+2. packages x64, ARM64 and source assets;
+3. assembles combined SHA-256 checksums;
+4. waits for the normal `Windows build` and `CodeQL` push workflows for the same SHA to succeed;
+5. confirms `main` has not advanced;
+6. refuses to move an existing `v1.0.1` tag or overwrite an existing public release;
+7. creates `v1.0.1` on that exact commit and publishes the release assets/notes.
 
 After publication:
 
+- [ ] Tag `v1.0.1` resolves to the exact validated commit.
+- [ ] GitHub Release `PermissionScope 1.0.1` is public, not draft/prerelease.
+- [ ] Five versioned release assets plus `SHA256SUMS.txt` are present.
 - [ ] Download one x64 asset from the public release and verify it against `SHA256SUMS.txt`.
-- [ ] Confirm the website download links resolve to the published assets.
-- [ ] Confirm GitHub shows the expected release notes and provenance attestations.
-- [ ] Confirm the release badge in the repository resolves to `v1.0.0`.
+- [ ] Confirm the website release-download link resolves to the published release.
+- [ ] Confirm GitHub shows the expected release notes and package attestations.
 
 ## 7. Store and WinGet are separate milestones
 

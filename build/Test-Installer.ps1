@@ -3,16 +3,18 @@ if ($env:GITHUB_ACTIONS -ne 'true' -or [string]::IsNullOrWhiteSpace($env:RUNNER_
     throw 'Run this installation test only on a disposable GitHub Actions runner.'
 }
 $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+. (Join-Path $PSScriptRoot 'Get-ProjectVersion.ps1')
+$version = Get-ProjectVersion -Root $root
 $temporaryRoot = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\') + '\'
 $destination = [IO.Path]::GetFullPath((Join-Path $temporaryRoot 'PermissionScope-install-test'))
 if (-not $destination.StartsWith($temporaryRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Invalid test destination.' }
 $registry = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\PermissionScope'
 if ((Test-Path -LiteralPath $registry) -or (Test-Path -LiteralPath $destination)) { throw 'An existing installation or test directory must not be overwritten.' }
-$installer = Join-Path $root 'artifacts/PermissionScope-1.0.0-x64-Setup.exe'
+$installer = Join-Path $root "artifacts/PermissionScope-$version-x64-Setup.exe"
 $install = Start-Process -FilePath $installer -ArgumentList "/S /D=$destination" -Wait -PassThru -WindowStyle Hidden
 if ($install.ExitCode -ne 0) { throw "Installer exited with $($install.ExitCode)." }
 $metadata = Get-ItemProperty -LiteralPath $registry
-if ($metadata.InstallLocation -ne $destination -or $metadata.DisplayVersion -ne '1.0.0') { throw 'Installation registration differs from the requested destination/version.' }
+if ($metadata.InstallLocation -ne $destination -or $metadata.DisplayVersion -ne $version) { throw 'Installation registration differs from the requested destination/version.' }
 try {
     $env:PERMISSIONSCOPE_DATA_DIR = Join-Path $temporaryRoot 'PermissionScope-install-test-data'
     $fixture = Join-Path $temporaryRoot 'PermissionScope-install-test-fixture'
@@ -31,6 +33,6 @@ try {
 if ((Test-Path -LiteralPath $registry) -or (Test-Path -LiteralPath (Join-Path $destination 'PermissionScope.exe')) -or (Test-Path -LiteralPath (Join-Path $destination 'permissionscope-cli.exe'))) {
     throw 'Uninstallation left registered application files.'
 }
-@{ passed=$true; architecture='x64'; installation='silent per-user'; cliScan=$true; uninstallation=$true; desktopWalkthrough=$false } |
+@{ passed=$true; version=$version; architecture='x64'; installation='silent per-user'; cliScan=$true; uninstallation=$true; desktopWalkthrough=$false } |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $root 'artifacts/installer-test.json') -Encoding UTF8
 'Silent installation, installed CLI scan and uninstallation passed on the disposable runner.'
