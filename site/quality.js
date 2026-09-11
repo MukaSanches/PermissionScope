@@ -14,7 +14,6 @@ const t=C[lang]||C['en-US'];
 
 if(!document.querySelector('link[href="quality.css"]')){const style=document.createElement('link');style.rel='stylesheet';style.href='quality.css';document.head.appendChild(style);}
 
-document.documentElement.dataset.qualityAudit='passed';
 const languageLabel=document.querySelector('.language .sr-only');
 if(languageLabel)languageLabel.textContent=t.language;
 const languageSelect=document.querySelector('#language');
@@ -51,6 +50,7 @@ const audit=()=>{
  const leaks=foreignSentinels.filter(text=>bodyText.includes(text));
  document.documentElement.dataset.localeLeak=leaks.length?'true':'false';
  window.__permissionScopeQualityAudit={locale:lang,leaks,deskPeripherals:document.querySelectorAll('.ps-desk-plane,.ps-desk-keyboard,.ps-desk-mouse,.ps-desk-node,.ps-desk-cable').length,deviceCount:document.querySelectorAll('.ps-device').length};
+ document.documentElement.dataset.qualityAudit='passed';
 };
 requestAnimationFrame(()=>requestAnimationFrame(audit));
 })();
