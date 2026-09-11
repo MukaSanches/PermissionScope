@@ -46,7 +46,7 @@ try {
             }
         }
     }
-    $sbom = @{bomFormat='CycloneDX';specVersion='1.5';version=1;metadata=@{component=@{type='application';name='PermissionScope';version='1.0.0';licenses=@(@{license=@{id='Apache-2.0'}})}};components=$components}
+    $sbom = @{'$schema'='http://cyclonedx.org/schema/bom-1.5.schema.json';bomFormat='CycloneDX';specVersion='1.5';serialNumber=('urn:uuid:' + [Guid]::NewGuid().ToString());version=1;metadata=@{timestamp=[DateTimeOffset]::UtcNow.ToString('O');component=@{type='application';name='PermissionScope';version='1.0.0';licenses=@(@{license=@{id='Apache-2.0'}})}};components=$components}
     $sbom | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $distribution 'sbom.cdx.json') -Encoding UTF8
     $files = Get-ChildItem -LiteralPath $distribution -File -Recurse
     $uninstall = @()
