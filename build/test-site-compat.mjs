@@ -26,7 +26,7 @@ const viewports = [
   ['short-landscape',{width:844,height:390}]
 ];
 const locales = ['en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'];
-const report = { passed:true, engines:{}, viewports:viewports.map(v=>v[0]), locales };
+const report = { passed:true, engines:{}, viewports:viewports.map(v=>v[0]), locales, atelier:true };
 const errors = [];
 
 async function waitForProgressiveStyles(page) {
@@ -34,9 +34,11 @@ async function waitForProgressiveStyles(page) {
     const command = document.querySelector('.ps-command-launch');
     const assistant = document.querySelector('.ps-assistant-launch');
     const hashInput = document.querySelector('.ps-hash-input');
-    if (!command || !assistant || !hashInput) return false;
+    const workstation = document.querySelector('.ps-workstation-scene');
+    const device = document.querySelector('.ps-device');
+    if (!command || !assistant || !hashInput || !workstation || !device) return false;
     const sheets = [...document.styleSheets];
-    const expected = ['premium.css','experience.css','future.css','intelligence.css'];
+    const expected = ['premium.css','experience.css','future.css','intelligence.css','atelier.css'];
     if (!expected.every(name => sheets.some(sheet => sheet.href?.endsWith('/' + name)))) return false;
     return getComputedStyle(hashInput).width === '1px';
   }, null, { timeout:10000 });
@@ -79,6 +81,8 @@ try {
         await waitForProgressiveStyles(page);
         await assertNoHorizontalOverflow(page, `${engineName}/${name}`);
         assert(await page.locator('.wordmark').isVisible(), `${engineName}/${name}: wordmark hidden`);
+        assert.equal(await page.locator('.ps-device').count(), 1, `${engineName}/${name}: premium device missing or duplicated`);
+        assert.equal(await page.locator('.ps-release-rail').count(), 1, `${engineName}/${name}: release rail missing or duplicated`);
         assert(await page.locator('.ps-command-launch').isVisible(), `${engineName}/${name}: command launch hidden`);
         assert(await page.locator('.ps-assistant-launch').isVisible(), `${engineName}/${name}: assistant launch hidden`);
         const cmdBox = await page.locator('.ps-command-launch').boundingBox();
@@ -109,6 +113,7 @@ try {
         await assertNoHorizontalOverflow(page, `${engineName}/${locale}`);
         assert(await page.locator('#download-premium').count() === 1, `${engineName}/${locale}: premium downloads missing`);
         assert(await page.locator('.ps-hash-tool').count() === 1, `${engineName}/${locale}: SHA tool missing`);
+        assert(await page.locator('.ps-workstation-scene').count() === 1, `${engineName}/${locale}: workstation scene missing`);
       }
       await context.close();
     } finally { await browser.close(); }

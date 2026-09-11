@@ -7,8 +7,22 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Documentation generation failed.' }
     & node build/Enhance-Pages.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Progressive Pages enhancement failed.' }
-    & git diff --exit-code
+
+    # Documentation verification must only judge artifacts owned by the documentation
+    # generators. Earlier build/restore steps can legitimately rewrite project lock files
+    # for a single runtime identifier; those unrelated changes must not masquerade as stale
+    # READMEs or Pages output.
+    $generatedPathspecs=@(
+        '.github/README.md',
+        ':(glob)README*.md',
+        ':(glob)docs/guides/*.md',
+        ':(glob)site/index*.html',
+        ':(glob)site/screenshots/*/access-light.png',
+        ':(glob)site/reports/permissionscope-demo.*'
+    )
+    & git diff --exit-code -- @generatedPathspecs
     if ($LASTEXITCODE -ne 0) { throw 'Generated documentation or enhanced Pages are stale.' }
+
     & node build/validate-resources.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Locale validation failed.' }
     & node build/validate-documentation.mjs
