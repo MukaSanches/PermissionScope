@@ -8,6 +8,10 @@ import { chromium } from '@playwright/test';
 const require = createRequire(import.meta.url);
 const root = path.resolve(import.meta.dirname, '..');
 const site = path.join(root, 'site');
+const props = fs.readFileSync(path.join(root, 'Directory.Build.props'), 'utf8');
+const version = props.match(/<Version>([^<]+)<\/Version>/)?.[1]?.trim();
+if (!version) throw new Error('Could not resolve project Version from Directory.Build.props');
+const releasePrefix = `/releases/download/v${version}/`;
 const errors = [];
 const server = http.createServer((request, response) => {
   const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
@@ -39,9 +43,9 @@ try {
   await page.locator('.ps-command-launch').click();
   await page.locator('.ps-command').waitFor({ state: 'visible' });
   const commandHrefs = await page.locator('.ps-command-item').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
-  assert(commandHrefs[0]?.includes('/releases/download/v1.0.1/PermissionScope-1.0.1-x64-Setup.exe'), 'command center x64 download must target current release');
-  assert(commandHrefs[1]?.includes('/releases/download/v1.0.1/PermissionScope-1.0.1-arm64-Setup.exe'), 'command center ARM64 download must target current release');
-  assert(!commandHrefs.some(href => href?.includes('1.0.0')), 'command center must not expose stale release links');
+  assert(commandHrefs[0]?.includes(`${releasePrefix}PermissionScope-${version}-x64-Setup.exe`), 'command center x64 download must target current release');
+  assert(commandHrefs[1]?.includes(`${releasePrefix}PermissionScope-${version}-arm64-Setup.exe`), 'command center ARM64 download must target current release');
+  assert(commandHrefs.slice(0, 2).every(href => href?.includes(releasePrefix)), 'command center must not expose stale release links');
   await page.locator('.ps-command-close').click();
   const locales = ['en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'];
   for (const locale of locales) {
@@ -55,7 +59,7 @@ try {
     assert.equal(await page.locator('.ps-release-rail').count(), 1, `${locale}: release rail duplicated`);
     const downloadHrefs = await page.locator('.ps-download-card').evaluateAll(nodes => nodes.map(node => node.getAttribute('href')));
     assert.equal(downloadHrefs.length, 4, `${locale}: expected four primary download choices`);
-    assert(downloadHrefs.every(href => href?.includes('/releases/download/v1.0.1/')), `${locale}: stale primary download URL`);
+    assert(downloadHrefs.every(href => href?.includes(releasePrefix)), `${locale}: stale primary download URL`);
     for (const width of [1440, 768, 375]) {
       await page.setViewportSize({ width, height: 1000 });
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale}: horizontal overflow at ${width}px`);
@@ -80,7 +84,7 @@ try {
   await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
   assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
   assert.deepEqual(errors, []);
-  const result = { passed: true, widths: [1440, 768, 375], locales, axeViolations: 0, keyboardSkipLink: true, premiumWorkstation: true, currentReleaseLinks: true, forcedColors: true, externalRequestsBlocked: true };
+  const result = { passed: true, version, widths: [1440, 768, 375], locales, axeViolations: 0, keyboardSkipLink: true, premiumWorkstation: true, currentReleaseLinks: true, forcedColors: true, externalRequestsBlocked: true };
   fs.writeFileSync(path.join(root, 'artifacts/site-tests.json'), JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result));
 } finally { await browser?.close(); server.close(); }
