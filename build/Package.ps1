@@ -1,10 +1,12 @@
 param([ValidateSet('x64','arm64')][string]$Architecture='x64', [switch]$SkipBuild)
 $ErrorActionPreference = 'Stop'
 $repository = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+. (Join-Path $PSScriptRoot 'Get-ProjectVersion.ps1')
+$version = Get-ProjectVersion -Root $repository
 $dotnet = Join-Path $repository '.toolchain/dotnet/dotnet.exe'
 if (-not (Test-Path -LiteralPath $dotnet)) { $dotnet = 'dotnet' }
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = '1'
-$distribution = Join-Path $repository "artifacts/PermissionScope-1.0.0-win-$Architecture"
+$distribution = Join-Path $repository "artifacts/PermissionScope-$version-win-$Architecture"
 Push-Location $repository
 try {
     . (Join-Path $PSScriptRoot 'Get-SourceFingerprint.ps1')
@@ -19,11 +21,11 @@ try {
         & $dotnet publish src/PermissionScope.Cli/PermissionScope.Cli.csproj -c Release -r "win-$Architecture" --self-contained true -o $distribution --nologo -v minimal
         if ($LASTEXITCODE -ne 0) { throw 'CLI publish failed.' }
         if ((Get-SourceFingerprint -Root $repository) -ne $sourceFingerprint) { throw 'Source changed during packaging. Rebuild before distribution.' }
-        @{ sourceSha256=$sourceFingerprint; architecture=$Architecture; version='1.0.0'; builtAt=[DateTimeOffset]::UtcNow.ToString('O') } |
+        @{ sourceSha256=$sourceFingerprint; architecture=$Architecture; version=$version; builtAt=[DateTimeOffset]::UtcNow.ToString('O') } |
             ConvertTo-Json | Set-Content -LiteralPath (Join-Path $distribution 'build-info.json') -Encoding UTF8
     }
     $buildInfo = Get-Content -LiteralPath (Join-Path $distribution 'build-info.json') -Raw | ConvertFrom-Json
-    if ($buildInfo.sourceSha256 -ne $sourceFingerprint) { throw 'Existing binaries do not match the current source. Run packaging without SkipBuild.' }
+    if ($buildInfo.sourceSha256 -ne $sourceFingerprint -or $buildInfo.version -ne $version -or $buildInfo.architecture -ne $Architecture) { throw 'Existing binaries do not match the current source/version/architecture. Run packaging without SkipBuild.' }
     foreach ($name in @('LICENSE','NOTICE','FREE-FOREVER.md','README.md','LEIA-ME.pt-BR.md','THIRD-PARTY-NOTICES.md','SECURITY.md','CHANGELOG.md')) { Copy-Item -LiteralPath (Join-Path $repository $name) -Destination $distribution }
     Get-ChildItem -LiteralPath $repository -Filter 'README.*.md' | Copy-Item -Destination $distribution
     Copy-Item -LiteralPath (Join-Path $repository 'docs') -Destination $distribution -Recurse -Force
@@ -36,17 +38,17 @@ try {
         foreach ($package in $target.Value.PSObject.Properties) {
             if ($package.Value.type -eq 'Project' -or $seen.ContainsKey($package.Name)) { continue }
             $seen[$package.Name] = $true
-            $version = $package.Value.resolved
-            $components += @{type='library';name=$package.Name;version=$version;purl="pkg:nuget/$($package.Name)@$version"}
-            $packagePath = Join-Path $env:USERPROFILE ".nuget/packages/$($package.Name.ToLowerInvariant())/$version"
+            $packageVersion = $package.Value.resolved
+            $components += @{type='library';name=$package.Name;version=$packageVersion;purl="pkg:nuget/$($package.Name)@$packageVersion"}
+            $packagePath = Join-Path $env:USERPROFILE ".nuget/packages/$($package.Name.ToLowerInvariant())/$packageVersion"
             if (Test-Path -LiteralPath $packagePath) {
-                $packageLegal = Join-Path $legal "$($package.Name)-$version"
+                $packageLegal = Join-Path $legal "$($package.Name)-$packageVersion"
                 New-Item -ItemType Directory -Path $packageLegal -Force | Out-Null
                 Get-ChildItem -LiteralPath $packagePath -File | Where-Object { $_.Name -match 'license|notice|copying|\.nuspec$' } | Copy-Item -Destination $packageLegal
             }
         }
     }
-    $sbom = @{'$schema'='http://cyclonedx.org/schema/bom-1.5.schema.json';bomFormat='CycloneDX';specVersion='1.5';serialNumber=('urn:uuid:' + [Guid]::NewGuid().ToString());version=1;metadata=@{timestamp=[DateTimeOffset]::UtcNow.ToString('O');component=@{type='application';name='PermissionScope';version='1.0.0';licenses=@(@{license=@{id='Apache-2.0'}})}};components=$components}
+    $sbom = @{'$schema'='http://cyclonedx.org/schema/bom-1.5.schema.json';bomFormat='CycloneDX';specVersion='1.5';serialNumber=('urn:uuid:' + [Guid]::NewGuid().ToString());version=1;metadata=@{timestamp=[DateTimeOffset]::UtcNow.ToString('O');component=@{type='application';name='PermissionScope';version=$version;licenses=@(@{license=@{id='Apache-2.0'}})}};components=$components}
     $sbom | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $distribution 'sbom.cdx.json') -Encoding UTF8
     $files = Get-ChildItem -LiteralPath $distribution -File -Recurse
     $uninstall = @()
@@ -58,12 +60,12 @@ try {
     $compiler = Join-Path $repository '.toolchain/nsis-3.12/makensis.exe'
     if (-not (Test-Path -LiteralPath $compiler)) { $compiler = Join-Path ${env:ProgramFiles(x86)} 'NSIS/makensis.exe' }
     if (Test-Path -LiteralPath $compiler) {
-        & $compiler /V2 "/DARCH=$Architecture" build/installer.nsi
+        & $compiler /V2 "/DARCH=$Architecture" "/DVERSION=$version" build/installer.nsi
         if ($LASTEXITCODE -ne 0) { throw 'Installer compilation failed.' }
     }
     else { throw 'NSIS was not found. Install NSIS 3.12 before packaging a release.' }
-    $archive = Join-Path $repository "artifacts/PermissionScope-1.0.0-win-$Architecture.zip"
+    $archive = Join-Path $repository "artifacts/PermissionScope-$version-win-$Architecture.zip"
     Compress-Archive -LiteralPath $distribution -DestinationPath $archive -Force
-    $packageFiles = @($archive, (Join-Path $repository "artifacts/PermissionScope-1.0.0-$Architecture-Setup.exe")) | Where-Object { Test-Path -LiteralPath $_ }
+    $packageFiles = @($archive, (Join-Path $repository "artifacts/PermissionScope-$version-$Architecture-Setup.exe")) | Where-Object { Test-Path -LiteralPath $_ }
     Get-FileHash -LiteralPath $packageFiles -Algorithm SHA256 -ErrorAction Stop | ForEach-Object { "$($_.Hash)  $([System.IO.Path]::GetFileName($_.Path))" } | Set-Content -LiteralPath "artifacts/SHA256SUMS-$Architecture.txt" -Encoding ASCII
 } finally { Pop-Location }
