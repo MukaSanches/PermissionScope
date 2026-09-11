@@ -13,11 +13,16 @@ on:
   push:
     branches: [main]
     paths:
+      - 'Directory.Build.props'
+      - 'build/**'
       - '.github/workflows/release.yml'
+      - 'docs/releases/**'
+      - 'CHANGELOG.md'
+      - 'CITATION.cff'
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the current 1.0.1 release commit after all gates pass.
+        description: Publish the current project version after all gates pass.
         required: true
         type: boolean
         default: false
@@ -27,17 +32,16 @@ permissions:
   actions: read
 
 concurrency:
-  group: release-v1.0.1-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
-
-env:
-  RELEASE_VERSION: 1.0.1
 
 jobs:
   preflight:
     name: Release preflight
     runs-on: windows-2022
     timeout-minutes: 40
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
@@ -47,12 +51,19 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - name: Require project/release version parity
+      - name: Resolve release version from project source of truth
+        id: version
         shell: pwsh
         run: |
           . ./build/Get-ProjectVersion.ps1
           $version = Get-ProjectVersion -Root $PWD
-          if ($version -ne $env:RELEASE_VERSION) { throw "Project version $version does not match release version $env:RELEASE_VERSION." }
+          if ($version -notmatch '^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$') {
+            throw "Unexpected project version format: $version"
+          }
+          if (-not (Test-Path "docs/releases/v$version.md")) {
+            throw "Missing release notes: docs/releases/v$version.md"
+          }
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
       - name: Install website dependencies
         run: npm ci --ignore-scripts --no-fund
       - name: Validate resources and website syntax
@@ -67,7 +78,7 @@ jobs:
         run: ./build/Verify-Documentation.ps1 -SkipBrowser
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: PermissionScope-v1.0.1-preflight
+          name: PermissionScope-v${{ steps.version.outputs.version }}-preflight
           path: |
             artifacts/test-results.json
             artifacts/site-tests.json
@@ -88,6 +99,8 @@ jobs:
       fail-fast: false
       matrix:
         architecture: [x64, arm64]
+    env:
+      RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
@@ -116,22 +129,22 @@ jobs:
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
-            artifacts/PermissionScope-1.0.1-${{ matrix.architecture }}-Setup.exe
-            artifacts/PermissionScope-1.0.1-win-${{ matrix.architecture }}.zip
+            artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-${{ matrix.architecture }}-Setup.exe
+            artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-win-${{ matrix.architecture }}.zip
       - name: Attest package SBOM
         if: github.event_name != 'pull_request'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: |
-            artifacts/PermissionScope-1.0.1-${{ matrix.architecture }}-Setup.exe
-            artifacts/PermissionScope-1.0.1-win-${{ matrix.architecture }}.zip
-          sbom-path: artifacts/PermissionScope-1.0.1-win-${{ matrix.architecture }}/sbom.cdx.json
+            artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-${{ matrix.architecture }}-Setup.exe
+            artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-win-${{ matrix.architecture }}.zip
+          sbom-path: artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-win-${{ matrix.architecture }}/sbom.cdx.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: PermissionScope-v1.0.1-${{ matrix.architecture }}
+          name: PermissionScope-v${{ env.RELEASE_VERSION }}-${{ matrix.architecture }}
           path: |
-            artifacts/PermissionScope-1.0.1-${{ matrix.architecture }}-Setup.exe
-            artifacts/PermissionScope-1.0.1-win-${{ matrix.architecture }}.zip
+            artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-${{ matrix.architecture }}-Setup.exe
+            artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-win-${{ matrix.architecture }}.zip
             artifacts/SHA256SUMS-${{ matrix.architecture }}.txt
           if-no-files-found: error
           retention-days: 14
@@ -141,6 +154,8 @@ jobs:
     needs: preflight
     runs-on: windows-2022
     timeout-minutes: 15
+    env:
+      RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Ensure ripgrep is available
@@ -161,14 +176,14 @@ jobs:
         run: ./build/Package-Source.ps1
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: PermissionScope-v1.0.1-source
-          path: artifacts/PermissionScope-1.0.1-source.zip
+          name: PermissionScope-v${{ env.RELEASE_VERSION }}-source
+          path: artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-source.zip
           if-no-files-found: error
           retention-days: 14
 
   assemble:
     name: Assemble release evidence
-    needs: [package, source]
+    needs: [preflight, package, source]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -176,6 +191,7 @@ jobs:
       actions: read
     env:
       GH_TOKEN: ${{ github.token }}
+      RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
     steps:
       - name: Download this run's package artifacts
         shell: bash
@@ -184,11 +200,11 @@ jobs:
           mkdir -p downloaded dist
           gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --dir downloaded
           expected=(
-            PermissionScope-1.0.1-x64-Setup.exe
-            PermissionScope-1.0.1-win-x64.zip
-            PermissionScope-1.0.1-arm64-Setup.exe
-            PermissionScope-1.0.1-win-arm64.zip
-            PermissionScope-1.0.1-source.zip
+            "PermissionScope-${RELEASE_VERSION}-x64-Setup.exe"
+            "PermissionScope-${RELEASE_VERSION}-win-x64.zip"
+            "PermissionScope-${RELEASE_VERSION}-arm64-Setup.exe"
+            "PermissionScope-${RELEASE_VERSION}-win-arm64.zip"
+            "PermissionScope-${RELEASE_VERSION}-source.zip"
           )
           for file in "${expected[@]}"; do
             match="$(find downloaded -type f -name "$file" -print -quit)"
@@ -199,15 +215,15 @@ jobs:
           test "$(wc -l < dist/SHA256SUMS.txt)" -eq 5
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: PermissionScope-v1.0.1-release
+          name: PermissionScope-v${{ env.RELEASE_VERSION }}-release
           path: dist/*
           if-no-files-found: error
           retention-days: 30
 
   publish:
-    name: Publish immutable GitHub Release
-    needs: assemble
-    if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
+    name: Publish GitHub Release
+    needs: [preflight, assemble]
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -215,6 +231,7 @@ jobs:
       actions: read
     env:
       GH_TOKEN: ${{ github.token }}
+      RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -224,7 +241,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_REF" = "refs/heads/main" || {
-            echo "Automatic publication is only allowed from main. Current ref: $GITHUB_REF"
+            echo "Publication is only allowed from main. Current ref: $GITHUB_REF"
             exit 1
           }
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA" || {
@@ -254,34 +271,48 @@ jobs:
             echo "main advanced while release gates were running; refusing stale publication."
             exit 1
           }
-      - name: Require unused version or matching recovery tag
+      - name: Require unused release version
         shell: bash
         run: |
           set -euo pipefail
-          if gh release view v1.0.1 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "v1.0.1 already exists. Refusing to overwrite an existing public release."
+          tag="v${RELEASE_VERSION}"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "$tag already exists. Refusing to overwrite an existing public release."
             exit 1
           fi
           existing=""
-          if tag_json="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/v1.0.1" 2>/dev/null)"; then
+          if tag_json="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" 2>/dev/null)"; then
             existing="$(jq -r '.object.sha' <<<"$tag_json")"
           fi
           if [ -n "$existing" ] && [ "$existing" != "$GITHUB_SHA" ]; then
-            echo "v1.0.1 already points to $existing, not $GITHUB_SHA. Refusing to move the tag."
+            echo "$tag already points to $existing, not $GITHUB_SHA. Refusing to move the tag."
             exit 1
           fi
           if [ -z "$existing" ]; then
-            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref='refs/tags/v1.0.1' -f sha="$GITHUB_SHA" >/dev/null
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$GITHUB_SHA" >/dev/null
           fi
       - name: Download assembled release
         shell: bash
-        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name PermissionScope-v1.0.1-release --dir dist
-      - name: Publish release
+        run: gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "PermissionScope-v${RELEASE_VERSION}-release" --dir dist
+      - name: Stage draft release with complete assets
         shell: bash
         run: |
           set -euo pipefail
-          gh release create v1.0.1 dist/* \
+          tag="v${RELEASE_VERSION}"
+          gh release create "$tag" dist/* \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
-            --title "PermissionScope 1.0.1" \
-            --notes-file docs/releases/v1.0.1.md
+            --draft \
+            --title "PermissionScope ${RELEASE_VERSION}" \
+            --notes-file "docs/releases/v${RELEASE_VERSION}.md"
+      - name: Publish completed draft
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="v${RELEASE_VERSION}"
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false
+          immutable="$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$tag" --jq '.immutable // false')"
+          echo "Published $tag (immutable=$immutable)" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$immutable" != "true" ]; then
+            echo "::warning::Release immutability is not enabled for this release. Future releases gain stronger tag/asset protection when repository release immutability is enabled."
+          fi
