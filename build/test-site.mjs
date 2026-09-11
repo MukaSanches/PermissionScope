@@ -35,6 +35,7 @@ try {
   await page.getByRole('heading', { level: 1 }).waitFor();
   await page.locator('.ps-workstation-scene').waitFor();
   await page.locator('.ps-command-launch').waitFor();
+  await page.locator('.ps-assistant-launch').waitFor();
   await page.keyboard.press('Tab');
   assert.equal(await page.evaluate(() => document.activeElement.getAttribute('href')), '#main');
   assert.equal(await page.locator('.ps-device').count(), 1, 'premium device should render exactly once');
@@ -47,6 +48,17 @@ try {
   assert(commandHrefs[1]?.includes(`${releasePrefix}PermissionScope-${version}-arm64-Setup.exe`), 'command center ARM64 download must target current release');
   assert(commandHrefs.slice(0, 2).every(href => href?.includes(releasePrefix)), 'command center must not expose stale release links');
   await page.locator('.ps-command-close').click();
+
+  await page.locator('.ps-assistant-launch').click();
+  await page.locator('.ps-assistant').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.ps-assistant-compose textarea').count(), 1, 'assistant composer is missing');
+  assert((await page.locator('.ps-assistant-suggestions button').count()) >= 3, 'assistant should expose starter questions');
+  await page.locator('.ps-assistant-suggestions button').first().click();
+  await page.locator('.ps-msg.user').last().waitFor();
+  await page.locator('.ps-msg.assistant').last().waitFor();
+  assert((await page.locator('.ps-msg.assistant').last().textContent())?.trim().length > 1, 'assistant should return a local or on-device answer');
+  await page.locator('.ps-assistant-close').click();
+
   const locales = ['en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'];
   for (const locale of locales) {
     const filename = locale === 'en-US' ? 'index.html' : `index.${locale}.html`;
@@ -84,7 +96,7 @@ try {
   await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
   assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
   assert.deepEqual(errors, []);
-  const result = { passed: true, version, widths: [1440, 768, 375], locales, axeViolations: 0, keyboardSkipLink: true, premiumWorkstation: true, currentReleaseLinks: true, forcedColors: true, externalRequestsBlocked: true };
+  const result = { passed: true, version, widths: [1440, 768, 375], locales, axeViolations: 0, keyboardSkipLink: true, premiumWorkstation: true, currentReleaseLinks: true, assistantSmokeTest: true, forcedColors: true, externalRequestsBlocked: true };
   fs.writeFileSync(path.join(root, 'artifacts/site-tests.json'), JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result));
 } finally { await browser?.close(); server.close(); }
