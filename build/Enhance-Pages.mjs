@@ -49,6 +49,13 @@ if(Date.parse(expiresMatch[1]) <= Date.now()) throw new Error('security.txt has 
 if(!securityTxt.includes('Policy: https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md')) throw new Error('security.txt must point to the maintained repository security policy');
 if(/^Canonical:/m.test(securityTxt)) throw new Error('Project-scoped GitHub Pages security.txt must not claim RFC 9116 origin-root canonical placement');
 
+const serviceWorkerPath=path.join(site,'sw.js');
+if(!fs.existsSync(serviceWorkerPath)) throw new Error('Missing site/sw.js');
+const serviceWorker=fs.readFileSync(serviceWorkerPath,'utf8');
+if(!serviceWorker.includes("const SHELL_PREFIX='permissionscope-shell-';")) throw new Error('Service worker cache ownership prefix is missing');
+if(!serviceWorker.includes('keys.filter(key=>key.startsWith(SHELL_PREFIX)&&key!==CACHE)')) throw new Error('Service worker must delete only obsolete PermissionScope-owned caches');
+if(serviceWorker.includes('keys.filter(key=>key!==CACHE)')) throw new Error('Service worker must not delete unrelated origin-wide caches');
+
 for(const file of pages){
   const target=path.join(site,file);
   const source=fs.readFileSync(target,'utf8');
@@ -62,4 +69,4 @@ for(const file of pages){
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);

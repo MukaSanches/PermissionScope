@@ -19,8 +19,10 @@ self.addEventListener('install',event=>{
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
     const keys=await caches.keys();
-    const obsolete=keys.filter(key=>key!==CACHE);
-    const upgradedFromOlderShell=obsolete.some(key=>key.startsWith(SHELL_PREFIX));
+    // CacheStorage is origin-wide, not service-worker-scope-wide. Only delete
+    // caches owned by PermissionScope so sibling github.io projects keep theirs.
+    const obsolete=keys.filter(key=>key.startsWith(SHELL_PREFIX)&&key!==CACHE);
+    const upgradedFromOlderShell=obsolete.length>0;
     await Promise.all(obsolete.map(key=>caches.delete(key)));
     if(self.registration.navigationPreload)await self.registration.navigationPreload.enable();
     await self.clients.claim();
