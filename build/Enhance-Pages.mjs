@@ -5,6 +5,7 @@ const root=path.resolve(import.meta.dirname,'..');
 const site=path.join(root,'site');
 const check=process.argv.includes('--check');
 const pages=['index.html','index.pt-BR.html','index.es.html','index.fr.html','index.de.html','index.ar.html','index.ja.html','index.zh-Hans.html'];
+const manifestLocales=['pt-BR','es','fr','de','ar','ja','zh-Hans'];
 
 const props=fs.readFileSync(path.join(root,'Directory.Build.props'),'utf8');
 const versionMatch=props.match(/<Version>([^<]+)<\/Version>/);
@@ -56,6 +57,14 @@ function validateManifestShortcuts(html,file,manifestData){
   const shortcuts=Array.isArray(manifestData.shortcuts)?manifestData.shortcuts:[];
   for(const shortcut of shortcuts){
     if(!shortcut || typeof shortcut.url!=='string') throw new Error('Every manifest shortcut must declare a string url');
+    if(typeof shortcut.description!=='string' || !shortcut.description.trim()) throw new Error('Every manifest shortcut must declare a useful description for assistive technology');
+    if(!shortcut.description_localized || typeof shortcut.description_localized!=='object' || Array.isArray(shortcut.description_localized)){
+      throw new Error('Every manifest shortcut must localize its description across supported languages');
+    }
+    for(const locale of manifestLocales){
+      const localized=shortcut.description_localized[locale];
+      if(typeof localized!=='string' || !localized.trim()) throw new Error(`Manifest shortcut is missing a localized description for ${locale}`);
+    }
     const resolved=new URL(shortcut.url,'https://mukasanches.github.io/PermissionScope/manifest.webmanifest');
     if(resolved.origin!=='https://mukasanches.github.io' || !resolved.pathname.startsWith('/PermissionScope/')){
       throw new Error(`Manifest shortcut escapes PermissionScope scope: ${shortcut.url}`);
@@ -120,4 +129,4 @@ for(const file of pages){
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, conservative installed-window behavior, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, conservative installed-window behavior, localized shortcut accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
