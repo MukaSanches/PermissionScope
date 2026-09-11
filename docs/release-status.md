@@ -1,6 +1,6 @@
 # Release scope
 
-PermissionScope 1.0.0 is already a public historical release and remains immutable. PermissionScope 1.0.1 is the current release line for the security, reliability, accessibility, packaging and website work completed after that publication. A version number is not evidence by itself: the exact tagged commit must satisfy the release contract below.
+PermissionScope 1.0.0 is a public historical release and must not be moved, rewritten or overwritten by project policy. GitHub does not currently report that release as Immutable, so this documentation does not claim platform-enforced release immutability. PermissionScope 1.0.1 is the current public release line for the security, reliability, accessibility, packaging and website work completed after that publication. A version number is not evidence by itself: the exact tagged commit must satisfy the release contract below.
 
 ## Release-readiness contract
 
@@ -15,13 +15,14 @@ Before a new public GitHub release is published, the exact commit must satisfy a
 - the x64 installer passes install/CLI/uninstall smoke testing on a disposable Windows runner;
 - public release assets have SHA-256 checksums and provenance/SBOM attestations;
 - CodeQL is green on the exact release commit;
-- publication creates an immutable version tag on the exact validated commit and refuses to overwrite an existing public release or move an existing tag.
+- publication creates the version tag on the exact validated commit and the workflow refuses to overwrite an existing public release or move an existing tag;
+- GitHub platform-level release immutability is claimed only when the release API actually reports `immutable: true`.
 
 Use `build/Test-ReleaseReadiness.ps1` for the local preflight and `docs/release-checklist.md` for the complete go/no-go procedure. A stale native-capture fingerprint is a release blocker, not a warning to bypass.
 
-## Current 1.0.1 checkpoint — 2026-09-10
+## Current 1.0.1 checkpoint — 2026-09-11
 
-The 1.0.1 line incorporates the consolidated security/release-readiness work merged through PR #11 plus subsequent PWA identity/offline fixes and release-tooling corrections.
+PermissionScope 1.0.1 is publicly released. It incorporates the consolidated security/release-readiness work merged through PR #11 plus subsequent PWA identity/offline fixes, release-tooling corrections and repository trust hardening.
 
 Established automated evidence on the consolidated code line includes:
 
@@ -37,9 +38,9 @@ Established automated evidence on the consolidated code line includes:
 
 The stale-capture blocker from the pre-merge candidate was resolved legitimately on commit `57e64c0993f273ec85c96b7cc892e0bd4f5d2693`. A Windows runner published the current x64 WinUI application and CLI, created the synthetic demo environment, generated the complete native screenshot set from the running application, rebuilt the generated documentation and passed `Verify-Documentation.ps1` before committing the refreshed captures. Native screenshot provenance remains enforced by ordinary CI; future application-source changes must regenerate the captures through the documented Windows procedure.
 
-The release tooling now derives package/installer/source-archive versioning from `Directory.Build.props`, and the CycloneDX document includes the metadata required by GitHub's SBOM attestation action. The publication workflow for 1.0.1 must still finish all exact-commit gates before creating `v1.0.1`.
+The release tooling derives package/installer/source-archive versioning from `Directory.Build.props`, and the CycloneDX document includes the metadata required by GitHub's SBOM attestation action. The public `v1.0.1` release was created from the release workflow with versioned x64/ARM64 artifacts, checksums and source archive. GitHub currently reports `immutable: false` for both v1.0.0 and v1.0.1; project policy and workflow safeguards still prohibit overwriting an existing public release or moving an existing release tag, but that is not represented as GitHub-enforced Immutable Releases.
 
-The existing `v1.0.0` tag and public release are intentionally not moved, rewritten or overwritten.
+The existing `v1.0.0` tag and public release remain historical and are intentionally not moved, rewritten or overwritten.
 
 No Store, WinGet, signing or physical ARM64 certification claim is implied by a GitHub release.
 
