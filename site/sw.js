@@ -1,7 +1,16 @@
-const CACHE='permissionscope-shell-v9';
+const CACHE='permissionscope-shell-v10';
+const SHELL_PREFIX='permissionscope-shell-';
 const PAGES=['./index.html','./index.pt-BR.html','./index.es.html','./index.fr.html','./index.de.html','./index.ar.html','./index.ja.html','./index.zh-Hans.html'];
 const CORE=['./',...PAGES,'./404.html','./style.css','./premium.css','./device.css','./experience.css','./future.css','./responsive.css','./progressive.css','./intelligence.css','./quality.css','./site.js','./release-sync.js','./experience.js','./future.js','./intelligence.js','./quality.js','./platform.js','./logo.svg','./manifest.webmanifest','./pwa-icon-192.svg','./pwa-icon-512.svg','./screenshots/en-US/access-light.png'];
 const ATELIER=['./atelier.css','./atelier.js'];
+
+const putIfCacheable=async(request,response)=>{
+  if(response?.ok&&response.type==='basic'){
+    const cache=await caches.open(CACHE);
+    await cache.put(request,response.clone());
+  }
+  return response;
+};
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll([...CORE,...ATELIER])).then(()=>self.skipWaiting()));
@@ -9,9 +18,20 @@ self.addEventListener('install',event=>{
 
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
-    await Promise.all((await caches.keys()).filter(key=>key!==CACHE).map(key=>caches.delete(key)));
+    const keys=await caches.keys();
+    const obsolete=keys.filter(key=>key!==CACHE);
+    const upgradedFromOlderShell=obsolete.some(key=>key.startsWith(SHELL_PREFIX));
+    await Promise.all(obsolete.map(key=>caches.delete(key)));
     if(self.registration.navigationPreload)await self.registration.navigationPreload.enable();
     await self.clients.claim();
+
+    // Only users upgrading from an older PermissionScope shell need a one-time
+    // refresh. Fresh installs are left untouched, avoiding needless reloads and
+    // races while the first page is still constructing its UI.
+    if(upgradedFromOlderShell){
+      const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+      await Promise.allSettled(windows.map(client=>client.navigate(client.url)));
+    }
   })());
 });
 
@@ -29,11 +49,8 @@ self.addEventListener('fetch',event=>{
   if(request.mode==='navigate'){
     event.respondWith((async()=>{
       try{
-        const response=(await event.preloadResponse)||await fetch(request);
-        if(response?.ok){
-          const copy=response.clone();
-          event.waitUntil(caches.open(CACHE).then(cache=>cache.put(request,copy)));
-        }
+        const response=(await event.preloadResponse)||await fetch(request,{cache:'no-store'});
+        await putIfCacheable(request,response);
         return response;
       }catch{
         return (await caches.match(request))||(await caches.match(offlinePage(request)))||(await caches.match('./index.html'));
@@ -42,19 +59,16 @@ self.addEventListener('fetch',event=>{
     return;
   }
 
+  // Online: always fetch the current deployment first. Offline: fall back to
+  // the pre-cached shell. This prevents a successful Pages deployment from
+  // looking unchanged because an older CSS/JS response won the cache race.
   event.respondWith((async()=>{
-    const cached=await caches.match(request);
-    const network=fetch(request).then(async response=>{
-      if(response.ok&&response.type==='basic'){
-        const cache=await caches.open(CACHE);
-        await cache.put(request,response.clone());
-      }
+    try{
+      const response=await fetch(request,{cache:'no-cache'});
+      await putIfCacheable(request,response);
       return response;
-    });
-    if(cached){
-      event.waitUntil(network.catch(()=>undefined));
-      return cached;
+    }catch{
+      return (await caches.match(request))||new Response('',{status:504,statusText:'Offline'});
     }
-    try{return await network;}catch{return new Response('',{status:504,statusText:'Offline'});}
   })());
 });
