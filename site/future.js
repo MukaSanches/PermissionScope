@@ -1,4 +1,5 @@
 "use strict";
+(()=>{
 const L=document.documentElement.lang||'en-US';
 const repo='https://github.com/MukaSanches/PermissionScope';
 const C={
@@ -29,3 +30,4 @@ const manifest=document.createElement('link');manifest.rel='manifest';manifest.h
 const theme=document.createElement('meta');theme.name='theme-color';theme.content='#17315C';document.head.appendChild(theme);
 if('serviceWorker'in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{}),{once:true});}
 const intelligence=document.createElement('script');intelligence.src='intelligence.js';intelligence.async=false;document.body.appendChild(intelligence);
+})();

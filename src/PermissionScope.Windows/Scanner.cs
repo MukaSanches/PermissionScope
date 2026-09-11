@@ -9,6 +9,13 @@ public sealed record ScanOptions(string Root, string? Identity = null, bool Recu
 
 public sealed class Scanner
 {
+    private static readonly EnumerationOptions ChildEnumeration = new()
+    {
+        RecurseSubdirectories = false,
+        IgnoreInaccessible = false,
+        AttributesToSkip = 0
+    };
+
     public Task<PermissionSnapshot> ScanAsync(ScanOptions options, IProgress<ScanProgress>? progress = null, CancellationToken cancellation = default) =>
         Task.Run(() => Scan(options, progress, cancellation), CancellationToken.None);
 
@@ -16,7 +23,8 @@ public sealed class Scanner
     {
         if (string.IsNullOrWhiteSpace(options.Root)) throw new ArgumentException("Enter a file or folder path.");
         var root = Path.GetFullPath(options.Root.Trim().Trim('"'));
-        if (root.StartsWith("\\\\.\\", StringComparison.Ordinal)) throw new ArgumentException("Device paths are not supported.");
+        if (root.StartsWith("\\\\.\\", StringComparison.Ordinal) || root.StartsWith("\\\\?\\GLOBALROOT\\", StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Device paths are not supported.");
         var created = DateTimeOffset.UtcNow;
         var clock = Stopwatch.StartNew();
         var identities = new IdentityResolver();
@@ -66,10 +74,13 @@ public sealed class Scanner
                 if (!options.Recursive || !isDirectory || reparse) continue;
                 try
                 {
-                    foreach (var child in Directory.EnumerateFileSystemEntries(path, "*", new EnumerationOptions { RecurseSubdirectories = false, IgnoreInaccessible = false, AttributesToSkip = 0 }))
+                    var children = options.IncludeFiles
+                        ? Directory.EnumerateFileSystemEntries(path, "*", ChildEnumeration)
+                        : Directory.EnumerateDirectories(path, "*", ChildEnumeration);
+                    foreach (var child in children)
                     {
                         cancellation.ThrowIfCancellationRequested();
-                        if (options.IncludeFiles || (File.GetAttributes(child) & FileAttributes.Directory) != 0) pending.Push(child);
+                        pending.Push(child);
                     }
                 }
                 catch (Exception error) when (IsExpected(error))
@@ -77,6 +88,7 @@ public sealed class Scanner
                     errors++;
                     var index = results.Count - 1;
                     results[index] = results[index] with { Error = new(path, ErrorCode(error), "Enumeration: " + error.Message) };
+                    progress?.Report(new(results.Count, errors, clock.Elapsed, path));
                 }
             }
         }

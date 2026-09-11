@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -16,18 +17,75 @@ public static class SnapshotJson
     };
     public static PermissionSnapshot Parse(string json)
     {
+        if (string.IsNullOrWhiteSpace(json)) throw new InvalidDataException("Empty snapshot.");
         var snapshot = JsonSerializer.Deserialize<PermissionSnapshot>(json, Options) ?? throw new InvalidDataException("Empty snapshot.");
+        Validate(snapshot);
+        return snapshot;
+    }
+
+    private static void Validate(PermissionSnapshot snapshot)
+    {
         if (snapshot.SchemaVersion != PermissionSnapshot.CurrentSchema) throw new InvalidDataException("Unsupported snapshot schema.");
-        if (snapshot.Resources is null || snapshot.Groups is null || string.IsNullOrWhiteSpace(snapshot.Id) || string.IsNullOrWhiteSpace(snapshot.Root))
+        if (snapshot.Resources is null || snapshot.Groups is null || snapshot.IdentityWarnings is null ||
+            string.IsNullOrWhiteSpace(snapshot.Id) || string.IsNullOrWhiteSpace(snapshot.Root) ||
+            string.IsNullOrWhiteSpace(snapshot.AppVersion) || string.IsNullOrWhiteSpace(snapshot.IdentitySid))
             throw new InvalidDataException("Snapshot metadata is incomplete.");
+        if (snapshot.CompletedAt < snapshot.CreatedAt) throw new InvalidDataException("Snapshot completion time precedes its creation time.");
+        if (snapshot.DirectoryIdentity is { } directory)
+        {
+            if (string.IsNullOrWhiteSpace(directory.Sid) || string.IsNullOrWhiteSpace(directory.DistinguishedName) ||
+                string.IsNullOrWhiteSpace(directory.Source) || directory.SidHistory is null || directory.SidHistory.Any(string.IsNullOrWhiteSpace))
+                throw new InvalidDataException("Directory identity metadata is incomplete.");
+        }
+        foreach (var edge in snapshot.Groups)
+            ValidateEdge(edge, "Snapshot group graph is incomplete.");
+
         var paths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in snapshot.Resources)
         {
-            if (item is null || string.IsNullOrWhiteSpace(item.Path) || !paths.Add(item.Path)) throw new InvalidDataException("Invalid or duplicate resource path.");
-            if (item.Descriptor is { } descriptor && DescriptorParser.Parse(descriptor.Sddl).Hash != descriptor.Hash)
-                throw new InvalidDataException("Security descriptor integrity check failed.");
+            if (item is null || string.IsNullOrWhiteSpace(item.Path) || !paths.Add(item.Path))
+                throw new InvalidDataException("Invalid or duplicate resource path.");
+            if (item.Findings is null) throw new InvalidDataException("Resource findings are missing.");
+            if (item.Descriptor is { } descriptor) ValidateDescriptor(descriptor, "NTFS security descriptor");
+            if (item.Share?.Descriptor is { } shareDescriptor) ValidateDescriptor(shareDescriptor, "Share security descriptor");
+            if (item.Decision is { } decision)
+            {
+                if (string.IsNullOrWhiteSpace(decision.Sid) || string.IsNullOrWhiteSpace(decision.Identity) ||
+                    string.IsNullOrWhiteSpace(decision.Basis) || decision.Evidence is null)
+                    throw new InvalidDataException("Access decision metadata is incomplete.");
+                foreach (var evidence in decision.Evidence)
+                {
+                    if (evidence is null || evidence.MembershipPath is null || string.IsNullOrWhiteSpace(evidence.Sid) ||
+                        string.IsNullOrWhiteSpace(evidence.Identity) || string.IsNullOrWhiteSpace(evidence.Relation) ||
+                        string.IsNullOrWhiteSpace(evidence.Source))
+                        throw new InvalidDataException("Access evidence is incomplete.");
+                    foreach (var edge in evidence.MembershipPath)
+                        ValidateEdge(edge, "Access evidence membership path is incomplete.");
+                }
+            }
+            foreach (var finding in item.Findings)
+                if (finding is null || string.IsNullOrWhiteSpace(finding.Rule) || string.IsNullOrWhiteSpace(finding.Path) ||
+                    string.IsNullOrWhiteSpace(finding.Evidence) || string.IsNullOrWhiteSpace(finding.Recommendation))
+                    throw new InvalidDataException("Risk finding metadata is incomplete.");
         }
-        return snapshot;
+    }
+
+    private static void ValidateDescriptor(DescriptorInfo descriptor, string label)
+    {
+        if (string.IsNullOrWhiteSpace(descriptor.Sddl) || string.IsNullOrWhiteSpace(descriptor.Hash) || descriptor.Aces is null)
+            throw new InvalidDataException($"{label} metadata is incomplete.");
+        DescriptorInfo parsed;
+        try { parsed = DescriptorParser.Parse(descriptor.Sddl); }
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException)
+        { throw new InvalidDataException($"{label} is malformed.", error); }
+        if (!string.Equals(parsed.Hash, descriptor.Hash, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException($"{label} integrity check failed.");
+    }
+
+    private static void ValidateEdge(GroupEdge? edge, string message)
+    {
+        if (edge is null || string.IsNullOrWhiteSpace(edge.MemberSid) || string.IsNullOrWhiteSpace(edge.GroupSid) || string.IsNullOrWhiteSpace(edge.Source))
+            throw new InvalidDataException(message);
     }
 }
 
@@ -89,7 +147,9 @@ public sealed class SnapshotStore
         command.Parameters.AddWithValue("$offset", Math.Max(offset, 0));
         using var reader = command.ExecuteReader();
         var result = new List<SnapshotSummary>();
-        while (reader.Read()) result.Add(new(reader.GetString(0), reader.GetString(1), DateTimeOffset.Parse(reader.GetString(2)), reader.GetInt32(3), reader.GetInt32(4) != 0));
+        while (reader.Read()) result.Add(new(reader.GetString(0), reader.GetString(1),
+            DateTimeOffset.Parse(reader.GetString(2), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
+            reader.GetInt32(3), reader.GetInt32(4) != 0));
         return result;
     }
     public PermissionSnapshot Load(string id)
@@ -102,7 +162,7 @@ public sealed class SnapshotStore
         if (!reader.Read()) throw new FileNotFoundException("Snapshot not found.", id);
         var json = reader.GetString(0);
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(json)));
-        if (hash != reader.GetString(1)) throw new InvalidDataException("Snapshot checksum mismatch.");
+        if (!string.Equals(hash, reader.GetString(1), StringComparison.Ordinal)) throw new InvalidDataException("Snapshot checksum mismatch.");
         return SnapshotJson.Parse(json);
     }
 }
@@ -111,6 +171,8 @@ public static class AtomicFile
 {
     public static void Write(string path, Action<Stream> write)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(write);
         path = Path.GetFullPath(path);
         var directory = Path.GetDirectoryName(path)!;
         Directory.CreateDirectory(directory);
@@ -122,6 +184,9 @@ public static class AtomicFile
         }
         finally { if (File.Exists(temporary)) File.Delete(temporary); }
     }
-    public static void WriteText(string path, string text) => Write(path, stream =>
-    { using var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true); writer.Write(text); });
+    public static void WriteText(string path, string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        Write(path, stream => { using var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true); writer.Write(text); });
+    }
 }
