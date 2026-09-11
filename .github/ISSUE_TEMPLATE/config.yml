@@ -3,9 +3,15 @@ contact_links:
   - name: Security vulnerability
     url: https://github.com/MukaSanches/PermissionScope/security/policy
     about: Do not publish exploit details or sensitive security reports in a public issue.
+  - name: Questions and community discussion
+    url: https://github.com/MukaSanches/PermissionScope/discussions
+    about: Use Discussions for usage questions, ideas that are not yet concrete proposals, and community conversation.
   - name: Support and troubleshooting
     url: https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md
-    about: Check the support checklist, safe diagnostic guidance and troubleshooting resources first.
+    about: Check the support checklist, safe diagnostic guidance and troubleshooting routes first.
+  - name: Governance and decision policy
+    url: https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md
+    about: Read the project principles, risk classes and decision process before proposing a high-impact change.
   - name: Release and trust status
     url: https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md
-    about: Verify signing, architecture, Store/WinGet and release evidence claims before reporting a distribution problem.
+    about: Verify signing, architecture, Store/WinGet and release-evidence claims before reporting a distribution problem.
