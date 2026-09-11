@@ -1,136 +1,112 @@
-<!-- Generated from docs/content/locales.json by build/Build-Documentation.mjs. Do not edit generated localized READMEs by hand. -->
-<p align="center"><img src="https://raw.githubusercontent.com/MukaSanches/PermissionScope/main/docs/brand/repository-banner.png" alt="PermissionScope — See who has access. Understand why." width="100%"></p>
-
-<p align="center"><img src="https://raw.githubusercontent.com/MukaSanches/PermissionScope/main/docs/brand/project-avatar.png" alt="PermissionScope mark" width="72" height="72"></p>
-
 <p align="center">
-  <a href="https://github.com/MukaSanches/PermissionScope/actions/workflows/build.yml"><img alt="Windows build" src="https://github.com/MukaSanches/PermissionScope/actions/workflows/build.yml/badge.svg"></a>
-  <a href="https://github.com/MukaSanches/PermissionScope/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/MukaSanches/PermissionScope/actions/workflows/codeql.yml/badge.svg"></a>
-  <a href="https://github.com/MukaSanches/PermissionScope/blob/main/LICENSE"><img alt="Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-2764E7"></a>
-  <a href="https://github.com/MukaSanches/PermissionScope/releases"><img alt="Release" src="https://img.shields.io/github/v/release/MukaSanches/PermissionScope?display_name=tag&color=2764E7"></a>
+  <img src="../docs/brand/project-avatar.png" alt="PermissionScope mark" width="84" height="84">
 </p>
 
-<p align="center"><strong>Windows permissions, made inspectable.</strong><br>Understand who can access a folder — and inspect the rules behind the answer.</p>
-<table><tr><td align="center"><a href="https://mukasanches.github.io/PermissionScope/index.html"><strong>Website</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/releases/latest"><strong>Release downloads</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md"><strong>Trust Center</strong></a></td></tr><tr><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/README.md">Academy</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md">Roadmap</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">Security</a></td></tr></table>
+<h1 align="center">PermissionScope · Repository Operations</h1>
 
-<p align="center"><sub>Languages</sub></p>
-<table><tr><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.md"><strong>English</strong></a><br><sub>en-US</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.pt-BR.md"><strong>Português</strong></a><br><sub>pt-BR</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.es.md"><strong>Español</strong></a><br><sub>es</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.fr.md"><strong>Français</strong></a><br><sub>fr</sub></td></tr><tr><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.de.md"><strong>Deutsch</strong></a><br><sub>de</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.ar.md"><strong>العربية</strong></a><br><sub>ar</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.ja.md"><strong>日本語</strong></a><br><sub>ja</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.zh-Hans.md"><strong>简体中文</strong></a><br><sub>zh-Hans</sub></td></tr></table>
+<p align="center"><strong>Evidence-first maintenance for a local-first Windows security project.</strong></p>
+
+<p align="center">
+  <a href="../GOVERNANCE.md">Governance</a> ·
+  <a href="../CONTRIBUTING.md">Contributing</a> ·
+  <a href="../SECURITY.md">Security</a> ·
+  <a href="../SUPPORT.md">Support</a> ·
+  <a href="../docs/brand/README.md">Brand</a> ·
+  <a href="../docs/decisions/README.md">Decision records</a>
+</p>
 
 ---
 
-<table><tr><td width="33%"><strong>Local-first</strong><br><sub>No PermissionScope account, application telemetry or required cloud service.</sub></td><td width="33%"><strong>Windows-native decision</strong><br><sub>Effective access is evaluated with Windows Authz instead of a hand-written approximation.</sub></td><td width="33%"><strong>Unknown stays Unknown</strong><br><sub>Missing context is never silently converted into Granted or Denied.</sub></td></tr></table>
+This directory is the operating layer for the PermissionScope repository. It defines how work enters the project, how changes are reviewed, how security-sensitive reports are handled and how repository-facing presentation stays consistent.
 
-<p align="center"><img src="https://raw.githubusercontent.com/MukaSanches/PermissionScope/main/docs/screenshots/en-US/access-light.png" alt="LAB\Alex receives Modify through LAB\Finance. These are native application captures using a synthetic Authz fixture, not a real company or altered results." width="94%"></p>
+## Operating model
 
-## Start in two minutes
+| Area | Source of truth | Standard |
+|---|---|---|
+| Project direction | [`GOVERNANCE.md`](../GOVERNANCE.md) | Correctness, safety, evidence and maintainability before feature count |
+| Contributions | [`CONTRIBUTING.md`](../CONTRIBUTING.md) | Reproducible problems, focused changes, explicit verification |
+| Security | [`SECURITY.md`](../SECURITY.md) | Private disclosure for vulnerabilities; Unknown must remain Unknown |
+| Community conduct | [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md) | Technical rigor without hostility or exclusion |
+| Support | [`SUPPORT.md`](../SUPPORT.md) | Privacy-safe diagnostics and minimal reproducible examples |
+| Brand | [`docs/brand/README.md`](../docs/brand/README.md) | Precise, calm, verifiable; no fake certification or cyber-theater |
+| Decisions | [`docs/decisions/`](../docs/decisions/) | Durable records for high-impact architectural and security decisions |
+| Releases | [`docs/release-status.md`](../docs/release-status.md) | Claims must match shipped evidence and current limitations |
 
-1. Download the complete installer or portable ZIP from Releases. Choose x64 for Intel/AMD or ARM64 for an ARM PC.
-2. Install for your account, or extract the entire ZIP and open PermissionScope.exe.
-3. Choose Explore the demo to learn safely with LAB\Alex. For your files, choose Analyze and enter a folder.
-4. Leave the identity blank to use your current Windows token. Open Access Path to inspect the evidence.
-
-## From result to evidence
-
-Windows Authz calculates the mask. Access Path shows contributing entries and recorded membership evidence. Inherited flags do not prove the originating ancestor. Full control in the discretionary ACL does not guarantee a successful file open.
+## Change flow
 
 ```text
-Windows identity
-      ↓
-SID + recorded membership context
-      ↓
-ACL / discretionary permission entries
-      ↓
-Windows Authz evaluation
-      ↓
-Granted · Partial · Denied · Unknown
-      ↓
-Access Path → contributing evidence
+Problem / proposal
+       ↓
+Issue or focused discussion
+       ↓
+Risk classification
+       ↓
+Implementation + evidence
+       ↓
+Pull request review
+       ↓
+Automated verification
+       ↓
+Merge
+       ↓
+Release only when release gates are satisfied
 ```
 
-## Read the result
+### Risk classes
 
-Granted allows the named action under the evaluated discretionary rules. Partial means only some actions are allowed. Denied means those rules grant no access. Unknown means the available context cannot confirm the answer; it is never treated as granted.
+| Class | Typical examples | Expected review |
+|---|---|---|
+| Low | Documentation, synthetic examples, editorial cleanup | Scope and accuracy review |
+| Medium | UI workflow, export behavior, performance, packaging | Regression coverage plus compatibility review |
+| High | Permission decisions, identity handling, filesystem mutation, rollback, trust boundaries | Deterministic regression evidence, failure-mode review and durable decision record when architectural |
 
-## Verify the explanation
+The full classification and authority model lives in [`GOVERNANCE.md`](../GOVERNANCE.md).
 
-Windows Authz calculates the mask. Access Path shows contributing entries and recorded membership evidence. Inherited flags do not prove the originating ancestor. Full control in the discretionary ACL does not guarantee a successful file open.
+## Repository map
 
-<p align="center"><img src="https://raw.githubusercontent.com/MukaSanches/PermissionScope/main/docs/screenshots/en-US/access-path-light.png" alt="Access Path" width="94%"></p>
-
-## Product surface
-
-<table><tr><td><strong>Analyze</strong><br><sub>Inspect effective access for a folder and identity.</sub></td><td><strong>Explain</strong><br><sub>Follow Access Path and contributing evidence.</sub></td><td><strong>Snapshot</strong><br><sub>Save local observations for later review.</sub></td></tr><tr><td><strong>Compare</strong><br><sub>Compare observations without assuming missing resources were deleted.</sub></td><td><strong>Simulate</strong><br><sub>Model removal of a rule in memory before considering a real change.</sub></td><td><strong>Export</strong><br><sub>HTML, CSV, JSON, XLSX and PDF outputs.</sub></td></tr></table>
-
-## Keep the evidence
-
-Save local snapshots, compare observations, simulate removing a permission entry in memory, and export HTML, CSV, JSON, XLSX or PDF. Missing resources in a later observation are not assumed deleted.
-
-```powershell
-./permissionscope-cli.exe demo --output ./demo-reports
-./permissionscope-cli.exe explain "C:\Finance"
-./permissionscope-cli.exe scan "C:\Finance" --save
-./permissionscope-cli.exe export <snapshot-id> --format html --output report.html
-```
-
-## Scope and privacy
-
-Remote logons, S4U contexts, conditional rules and unverified reparse targets remain Unknown. Integrity policy, encryption, locks and administrative privileges are outside this decision. No application telemetry, accounts or cloud service. Paths and account names in real exports can be sensitive.
-
-> Analysis and simulation are read only. Applying a change is a separate, explicitly confirmed workflow for ordinary local files, with a saved observation, durable journal, verification and rollback. Directories, links and multi-link files are excluded.
-
-## Download and verify
-
-Windows 10 1809 or later. Complete packages include their runtimes. Installers are currently unsigned; verify SHA-256 against the release checksums. ARM64 is cross-built in CI; physical ARM execution is not certified. Store and WinGet availability must be checked in release status.
-
-[Release downloads](https://github.com/MukaSanches/PermissionScope/releases/latest) · [SHA-256 checksums](https://github.com/MukaSanches/PermissionScope/releases/latest/download/SHA256SUMS.txt) · [Release status](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
-
-## Built for verification
-
-| Built for verification | |
+| Path | Purpose |
 |---|---|
-| Source | Public repository and commit history |
-| Releases | Versioned artifacts and SHA-256 checksums |
-| Supply chain | CycloneDX SBOM and pinned automation where documented |
-| Security | Security model, disclosure guidance and CodeQL workflow |
-| Platform | x64 and ARM64 build paths |
-| Documentation | Eight localized handbooks, visual guides and Academy courses |
-| Privacy | Local-first design and explicit export sensitivity guidance |
+| `src/` | Product source |
+| `tests/` | Executable integration and regression harness |
+| `docs/` | Technical, trust, release, learning and brand documentation |
+| `distribution/` | Packaging/distribution definitions |
+| `build/` | Build, verification and documentation tooling |
+| `.github/` | Repository governance, contribution forms and automation |
+| `samples/` | Synthetic examples only |
 
-[Open the Trust Center](https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md)
+Production secrets, real enterprise permission inventories and unredacted confidential snapshots do not belong in this repository.
 
-## Learn the model, not just the buttons
+## Triage policy
 
-- [Permission fundamentals](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/fundamentals.md)
-- [Reading Access Path](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/access-path.md)
-- [Safe troubleshooting](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/troubleshooting.md)
-- [Handbooks PDF · 8 languages](https://github.com/MukaSanches/PermissionScope/tree/main/docs/handbooks)
+Issues should describe a real, reproducible problem before implementation preference. Reports that may expose an unpatched vulnerability must follow [`SECURITY.md`](../SECURITY.md) instead of a public issue.
 
-## Choose your next step
+Pull requests should be small enough to review as a coherent decision. A reviewer should be able to answer four questions without reverse-engineering the intent:
 
-- [Visual walkthrough](https://github.com/MukaSanches/PermissionScope/blob/main/docs/guides/en-US.md)
-- [Technical model](https://github.com/MukaSanches/PermissionScope/blob/main/docs/access-model.md)
-- [FAQ and troubleshooting](https://github.com/MukaSanches/PermissionScope/blob/main/docs/faq.md)
-- [Plain-language glossary](https://github.com/MukaSanches/PermissionScope/blob/main/docs/glossary.md)
-- [Privacy](https://github.com/MukaSanches/PermissionScope/blob/main/docs/privacy.md)
-- [Release status](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
-- [Governance](https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md)
-- [Support](https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md)
-- [Citation](https://github.com/MukaSanches/PermissionScope/blob/main/CITATION.cff)
+1. What changed?
+2. Why is it correct?
+3. What evidence verifies it?
+4. What can still fail or remain unknown?
 
-## Engineering boundaries
+## Repository presentation standard
 
-PermissionScope does not pretend discretionary ACL evaluation explains every possible file-open outcome. Integrity policy, encryption, locks, some remote/S4U contexts, conditional rules, administrative privilege effects and unverified reparse targets can be outside the available decision context. Those limits are documented instead of hidden.
+PermissionScope should look like a serious engineering project, not a marketing microsite disguised as a repository.
 
-## Build and test
+- Use the project banner and mark consistently.
+- Prefer short, factual badges tied to verifiable automation.
+- Do not use fake trust seals, invented certifications, vanity counters or unverifiable superlatives.
+- Screenshots must be genuine product captures or clearly labeled synthetic fixtures.
+- Security, privacy, compatibility and performance claims must point to evidence or state their limitation.
+- Keep headings, tables and callouts useful at GitHub desktop and mobile widths.
+- Use Permission Blue (`#2764E7`) and Deep Navy (`#17315C`) as the primary repository identity colors.
 
-Use Windows and .NET 10 SDK. Tests are an executable integration harness, not dotnet test. See the development guide for packaging and documentation verification.
+See [`docs/brand/README.md`](../docs/brand/README.md) for the full visual and editorial system.
 
-[Development](https://github.com/MukaSanches/PermissionScope/blob/main/docs/development.md) · [Benchmarks](https://github.com/MukaSanches/PermissionScope/blob/main/docs/benchmarks.md) · [Roadmap](https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md)
+## Maintainer release checklist
 
-## Help and contribution
+Before treating a change as release-ready, verify that the relevant build/test gates are green, release notes and known limitations are current, package checksums/SBOM evidence match the artifacts, security/privacy documentation still reflects reality, generated documentation is not stale and no claim exceeds what was actually tested.
 
-Include the version, Windows version, operation and error code. The Technical tab can copy a diagnostic without paths, account names or SIDs. Language packs are previews; technical evidence can remain in English. Native speaker review and assistive-technology certification are not claimed.
+## Authority and ownership
 
----
+`CODEOWNERS` routes repository areas to the current maintainer for review visibility. It is not a substitute for branch protection, independent security review or future multi-maintainer governance.
 
-<p align="center"><sub>Created by Samuel Sanches · ssanches011@gmail.com · <a href="https://github.com/MukaSanches/PermissionScope/blob/main/LICENSE">Apache-2.0</a> · <a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">Security</a> · <a href="https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md">Support</a></sub></p>
+PermissionScope is currently maintained by **Samuel Sanches (`@MukaSanches`)**. Governance is intentionally documented now so additional maintainers can be added later without inventing process after the project scales.
