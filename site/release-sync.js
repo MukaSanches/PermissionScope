@@ -13,7 +13,17 @@
     `${base}/PermissionScope-${version}-win-arm64.zip`
   ];
 
-  const download=document.getElementById('download-premium');
+  // site.js progressively replaces the static download block with the richer
+  // download UI. Keep the public fragment stable so bookmarks, PWA shortcuts,
+  // no-JS links, and enhanced navigation all resolve to the same #download URL.
+  const enhanced=document.getElementById('download-premium');
+  if(enhanced){
+    enhanced.id='download';
+    document.querySelectorAll('a[href="#download-premium"]').forEach(anchor=>anchor.href='#download');
+    if(location.hash==='#download-premium')history.replaceState(null,'',`${location.pathname}${location.search}#download`);
+  }
+
+  const download=document.getElementById('download');
   if(!download)return;
 
   const cards=[...download.querySelectorAll('.ps-download-card')];
