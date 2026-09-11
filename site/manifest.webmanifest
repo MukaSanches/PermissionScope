@@ -16,7 +16,7 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#111722",
   "theme_color": "#17315C",
   "orientation": "any",
@@ -43,14 +43,14 @@
       "short_name":"Download",
       "name_localized":{"pt-BR":"Baixar","es":"Descargar","fr":"Télécharger","de":"Herunterladen","ar":"تنزيل","ja":"ダウンロード","zh-Hans":"下载"},
       "short_name_localized":{"pt-BR":"Baixar","es":"Descargar","fr":"Télécharger","de":"Download","ar":"تنزيل","ja":"DL","zh-Hans":"下载"},
-      "url":"./#download-premium"
+      "url":"./#download"
     },
     {
       "name":"Verify SHA-256",
       "short_name":"Verify",
       "name_localized":{"pt-BR":"Verificar SHA-256","es":"Verificar SHA-256","fr":"Vérifier SHA-256","de":"SHA-256 prüfen","ar":"تحقق من SHA-256","ja":"SHA-256 を確認","zh-Hans":"验证 SHA-256"},
       "short_name_localized":{"pt-BR":"Verificar","es":"Verificar","fr":"Vérifier","de":"Prüfen","ar":"تحقق","ja":"確認","zh-Hans":"验证"},
-      "url":"./#local-verification"
+      "url":"./#download"
     }
   ]
 }
