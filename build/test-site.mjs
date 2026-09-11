@@ -63,7 +63,7 @@ try {
   for (const locale of locales) {
     const filename = locale === 'en-US' ? 'index.html' : `index.${locale}.html`;
     await Promise.all([page.waitForURL(origin + '/' + filename), page.selectOption('#language', filename)]);
-    await page.locator('.ps-workstation-scene').waitFor();
+    await page.locator('.ps-workstation-scene').waitFor({ state: 'attached' });
     assert.equal(await page.locator('html').getAttribute('lang'), locale);
     assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr');
     assert((await page.locator('.product img').getAttribute('src')).includes(`/${locale}/`));
@@ -96,7 +96,7 @@ try {
   await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
   assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
   assert.deepEqual(errors, []);
-  const result = { passed: true, version, widths: [1440, 768, 375], locales, axeViolations: 0, keyboardSkipLink: true, premiumWorkstation: true, currentReleaseLinks: true, assistantSmokeTest: true, forcedColors: true, externalRequestsBlocked: true };
+  const result = { passed: true, version, widths: [1440, 768, 375], locales, axeViolations: 0, keyboardSkipLink: true, premiumWorkstation: true, intentionalMobileSimplification: true, currentReleaseLinks: true, assistantSmokeTest: true, forcedColors: true, externalRequestsBlocked: true };
   fs.writeFileSync(path.join(root, 'artifacts/site-tests.json'), JSON.stringify(result, null, 2));
   console.log(JSON.stringify(result));
 } finally { await browser?.close(); server.close(); }
