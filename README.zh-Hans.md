@@ -11,7 +11,7 @@
 </p>
 
 <p align="center"><strong>让 Windows 权限真正可检查。</strong><br>了解谁能访问文件夹，并查看支持结论的权限规则。</p>
-<table><tr><td align="center"><a href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"><strong>Website</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/releases/latest"><strong>版本下载</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md"><strong>Trust Center</strong></a></td></tr><tr><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/README.md">Academy</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md">Roadmap</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">Security</a></td></tr></table>
+<table><tr><td align="center"><a href="https://mukasanches.github.io/PermissionScope/index.zh-Hans.html"><strong>网站</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/releases/latest"><strong>版本下载</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md"><strong>信任中心</strong></a></td></tr><tr><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/README.md">学院</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md">路线图</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">安全</a></td></tr></table>
 
 <p align="center"><sub>语言</sub></p>
 <table><tr><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.md"><strong>English</strong></a><br><sub>en-US</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.pt-BR.md"><strong>Português</strong></a><br><sub>pt-BR</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.es.md"><strong>Español</strong></a><br><sub>es</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.fr.md"><strong>Français</strong></a><br><sub>fr</sub></td></tr><tr><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.de.md"><strong>Deutsch</strong></a><br><sub>de</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.ar.md"><strong>العربية</strong></a><br><sub>ar</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.ja.md"><strong>日本語</strong></a><br><sub>ja</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.zh-Hans.md"><strong>简体中文</strong></a><br><sub>zh-Hans</sub></td></tr></table>
@@ -34,17 +34,17 @@
 Windows Authz 计算权限掩码。Access Path 显示有贡献的条目和已记录的成员关系。继承标志不能证明来源祖先。自主 ACL 中的完全控制也不保证能打开文件。
 
 ```text
-Windows identity
+Windows 身份
       ↓
-SID + recorded membership context
+SID + 已记录的成员关系上下文
       ↓
-ACL / discretionary permission entries
+ACL / 自主权限条目
       ↓
-Windows Authz evaluation
+Windows Authz 评估
       ↓
-Granted · Partial · Denied · Unknown
+允许 · 部分允许 · 拒绝 · 未知
       ↓
-Access Path → contributing evidence
+Access Path → 贡献证据
 ```
 
 ## 理解结果
@@ -82,7 +82,7 @@ Windows Authz 计算权限掩码。Access Path 显示有贡献的条目和已记
 
 Windows 10 1809 或更高版本。完整包包含运行时。安装程序目前未签名，请核对 SHA-256。ARM64 在 CI 中交叉构建，尚无 ARM 实机认证。Store 和 WinGet 可用性请查看版本状态。
 
-[版本下载](https://github.com/MukaSanches/PermissionScope/releases/latest) · [SHA-256](https://github.com/MukaSanches/PermissionScope/releases/latest) · [版本状态](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
+[版本下载](https://github.com/MukaSanches/PermissionScope/releases/latest) · [SHA-256 校验和](https://github.com/MukaSanches/PermissionScope/releases/latest/download/SHA256SUMS.txt) · [版本状态](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
 
 ## 为可验证性而构建
 
@@ -103,7 +103,7 @@ Windows 10 1809 或更高版本。完整包包含运行时。安装程序目前�
 - [权限基础](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/fundamentals.md)
 - [阅读 Access Path](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/access-path.md)
 - [安全诊断](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/troubleshooting.md)
-- [Handbooks PDF · 8 languages](https://github.com/MukaSanches/PermissionScope/tree/main/docs/handbooks)
+- [PDF 手册 · 8 种语言](https://github.com/MukaSanches/PermissionScope/tree/main/docs/handbooks)
 
 ## 选择下一步
 
@@ -113,9 +113,9 @@ Windows 10 1809 或更高版本。完整包包含运行时。安装程序目前�
 - [通俗术语表](https://github.com/MukaSanches/PermissionScope/blob/main/docs/glossary.md)
 - [隐私](https://github.com/MukaSanches/PermissionScope/blob/main/docs/privacy.md)
 - [版本状态](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
-- [Governance](https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md)
-- [Support](https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md)
-- [Citation](https://github.com/MukaSanches/PermissionScope/blob/main/CITATION.cff)
+- [治理](https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md)
+- [支持](https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md)
+- [引用](https://github.com/MukaSanches/PermissionScope/blob/main/CITATION.cff)
 
 ## 工程边界
 
@@ -125,7 +125,7 @@ PermissionScope 不声称随意 ACL 评估可以解释所有文件打开结果�
 
 使用 Windows 和 .NET 10 SDK。测试为可执行的集成测试程序，不是 dotnet test。打包和文档检查请参阅开发指南。
 
-[Development](https://github.com/MukaSanches/PermissionScope/blob/main/docs/development.md) · [Benchmarks](https://github.com/MukaSanches/PermissionScope/blob/main/docs/benchmarks.md) · [Roadmap](https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md)
+[开发](https://github.com/MukaSanches/PermissionScope/blob/main/docs/development.md) · [基准测试](https://github.com/MukaSanches/PermissionScope/blob/main/docs/benchmarks.md) · [路线图](https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md)
 
 ## 帮助与贡献
 

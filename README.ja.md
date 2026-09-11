@@ -11,7 +11,7 @@
 </p>
 
 <p align="center"><strong>Windows 権限を、検証できる形に。</strong><br>フォルダーにアクセスできる人と、その結果を裏付ける規則を確認できます。</p>
-<table><tr><td align="center"><a href="https://mukasanches.github.io/PermissionScope/index.ja.html"><strong>Website</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/releases/latest"><strong>リリースのダウンロード</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md"><strong>Trust Center</strong></a></td></tr><tr><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/README.md">Academy</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md">Roadmap</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">Security</a></td></tr></table>
+<table><tr><td align="center"><a href="https://mukasanches.github.io/PermissionScope/index.ja.html"><strong>ウェブサイト</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/releases/latest"><strong>リリースのダウンロード</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md"><strong>トラストセンター</strong></a></td></tr><tr><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/README.md">アカデミー</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md">ロードマップ</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">セキュリティ</a></td></tr></table>
 
 <p align="center"><sub>言語</sub></p>
 <table><tr><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.md"><strong>English</strong></a><br><sub>en-US</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.pt-BR.md"><strong>Português</strong></a><br><sub>pt-BR</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.es.md"><strong>Español</strong></a><br><sub>es</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.fr.md"><strong>Français</strong></a><br><sub>fr</sub></td></tr><tr><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.de.md"><strong>Deutsch</strong></a><br><sub>de</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.ar.md"><strong>العربية</strong></a><br><sub>ar</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.ja.md"><strong>日本語</strong></a><br><sub>ja</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.zh-Hans.md"><strong>简体中文</strong></a><br><sub>zh-Hans</sub></td></tr></table>
@@ -34,17 +34,17 @@
 Windows Authz がマスクを計算します。Access Path は寄与するエントリと記録された所属を示します。継承フラグは元の祖先を証明しません。ACL のフルコントロールもファイルを開ける保証にはなりません。
 
 ```text
-Windows identity
+Windows ID
       ↓
-SID + recorded membership context
+SID + 記録された所属コンテキスト
       ↓
-ACL / discretionary permission entries
+ACL / 随意アクセス許可エントリ
       ↓
-Windows Authz evaluation
+Windows Authz 評価
       ↓
-Granted · Partial · Denied · Unknown
+許可 · 一部許可 · 拒否 · 不明
       ↓
-Access Path → contributing evidence
+Access Path → 寄与証拠
 ```
 
 ## 結果を読む
@@ -82,7 +82,7 @@ Windows Authz がマスクを計算します。Access Path は寄与するエン
 
 Windows 10 1809 以降。完全なパッケージにはランタイムが含まれます。現在のインストーラーは未署名のため SHA-256 を確認してください。ARM64 は CI でクロスビルドしており実機認証はありません。Store と WinGet はリリース状況をご確認ください。
 
-[リリースのダウンロード](https://github.com/MukaSanches/PermissionScope/releases/latest) · [SHA-256](https://github.com/MukaSanches/PermissionScope/releases/latest) · [リリース状況](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
+[リリースのダウンロード](https://github.com/MukaSanches/PermissionScope/releases/latest) · [SHA-256 チェックサム](https://github.com/MukaSanches/PermissionScope/releases/latest/download/SHA256SUMS.txt) · [リリース状況](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
 
 ## 検証可能性を重視
 
@@ -103,7 +103,7 @@ Windows 10 1809 以降。完全なパッケージにはランタイムが含ま�
 - [権限の基礎](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/fundamentals.md)
 - [Access Path の読み方](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/access-path.md)
 - [安全な診断](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/troubleshooting.md)
-- [Handbooks PDF · 8 languages](https://github.com/MukaSanches/PermissionScope/tree/main/docs/handbooks)
+- [PDF ハンドブック · 8言語](https://github.com/MukaSanches/PermissionScope/tree/main/docs/handbooks)
 
 ## 次の手順
 
@@ -113,9 +113,9 @@ Windows 10 1809 以降。完全なパッケージにはランタイムが含ま�
 - [やさしい用語集](https://github.com/MukaSanches/PermissionScope/blob/main/docs/glossary.md)
 - [プライバシー](https://github.com/MukaSanches/PermissionScope/blob/main/docs/privacy.md)
 - [リリース状況](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
-- [Governance](https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md)
-- [Support](https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md)
-- [Citation](https://github.com/MukaSanches/PermissionScope/blob/main/CITATION.cff)
+- [ガバナンス](https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md)
+- [サポート](https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md)
+- [引用](https://github.com/MukaSanches/PermissionScope/blob/main/CITATION.cff)
 
 ## エンジニアリング上の境界
 
@@ -125,7 +125,7 @@ PermissionScope は、随意 ACL の評価だけですべてのファイルオ�
 
 Windows と .NET 10 SDK を使用します。テストは統合テスト用の実行プログラムで、dotnet test ではありません。パッケージ化と文書検証は開発ガイドを参照してください。
 
-[Development](https://github.com/MukaSanches/PermissionScope/blob/main/docs/development.md) · [Benchmarks](https://github.com/MukaSanches/PermissionScope/blob/main/docs/benchmarks.md) · [Roadmap](https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md)
+[開発](https://github.com/MukaSanches/PermissionScope/blob/main/docs/development.md) · [ベンチマーク](https://github.com/MukaSanches/PermissionScope/blob/main/docs/benchmarks.md) · [ロードマップ](https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md)
 
 ## ヘルプと貢献
 

@@ -82,7 +82,7 @@ Remote logons, S4U contexts, conditional rules and unverified reparse targets re
 
 Windows 10 1809 or later. Complete packages include their runtimes. Installers are currently unsigned; verify SHA-256 against the release checksums. ARM64 is cross-built in CI; physical ARM execution is not certified. Store and WinGet availability must be checked in release status.
 
-[Release downloads](https://github.com/MukaSanches/PermissionScope/releases/latest) · [SHA-256](https://github.com/MukaSanches/PermissionScope/releases/latest) · [Release status](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
+[Release downloads](https://github.com/MukaSanches/PermissionScope/releases/latest) · [SHA-256 checksums](https://github.com/MukaSanches/PermissionScope/releases/latest/download/SHA256SUMS.txt) · [Release status](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
 
 ## Built for verification
 

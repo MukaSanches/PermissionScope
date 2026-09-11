@@ -11,7 +11,7 @@
 </p>
 
 <p align="center"><strong>Les autorisations Windows, enfin inspectables.</strong><br>Comprenez qui peut accéder à un dossier et vérifiez les règles qui expliquent la réponse.</p>
-<table><tr><td align="center"><a href="https://mukasanches.github.io/PermissionScope/index.fr.html"><strong>Website</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/releases/latest"><strong>Téléchargements de la version</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md"><strong>Trust Center</strong></a></td></tr><tr><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/README.md">Academy</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md">Roadmap</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">Security</a></td></tr></table>
+<table><tr><td align="center"><a href="https://mukasanches.github.io/PermissionScope/index.fr.html"><strong>Site web</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/releases/latest"><strong>Téléchargements de la version</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md"><strong>Centre de confiance</strong></a></td></tr><tr><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/README.md">Académie</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md">Feuille de route</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">Sécurité</a></td></tr></table>
 
 <p align="center"><sub>Langues</sub></p>
 <table><tr><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.md"><strong>English</strong></a><br><sub>en-US</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.pt-BR.md"><strong>Português</strong></a><br><sub>pt-BR</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.es.md"><strong>Español</strong></a><br><sub>es</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.fr.md"><strong>Français</strong></a><br><sub>fr</sub></td></tr><tr><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.de.md"><strong>Deutsch</strong></a><br><sub>de</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.ar.md"><strong>العربية</strong></a><br><sub>ar</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.ja.md"><strong>日本語</strong></a><br><sub>ja</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.zh-Hans.md"><strong>简体中文</strong></a><br><sub>zh-Hans</sub></td></tr></table>
@@ -34,17 +34,17 @@
 Windows Authz calcule le masque. Access Path présente les entrées contributrices et les appartenances enregistrées. Un indicateur d’héritage ne prouve pas l’ancêtre d’origine. Le contrôle total dans l’ACL ne garantit pas l’ouverture d’un fichier.
 
 ```text
-Windows identity
+Identité Windows
       ↓
-SID + recorded membership context
+SID + contexte d’appartenance enregistré
       ↓
-ACL / discretionary permission entries
+ACL / entrées d’autorisation discrétionnaire
       ↓
-Windows Authz evaluation
+Évaluation Windows Authz
       ↓
-Granted · Partial · Denied · Unknown
+Autorisé · Partiel · Refusé · Inconnu
       ↓
-Access Path → contributing evidence
+Access Path → preuves contributrices
 ```
 
 ## Lire le résultat
@@ -82,7 +82,7 @@ Les connexions distantes, contextes S4U, règles conditionnelles et cibles de li
 
 Windows 10 1809 ou ultérieur. Les paquets complets incluent les runtimes. Installateurs non signés : vérifiez SHA-256. ARM64 est compilé en CI, sans certification sur matériel ARM. Consultez l’état pour Store et WinGet.
 
-[Téléchargements de la version](https://github.com/MukaSanches/PermissionScope/releases/latest) · [SHA-256](https://github.com/MukaSanches/PermissionScope/releases/latest) · [État de la version](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
+[Téléchargements de la version](https://github.com/MukaSanches/PermissionScope/releases/latest) · [Sommes SHA-256](https://github.com/MukaSanches/PermissionScope/releases/latest/download/SHA256SUMS.txt) · [État de la version](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
 
 ## Conçu pour être vérifié
 
@@ -103,7 +103,7 @@ Windows 10 1809 ou ultérieur. Les paquets complets incluent les runtimes. Insta
 - [Bases des autorisations](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/fundamentals.md)
 - [Lire Access Path](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/access-path.md)
 - [Diagnostic sûr](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/troubleshooting.md)
-- [Handbooks PDF · 8 languages](https://github.com/MukaSanches/PermissionScope/tree/main/docs/handbooks)
+- [Manuels PDF · 8 langues](https://github.com/MukaSanches/PermissionScope/tree/main/docs/handbooks)
 
 ## Choisir la suite
 
@@ -113,8 +113,8 @@ Windows 10 1809 ou ultérieur. Les paquets complets incluent les runtimes. Insta
 - [Glossaire simple](https://github.com/MukaSanches/PermissionScope/blob/main/docs/glossary.md)
 - [Confidentialité](https://github.com/MukaSanches/PermissionScope/blob/main/docs/privacy.md)
 - [État de la version](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
-- [Governance](https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md)
-- [Support](https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md)
+- [Gouvernance](https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md)
+- [Assistance](https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md)
 - [Citation](https://github.com/MukaSanches/PermissionScope/blob/main/CITATION.cff)
 
 ## Limites d’ingénierie
@@ -125,7 +125,7 @@ PermissionScope ne prétend pas qu’une ACL discrétionnaire explique tous les 
 
 Utilisez Windows et le SDK .NET 10. Les tests sont un exécutable d’intégration, pas dotnet test. Consultez le guide de développement pour les paquets et les vérifications documentaires.
 
-[Development](https://github.com/MukaSanches/PermissionScope/blob/main/docs/development.md) · [Benchmarks](https://github.com/MukaSanches/PermissionScope/blob/main/docs/benchmarks.md) · [Roadmap](https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md)
+[Développement](https://github.com/MukaSanches/PermissionScope/blob/main/docs/development.md) · [Performances](https://github.com/MukaSanches/PermissionScope/blob/main/docs/benchmarks.md) · [Feuille de route](https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md)
 
 ## Aide et contribution
 

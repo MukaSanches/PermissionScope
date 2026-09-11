@@ -11,7 +11,7 @@
 </p>
 
 <p align="center"><strong>أذونات Windows بشكل يمكن فحصه.</strong><br>افهم من يمكنه الوصول إلى مجلد، وافحص القواعد التي تفسر النتيجة.</p>
-<table><tr><td align="center"><a href="https://mukasanches.github.io/PermissionScope/index.ar.html"><strong>Website</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/releases/latest"><strong>تنزيلات الإصدار</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md"><strong>Trust Center</strong></a></td></tr><tr><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/README.md">Academy</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md">Roadmap</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">Security</a></td></tr></table>
+<table><tr><td align="center"><a href="https://mukasanches.github.io/PermissionScope/index.ar.html"><strong>الموقع</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/releases/latest"><strong>تنزيلات الإصدار</strong></a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/TRUST-CENTER.md"><strong>مركز الثقة</strong></a></td></tr><tr><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/README.md">الأكاديمية</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md">خارطة الطريق</a></td><td align="center"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md">الأمان</a></td></tr></table>
 
 <p align="center"><sub>اللغات</sub></p>
 <table><tr><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.md"><strong>English</strong></a><br><sub>en-US</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.pt-BR.md"><strong>Português</strong></a><br><sub>pt-BR</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.es.md"><strong>Español</strong></a><br><sub>es</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.fr.md"><strong>Français</strong></a><br><sub>fr</sub></td></tr><tr><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.de.md"><strong>Deutsch</strong></a><br><sub>de</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.ar.md"><strong>العربية</strong></a><br><sub>ar</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.ja.md"><strong>日本語</strong></a><br><sub>ja</sub></td><td align="center" width="25%"><a href="https://github.com/MukaSanches/PermissionScope/blob/main/README.zh-Hans.md"><strong>简体中文</strong></a><br><sub>zh-Hans</sub></td></tr></table>
@@ -34,17 +34,17 @@
 يحسب Windows Authz قناع الأذونات. يعرض Access Path القواعد المساهمة والعضويات المسجلة. علامة التوريث لا تثبت المجلد الأصلي. التحكم الكامل في ACL لا يضمن فتح الملف.
 
 ```text
-Windows identity
+هوية Windows
       ↓
-SID + recorded membership context
+SID + سياق العضوية المسجل
       ↓
-ACL / discretionary permission entries
+ACL / إدخالات الأذونات التقديرية
       ↓
-Windows Authz evaluation
+تقييم Windows Authz
       ↓
-Granted · Partial · Denied · Unknown
+مسموح · جزئي · مرفوض · غير معروف
       ↓
-Access Path → contributing evidence
+Access Path → الأدلة المساهمة
 ```
 
 ## افهم النتيجة
@@ -82,7 +82,7 @@ Access Path → contributing evidence
 
 Windows 10 1809 أو أحدث. تتضمن الحزم الكاملة بيئات التشغيل. المثبّتات غير موقّعة حاليًا؛ تحقق من SHA-256. يُبنى ARM64 في CI دون اعتماد على جهاز ARM فعلي. راجع حالة الإصدار لتوفر Store وWinGet.
 
-[تنزيلات الإصدار](https://github.com/MukaSanches/PermissionScope/releases/latest) · [SHA-256](https://github.com/MukaSanches/PermissionScope/releases/latest) · [حالة الإصدار](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
+[تنزيلات الإصدار](https://github.com/MukaSanches/PermissionScope/releases/latest) · [بصمات SHA-256](https://github.com/MukaSanches/PermissionScope/releases/latest/download/SHA256SUMS.txt) · [حالة الإصدار](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
 
 ## مصمم للتحقق
 
@@ -103,7 +103,7 @@ Windows 10 1809 أو أحدث. تتضمن الحزم الكاملة بيئات �
 - [أساسيات الأذونات](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/fundamentals.md)
 - [قراءة Access Path](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/access-path.md)
 - [تشخيص آمن](https://github.com/MukaSanches/PermissionScope/blob/main/docs/courses/troubleshooting.md)
-- [Handbooks PDF · 8 languages](https://github.com/MukaSanches/PermissionScope/tree/main/docs/handbooks)
+- [أدلة PDF · 8 لغات](https://github.com/MukaSanches/PermissionScope/tree/main/docs/handbooks)
 
 ## اختر الخطوة التالية
 
@@ -113,9 +113,9 @@ Windows 10 1809 أو أحدث. تتضمن الحزم الكاملة بيئات �
 - [مسرد مبسّط](https://github.com/MukaSanches/PermissionScope/blob/main/docs/glossary.md)
 - [الخصوصية](https://github.com/MukaSanches/PermissionScope/blob/main/docs/privacy.md)
 - [حالة الإصدار](https://github.com/MukaSanches/PermissionScope/blob/main/docs/release-status.md)
-- [Governance](https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md)
-- [Support](https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md)
-- [Citation](https://github.com/MukaSanches/PermissionScope/blob/main/CITATION.cff)
+- [الحوكمة](https://github.com/MukaSanches/PermissionScope/blob/main/GOVERNANCE.md)
+- [الدعم](https://github.com/MukaSanches/PermissionScope/blob/main/SUPPORT.md)
+- [الاستشهاد](https://github.com/MukaSanches/PermissionScope/blob/main/CITATION.cff)
 
 ## حدود هندسية
 
@@ -125,7 +125,7 @@ Windows 10 1809 أو أحدث. تتضمن الحزم الكاملة بيئات �
 
 استخدم Windows و.NET 10 SDK. الاختبارات برنامج تكامل قابل للتنفيذ وليست dotnet test. راجع دليل التطوير للتغليف والتحقق من الوثائق.
 
-[Development](https://github.com/MukaSanches/PermissionScope/blob/main/docs/development.md) · [Benchmarks](https://github.com/MukaSanches/PermissionScope/blob/main/docs/benchmarks.md) · [Roadmap](https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md)
+[التطوير](https://github.com/MukaSanches/PermissionScope/blob/main/docs/development.md) · [اختبارات الأداء](https://github.com/MukaSanches/PermissionScope/blob/main/docs/benchmarks.md) · [خارطة الطريق](https://github.com/MukaSanches/PermissionScope/blob/main/ROADMAP.md)
 
 ## المساعدة والمساهمة
 
