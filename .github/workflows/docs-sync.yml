@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'build/Build-Documentation.mjs'
+      - 'build/Enhance-Pages.mjs'
       - 'docs/content/locales.json'
       - 'docs/brand/**'
       - '.github/workflows/docs-sync.yml'
@@ -27,8 +28,12 @@ jobs:
           fetch-depth: 0
       - name: Generate all localized READMEs, guides and Pages
         run: node build/Build-Documentation.mjs
-      - name: Verify generated surfaces
-        run: node build/Build-Documentation.mjs --check
+      - name: Apply shared progressive Pages layer
+        run: node build/Enhance-Pages.mjs
+      - name: Verify generated surfaces and progressive layer
+        run: |
+          node build/Build-Documentation.mjs --check
+          node build/Enhance-Pages.mjs --check
       - name: Commit generated parity update
         shell: bash
         run: |
