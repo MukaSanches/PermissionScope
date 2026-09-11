@@ -16,6 +16,26 @@ const skipLabels={
   'index.ja.html':'メインコンテンツへ移動',
   'index.zh-Hans.html':'跳到主要内容'
 };
+const languageLabels={
+  'index.html':'Language',
+  'index.pt-BR.html':'Idioma',
+  'index.es.html':'Idioma',
+  'index.fr.html':'Langue',
+  'index.de.html':'Sprache',
+  'index.ar.html':'اللغة',
+  'index.ja.html':'言語',
+  'index.zh-Hans.html':'语言'
+};
+const languageLinks=[
+  ['index.html','English'],
+  ['index.pt-BR.html','Português'],
+  ['index.es.html','Español'],
+  ['index.fr.html','Français'],
+  ['index.de.html','Deutsch'],
+  ['index.ar.html','العربية'],
+  ['index.ja.html','日本語'],
+  ['index.zh-Hans.html','简体中文']
+];
 
 const props=fs.readFileSync(path.join(root,'Directory.Build.props'),'utf8');
 const versionMatch=props.match(/<Version>([^<]+)<\/Version>/);
@@ -27,6 +47,7 @@ const manifest='<link rel="manifest" href="manifest.webmanifest">';
 const appleTouchIcon='<link rel="apple-touch-icon" href="apple-touch-icon.png">';
 const platformStyle='<link rel="stylesheet" href="responsive.css">';
 const progressiveStyle='<link rel="stylesheet" href="progressive.css">';
+const noscriptStyle='<noscript><link rel="stylesheet" href="noscript.css"></noscript>';
 const enhancementStylePreloads=['./premium.css','./device.css','./experience.css'].map(href=>`<link rel="preload" href="${href}" as="style">`).join('');
 const releaseScript='<script src="release-sync.js" defer></script>';
 const platformScript='<script src="platform.js" defer></script>';
@@ -34,10 +55,18 @@ const theme='<meta name="theme-color" content="#17315C">';
 const referrer='<meta name="referrer" content="no-referrer">';
 const xDefault='<link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html">';
 
+function languageFallback(file){
+  const label=languageLabels[file];
+  if(!label) throw new Error(`Missing localized language label for ${file}`);
+  const links=languageLinks.map(([href,name])=>`<a href="${href}"${href===file?' aria-current="page"':''}>${name}</a>`).join('');
+  return `<noscript><nav class="language-fallback" aria-label="${label}">${links}</nav></noscript>`;
+}
+
 function enhanced(source,file){
   let html=source;
   const skipLabel=skipLabels[file];
   if(!skipLabel) throw new Error(`Missing localized skip-navigation label for ${file}`);
+  const fallback=languageFallback(file);
   html=html.replace(/<html([^>]*)\sdata-release-version="[^"]*"([^>]*)>/,`<html$1 data-release-version="${releaseVersion}"$2>`);
   if(!html.includes('data-release-version=')) html=html.replace(/<html([^>]*)>/,`<html$1 data-release-version="${releaseVersion}">`);
   if(!html.includes(referrer)) html=html.replace('<meta name="viewport" content="width=device-width,initial-scale=1">',`<meta name="viewport" content="width=device-width,initial-scale=1">\n${referrer}`);
@@ -47,12 +76,15 @@ function enhanced(source,file){
   if(!html.includes(manifest)) html=html.replace(appleTouchIcon,`${appleTouchIcon}${manifest}`);
   if(!html.includes(platformStyle)) html=html.replace('<link rel="stylesheet" href="style.css">',`<link rel="stylesheet" href="style.css">${platformStyle}`);
   if(!html.includes(progressiveStyle)) html=html.replace(platformStyle,`${platformStyle}${progressiveStyle}`);
+  if(!html.includes(noscriptStyle)) html=html.replace(progressiveStyle,`${progressiveStyle}${noscriptStyle}`);
   html=html.replace(/<link rel="preload" href="(?:premium|device|experience)\.css" as="style">/g,'');
-  if(!html.includes(enhancementStylePreloads)) html=html.replace(progressiveStyle,`${progressiveStyle}${enhancementStylePreloads}`);
+  if(!html.includes(enhancementStylePreloads)) html=html.replace(noscriptStyle,`${noscriptStyle}${enhancementStylePreloads}`);
   if(!html.includes(releaseScript)) html=html.replace('<script src="site.js" defer></script>',`<script src="site.js" defer></script>${releaseScript}`);
   if(!html.includes(platformScript)) html=html.replace(releaseScript,`${releaseScript}${platformScript}`);
   html=html.replaceAll('href="#download-premium"','href="#download"');
   html=html.replace(/<a class="skip" href="#main">[^<]*<\/a>/,`<a class="skip" href="#main">${skipLabel}</a>`);
+  html=html.replace(/<noscript><nav class="language-fallback"[\s\S]*?<\/nav><\/noscript>/g,'');
+  html=html.replace('</label></header>',`</label>${fallback}</header>`);
   return html;
 }
 
@@ -109,6 +141,9 @@ if(!fs.existsSync(appleTouchIconPath)) throw new Error('Missing site/apple-touch
 if(!fs.existsSync(officialMarkPath)) throw new Error('Missing official docs/brand/project-avatar.png');
 if(!fs.readFileSync(appleTouchIconPath).equals(fs.readFileSync(officialMarkPath))) throw new Error('Safari/iOS touch icon must reuse the single official PermissionScope mark');
 
+const noscriptCssPath=path.join(site,'noscript.css');
+if(!fs.existsSync(noscriptCssPath)) throw new Error('Missing site/noscript.css for script-disabled language navigation');
+
 const releaseSyncPath=path.join(site,'release-sync.js');
 if(!fs.existsSync(releaseSyncPath)) throw new Error('Missing site/release-sync.js');
 
@@ -139,6 +174,8 @@ for(const file of pages){
     if(result!==source) throw new Error(`Stale enhanced Page: ${file}`);
     if(!source.includes(`data-release-version="${releaseVersion}"`)) throw new Error(`Release version drift in ${file}`);
     if(!source.includes(appleTouchIcon)) throw new Error(`Missing Safari/iOS touch icon metadata in ${file}`);
+    if(!source.includes(noscriptStyle)) throw new Error(`Missing no-script stylesheet gate in ${file}`);
+    if(!source.includes(languageFallback(file))) throw new Error(`Missing localized no-script language navigation in ${file}`);
     if(!source.includes(enhancementStylePreloads)) throw new Error(`Missing early enhancement stylesheet discovery in ${file}`);
     if(!source.includes(releaseScript)) throw new Error(`Missing release sync script in ${file}`);
     if(!source.includes(`<a class="skip" href="#main">${skipLabels[file]}</a>`)) throw new Error(`Incorrect localized skip-navigation label in ${file}`);
@@ -147,4 +184,4 @@ for(const file of pages){
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, early enhancement stylesheet discovery, conservative installed-window behavior, localized shortcut and skip-navigation accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, no-script language navigation, early enhancement stylesheet discovery, conservative installed-window behavior, localized shortcut and skip-navigation accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
