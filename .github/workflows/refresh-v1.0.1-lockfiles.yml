@@ -1,0 +1,50 @@
+name: Refresh 1.0.1 NuGet lockfiles
+
+on:
+  push:
+    branches:
+      - release/v1.0.1
+    paths:
+      - 'Directory.Build.props'
+      - '.github/workflows/refresh-v1.0.1-lockfiles.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lockfiles-v1.0.1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    if: github.actor != 'github-actions[bot]' && github.ref == 'refs/heads/release/v1.0.1'
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: release/v1.0.1
+          fetch-depth: 1
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Regenerate locked dependency graphs
+        shell: pwsh
+        run: |
+          dotnet restore PermissionScope.sln -p:RestoreForceEvaluate=true
+          dotnet restore src/PermissionScope.App/PermissionScope.App.csproj -r win-arm64 -p:RestoreForceEvaluate=true
+          dotnet restore src/PermissionScope.Cli/PermissionScope.Cli.csproj -r win-arm64 -p:RestoreForceEvaluate=true
+      - name: Commit generated lockfiles
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- ':(glob)**/packages.lock.json'
+          if (git diff --cached --quiet) {
+            Write-Host "Lockfiles are already current."
+            exit 0
+          }
+          git diff --cached --name-only
+          git commit -m "chore: refresh 1.0.1 NuGet lockfiles"
+          git push origin HEAD:release/v1.0.1
