@@ -73,6 +73,10 @@ try{
 }catch(error){
   throw new Error(`Invalid site/manifest.webmanifest: ${error.message}`);
 }
+const displayOverrides=Array.isArray(manifestData.display_override)?manifestData.display_override:[];
+if(displayOverrides.includes('window-controls-overlay')){
+  throw new Error('Do not opt into window-controls-overlay until the site implements and tests titlebar-area-* safe layout handling.');
+}
 
 const appleTouchIconPath=path.join(site,'apple-touch-icon.png');
 const officialMarkPath=path.join(root,'docs','brand','project-avatar.png');
@@ -116,4 +120,4 @@ for(const file of pages){
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, conservative installed-window behavior, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
