@@ -2,6 +2,16 @@
   "name": "PermissionScope",
   "short_name": "PermissionScope",
   "description": "Local-first Windows permission analysis with inspectable evidence.",
+  "description_localized": {
+    "en-US": "Local-first Windows permission analysis with inspectable evidence.",
+    "pt-BR": "Análise local-first de permissões do Windows com evidências inspecionáveis.",
+    "es": "Análisis local-first de permisos de Windows con evidencia inspeccionable.",
+    "fr": "Analyse local-first des autorisations Windows avec des preuves inspectables.",
+    "de": "Local-first-Analyse von Windows-Berechtigungen mit überprüfbaren Belegen.",
+    "ar": "تحليل محلي أولاً لأذونات Windows مع أدلة قابلة للفحص.",
+    "ja": "検証可能な証拠を備えたローカル優先の Windows 権限分析。",
+    "zh-Hans": "本地优先的 Windows 权限分析，并提供可检查的证据。"
+  },
   "id": "/PermissionScope/",
   "start_url": "./",
   "scope": "./",
@@ -28,7 +38,19 @@
     }
   ],
   "shortcuts": [
-    {"name":"Download","short_name":"Download","url":"./#download-premium"},
-    {"name":"Verify SHA-256","short_name":"Verify","url":"./#local-verification"}
+    {
+      "name":"Download",
+      "short_name":"Download",
+      "name_localized":{"pt-BR":"Baixar","es":"Descargar","fr":"Télécharger","de":"Herunterladen","ar":"تنزيل","ja":"ダウンロード","zh-Hans":"下载"},
+      "short_name_localized":{"pt-BR":"Baixar","es":"Descargar","fr":"Télécharger","de":"Download","ar":"تنزيل","ja":"DL","zh-Hans":"下载"},
+      "url":"./#download-premium"
+    },
+    {
+      "name":"Verify SHA-256",
+      "short_name":"Verify",
+      "name_localized":{"pt-BR":"Verificar SHA-256","es":"Verificar SHA-256","fr":"Vérifier SHA-256","de":"SHA-256 prüfen","ar":"تحقق من SHA-256","ja":"SHA-256 を確認","zh-Hans":"验证 SHA-256"},
+      "short_name_localized":{"pt-BR":"Verificar","es":"Verificar","fr":"Vérifier","de":"Prüfen","ar":"تحقق","ja":"確認","zh-Hans":"验证"},
+      "url":"./#local-verification"
+    }
   ]
 }
