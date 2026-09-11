@@ -31,6 +31,8 @@ try {
   await page.getByRole('heading', { level: 1 }).waitFor();
   await page.locator('.ps-workstation-scene').waitFor();
   await page.locator('.ps-command-launch').waitFor();
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.getAttribute('href')), '#main');
   assert.equal(await page.locator('.ps-device').count(), 1, 'premium device should render exactly once');
   assert.equal(await page.locator('.ps-device-port-rail i').count(), 4, 'premium device port rail should expose four physical port details');
   assert.equal(await page.locator('.ps-release-rail').count(), 1, 'hero release rail should render exactly once');
@@ -41,8 +43,6 @@ try {
   assert(commandHrefs[1]?.includes('/releases/download/v1.0.1/PermissionScope-1.0.1-arm64-Setup.exe'), 'command center ARM64 download must target current release');
   assert(!commandHrefs.some(href => href?.includes('1.0.0')), 'command center must not expose stale release links');
   await page.locator('.ps-command-close').click();
-  await page.keyboard.press('Tab');
-  assert.equal(await page.evaluate(() => document.activeElement.getAttribute('href')), '#main');
   const locales = ['en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'];
   for (const locale of locales) {
     const filename = locale === 'en-US' ? 'index.html' : `index.${locale}.html`;
