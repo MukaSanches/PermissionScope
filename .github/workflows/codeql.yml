@@ -28,4 +28,4 @@ jobs:
           languages: csharp
           build-mode: manual
       - run: dotnet build PermissionScope.sln -c Release -p:Platform=x64
-      - uses: github/codeql-action/analyze@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+      - uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
