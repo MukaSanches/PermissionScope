@@ -39,6 +39,16 @@ function enhanced(source){
 const releaseSyncPath=path.join(site,'release-sync.js');
 if(!fs.existsSync(releaseSyncPath)) throw new Error('Missing site/release-sync.js');
 
+const securityTxtPath=path.join(site,'.well-known','security.txt');
+if(!fs.existsSync(securityTxtPath)) throw new Error('Missing project-scoped site/.well-known/security.txt');
+const securityTxt=fs.readFileSync(securityTxtPath,'utf8');
+if(!/^Contact:\s+\S+/m.test(securityTxt)) throw new Error('security.txt must declare a Contact field');
+const expiresMatch=securityTxt.match(/^Expires:\s+(\S+)\s*$/m);
+if(!expiresMatch || Number.isNaN(Date.parse(expiresMatch[1]))) throw new Error('security.txt must declare a valid Expires field');
+if(Date.parse(expiresMatch[1]) <= Date.now()) throw new Error('security.txt has expired and must be refreshed or removed');
+if(!securityTxt.includes('Policy: https://github.com/MukaSanches/PermissionScope/blob/main/SECURITY.md')) throw new Error('security.txt must point to the maintained repository security policy');
+if(/^Canonical:/m.test(securityTxt)) throw new Error('Project-scoped GitHub Pages security.txt must not claim RFC 9116 origin-root canonical placement');
+
 for(const file of pages){
   const target=path.join(site,file);
   const source=fs.readFileSync(target,'utf8');
@@ -52,4 +62,4 @@ for(const file of pages){
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
