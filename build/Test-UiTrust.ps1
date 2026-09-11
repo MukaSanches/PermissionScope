@@ -50,6 +50,25 @@ function Get-VisibleText($window){
     $elements=$window.FindAll([System.Windows.Automation.TreeScope]::Descendants,[System.Windows.Automation.Condition]::TrueCondition)
     return (($elements | ForEach-Object { $_.Current.Name } | Where-Object { $_ }) -join "`n")
 }
+function Wait-AnyText($window,[string[]]$needles,[int]$seconds=10){
+    $deadline=[DateTime]::UtcNow.AddSeconds($seconds)
+    while([DateTime]::UtcNow -lt $deadline){
+        $text=Get-VisibleText $window
+        foreach($needle in $needles){ if($needle -and $text.Contains($needle)){ return $text } }
+        Start-Sleep -Milliseconds 100
+    }
+    throw "Expected accessible result text did not appear: $($needles -join ' | ')"
+}
+function Wait-AllText($window,[string[]]$needles,[int]$seconds=10){
+    $deadline=[DateTime]::UtcNow.AddSeconds($seconds)
+    while([DateTime]::UtcNow -lt $deadline){
+        $text=Get-VisibleText $window
+        $missing=@($needles | Where-Object { $_ -and -not $text.Contains($_) })
+        if($missing.Count -eq 0){ return $text }
+        Start-Sleep -Milliseconds 100
+    }
+    throw "Expected accessible result text did not appear: $($needles -join ' + ')"
+}
 function Start-Demo([string]$locale,[string]$theme,[string]$scene){
     $data=Join-Path $root "artifacts/production-trust-data/$locale-$theme-$scene"
     if(Test-Path -LiteralPath $data){ Remove-Item -LiteralPath $data -Recurse -Force }
@@ -100,22 +119,26 @@ foreach($locale in $Locales){
     }
 }
 
-# Exercise the two result-producing demo workflows once with stable AutomationIds.
-foreach($scene in @('compare','simulation')){
-    $process=Start-Demo 'en-US' 'Light' $scene
-    try{
-        $window=Wait-MainWindow $process
-        if($scene -eq 'compare'){
-            Invoke-Control (Find-Id $window 'RunComparison')
-            [void](Find-Id $window 'ComparisonResult')
-        } else {
-            Invoke-Control (Find-Id $window 'RunSimulation')
-            [void](Find-Id $window 'SimulationResult')
-        }
-        Write-Host "PASS native UI workflow: $scene"
-    }
-    finally{ Stop-Demo $process }
+# Result containers are layout elements and are not guaranteed to appear as UIA nodes.
+# Verify the user-observable accessible result text instead of coupling the test to that implementation detail.
+$english=Get-Content -LiteralPath (Join-Path $root 'src/PermissionScope.App/Locales/en-US.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$process=Start-Demo 'en-US' 'Light' 'compare'
+try{
+    $window=Wait-MainWindow $process
+    Invoke-Control (Find-Id $window 'RunComparison')
+    [void](Wait-AnyText $window @([string]$english.Changed,[string]$english.Added,[string]$english.NotObserved,[string]$english.NoChanges) 15)
+    Write-Host 'PASS native UI workflow: compare'
 }
+finally{ Stop-Demo $process }
+
+$process=Start-Demo 'en-US' 'Light' 'simulation'
+try{
+    $window=Wait-MainWindow $process
+    Invoke-Control (Find-Id $window 'RunSimulation')
+    [void](Wait-AllText $window @([string]$english.Before,[string]$english.After) 15)
+    Write-Host 'PASS native UI workflow: simulation'
+}
+finally{ Stop-Demo $process }
 
 $report=[ordered]@{
     schema=1
