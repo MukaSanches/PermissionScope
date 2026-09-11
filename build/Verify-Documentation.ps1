@@ -8,12 +8,17 @@ try {
     & node build/Enhance-Pages.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Progressive Pages enhancement failed.' }
 
+    # .github/README.md is the repository Operations & Governance Hub. The
+    # legacy generator still emits an English README copy at that path, so
+    # restore the independently maintained hub before judging generated output.
+    & git restore --worktree -- '.github/README.md'
+    if ($LASTEXITCODE -ne 0) { throw 'Could not preserve repository operations hub.' }
+
     # Documentation verification must only judge artifacts owned by the documentation
     # generators. Earlier build/restore steps can legitimately rewrite project lock files
     # for a single runtime identifier; those unrelated changes must not masquerade as stale
     # READMEs or Pages output.
     $generatedPathspecs=@(
-        '.github/README.md',
         ':(glob)README*.md',
         ':(glob)docs/guides/*.md',
         ':(glob)site/index*.html',
