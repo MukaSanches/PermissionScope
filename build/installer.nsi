@@ -6,7 +6,9 @@ Unicode True
 !ifndef ARCH
 !define ARCH "x64"
 !endif
+!ifndef VERSION
 !define VERSION "1.0.0"
+!endif
 !define PRODUCT "PermissionScope"
 !define UNINSTALL_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\PermissionScope"
 Name "${PRODUCT}"
@@ -15,10 +17,10 @@ InstallDir "$LOCALAPPDATA\Programs\PermissionScope"
 InstallDirRegKey HKCU "${UNINSTALL_KEY}" "InstallLocation"
 RequestExecutionLevel user
 SetCompressor /SOLID lzma
-VIProductVersion "1.0.0.0"
+VIProductVersion "${VERSION}.0"
 VIAddVersionKey "ProductName" "PermissionScope"
 VIAddVersionKey "FileDescription" "PermissionScope installer"
-VIAddVersionKey "FileVersion" "1.0.0"
+VIAddVersionKey "FileVersion" "${VERSION}"
 VIAddVersionKey "LegalCopyright" "Copyright 2026 Samuel Sanches"
 !define MUI_ICON "..\assets\PermissionScope.ico"
 !define MUI_UNICON "..\assets\PermissionScope.ico"
@@ -60,12 +62,12 @@ Function .onInit
 FunctionEnd
 Section "PermissionScope"
   SetOutPath "$INSTDIR"
-  File /r "..\artifacts\PermissionScope-1.0.0-win-${ARCH}\*.*"
+  File /r "..\artifacts\PermissionScope-${VERSION}-win-${ARCH}\*.*"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   CreateDirectory "$SMPROGRAMS\PermissionScope"
   CreateShortcut "$SMPROGRAMS\PermissionScope\PermissionScope.lnk" "$INSTDIR\PermissionScope.exe"
   WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayName" "PermissionScope"
-  WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayVersion" "1.0.0"
+  WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayVersion" "${VERSION}"
   WriteRegStr HKCU "${UNINSTALL_KEY}" "Publisher" "Samuel Sanches"
   WriteRegStr HKCU "${UNINSTALL_KEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "${UNINSTALL_KEY}" "DisplayIcon" "$INSTDIR\PermissionScope.exe"
