@@ -45,6 +45,16 @@ for (const locale of webLocales) {
 for (const requiredSiteFile of ['404.html','manifest.webmanifest','robots.txt','sitemap.xml','.well-known/security.txt']) {
   if (!fs.existsSync(path.join(siteDir, requiredSiteFile))) throw new Error(`Missing Pages platform file: ${requiredSiteFile}`);
 }
+
+const manifest = JSON.parse(fs.readFileSync(path.join(siteDir, 'manifest.webmanifest'), 'utf8'));
+if (manifest.id !== '/PermissionScope/') throw new Error('PWA manifest must keep a stable explicit app id');
+if (manifest.start_url !== './' || manifest.scope !== './') throw new Error('Unexpected PWA start URL or scope');
+if (!Array.isArray(manifest.screenshots) || manifest.screenshots.length < 1) throw new Error('PWA manifest has no install preview screenshot');
+for (const screenshot of manifest.screenshots) {
+  if (!screenshot.src || !screenshot.sizes || !screenshot.type || !screenshot.label) throw new Error('Incomplete PWA screenshot metadata');
+  if (!fs.existsSync(path.join(siteDir, screenshot.src))) throw new Error(`Missing PWA screenshot asset: ${screenshot.src}`);
+  if (!sw.includes(`./${screenshot.src}`)) throw new Error(`PWA screenshot missing from offline shell: ${screenshot.src}`);
+}
 if (!sw.includes('navigationPreload.enable()')) throw new Error('Service worker navigation preload is not enabled');
-if (!sw.includes("CACHE='permissionscope-shell-v3'")) throw new Error('Unexpected service worker cache generation');
-console.log(`PASS local website assets, ${webLocales.length} localized Pages, offline parity and platform metadata`);
+if (!sw.includes("CACHE='permissionscope-shell-v4'")) throw new Error('Unexpected service worker cache generation');
+console.log(`PASS local website assets, ${webLocales.length} localized Pages, stable PWA identity, install metadata, offline parity and platform metadata`);
