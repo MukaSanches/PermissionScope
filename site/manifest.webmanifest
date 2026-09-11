@@ -42,7 +42,7 @@
       "name":"Download",
       "short_name":"Download",
       "name_localized":{"pt-BR":"Baixar","es":"Descargar","fr":"Télécharger","de":"Herunterladen","ar":"تنزيل","ja":"ダウンロード","zh-Hans":"下载"},
-      "short_name_localized":{"pt-BR":"Baixar","es":"Verificar","fr":"Vérifier","de":"Download","ar":"تنزيل","ja":"DL","zh-Hans":"下载"},
+      "short_name_localized":{"pt-BR":"Baixar","es":"Descargar","fr":"Télécharger","de":"Download","ar":"تنزيل","ja":"DL","zh-Hans":"下载"},
       "url":"./#download"
     },
     {
