@@ -4,6 +4,7 @@ param(
     [Parameter(Mandatory)][string]$CliPath,
     [ValidateRange(1, 100000)][int]$FileCount = 100,
     [switch]$AllowLarge,
+    [switch]$MeasurePhases,
     [ValidateRange(1, 3600)][int]$TimeoutSeconds = 300,
     [ValidateRange(1, 60000)][int]$CancelAfterMilliseconds = 500
 )
@@ -28,9 +29,12 @@ $report = [ordered]@{
     FileCount = $FileCount; DirectoryCountIncludingRoot = $folderCount + 1
     ExpectedObjects = $FileCount + $folderCount + 1
     TimeoutSeconds = $TimeoutSeconds; CancelAfterMilliseconds = $CancelAfterMilliseconds
+    MeasurePhases = [bool]$MeasurePhases; ConsumerPhases = $null
     Notes = @('Synthetic empty files with inherited ACLs; no user data scanned.',
         'Elapsed includes process startup, identity resolution, scan, serialization and output drain.',
         'Peak working set is observed for the CLI child only at roughly 50ms intervals; not GUI memory.',
+        'Optional consumer timings use PowerShell ReadLine/ConvertFrom-Json after child exit, not WinUI deserialization. Memory boundaries are observations, not peaks.',
+        'Worker scan includes identity/progress; serialize covers final snapshot only; write covers worker encoding/output blocking, not consumer drain. Sidecar I/O is outside these phases.',
         'Termination measures Kill(entireProcessTree) to child exit, not cooperative or GUI cancellation.',
         'Executable hash identifies the apphost only, not the dependent assemblies or complete engine build.',
         'Raw outputs contain local paths and Windows token identities; publish only sanitized metrics.',
@@ -46,13 +50,17 @@ function Invoke-MeasuredWorker([string]$Name, [bool]$Terminate) {
     $start.UseShellExecute = $false; $start.CreateNoWindow = $true
     $start.RedirectStandardOutput = $true; $start.RedirectStandardError = $true
     foreach ($argument in @('scan', $fixture, '--files', '--worker')) { $start.ArgumentList.Add($argument) }
+    $phasePath = Join-Path $runRoot ($Name + '.phases.json')
+    if ($MeasurePhases) { $start.ArgumentList.Add('--worker-metrics'); $start.ArgumentList.Add($phasePath) }
     $process = [Diagnostics.Process]::new(); $process.StartInfo = $start
     $stdoutFile = [IO.File]::Create($stdoutPath); $stderrFile = [IO.File]::Create($stderrPath)
     $clock = [Diagnostics.Stopwatch]::StartNew()
     $metrics = [ordered]@{ Status = 'starting'; ProcessId = $null; ExitCode = $null
         ElapsedMilliseconds = $null; ObservedPeakWorkingSetBytes = 0L; MemorySamples = 0
         ForceTerminationLatencyMilliseconds = $null; TerminationRequested = $false
-        Stdout = $stdoutPath; Stderr = $stderrPath }
+        Stdout = $stdoutPath; Stderr = $stderrPath
+        PhaseDiagnosticsStatus = if ($MeasurePhases) { 'missing' } else { 'not-requested' }
+        WorkerPhases = $null }
     $started = $false
     try {
         $started = $process.Start()
@@ -103,6 +111,19 @@ function Invoke-MeasuredWorker([string]$Name, [bool]$Terminate) {
         $metrics.StdoutBytes = (Get-Item -LiteralPath $stdoutPath).Length
         $metrics.StderrBytes = (Get-Item -LiteralPath $stderrPath).Length
     }
+    if ($MeasurePhases -and (Test-Path -LiteralPath $phasePath -PathType Leaf)) {
+        try {
+            $phases = Get-Content -LiteralPath $phasePath -Raw | ConvertFrom-Json
+            if ($metrics.Status -notin @('completed', 'completed-before-cancel') -or $metrics.ExitCode -ne 0) { throw 'Worker did not complete naturally.' }
+            if ($phases.schemaVersion -ne 1 -or $phases.complete -isnot [bool] -or -not $phases.complete -or $phases.objects -ne $report.ExpectedObjects) { throw 'Invalid diagnostics envelope.' }
+            foreach ($field in @('scanMilliseconds', 'serializeMilliseconds', 'writeMilliseconds')) {
+                $value = $phases.$field
+                if ($null -eq $value -or $value -is [string] -or $value -is [bool] -or -not [double]::IsFinite([double]$value) -or [double]$value -lt 0) { throw 'Invalid phase duration.' }
+            }
+            $metrics.WorkerPhases = [ordered]@{ ScanMilliseconds = $phases.scanMilliseconds; SerializeMilliseconds = $phases.serializeMilliseconds; WriteMilliseconds = $phases.writeMilliseconds }
+            $metrics.PhaseDiagnosticsStatus = 'available'
+        } catch { $metrics.PhaseDiagnosticsStatus = 'invalid'; $metrics.WorkerPhases = $null }
+    }
     return $metrics
 }
 Save-Report
@@ -121,12 +142,25 @@ try {
     if ($report.FullScan.Status -eq 'completed' -and $report.FullScan.ExitCode -eq 0) {
         # Parsing happens after measurement; this monitor's allocations are not CLI measurements.
         $reader = [IO.File]::OpenText($report.FullScan.Stdout)
+        if ($MeasurePhases) {
+            $monitor = [Diagnostics.Process]::GetCurrentProcess(); $monitor.Refresh()
+            $consumer = [ordered]@{ Status = 'incomplete'; ReadLineMilliseconds = 0.0; ParseMilliseconds = 0.0; ValidationMilliseconds = $null; WorkingSetBeforeBytes = $monitor.WorkingSet64; WorkingSetAfterBytes = $null }
+            $report.ConsumerPhases = $consumer
+            $phaseTimer = [Diagnostics.Stopwatch]::new()
+        }
         try {
             $snapshot = $null
-            while ($null -ne ($line = $reader.ReadLine())) {
+            while ($true) {
+                if ($MeasurePhases) { $phaseTimer.Restart() }
+                $line = $reader.ReadLine()
+                if ($MeasurePhases) { $consumer.ReadLineMilliseconds += $phaseTimer.Elapsed.TotalMilliseconds }
+                if ($null -eq $line) { break }
+                if ($MeasurePhases) { $phaseTimer.Restart() }
                 $message = $line | ConvertFrom-Json -Depth 100
+                if ($MeasurePhases) { $consumer.ParseMilliseconds += $phaseTimer.Elapsed.TotalMilliseconds }
                 if ($null -ne $message.snapshot) { $snapshot = $message.snapshot }
             }
+            if ($MeasurePhases) { $phaseTimer.Restart() }
             if ($null -eq $snapshot) { throw 'Worker returned no snapshot.' }
             $report.Validation = [ordered]@{
                 Objects = @($snapshot.resources).Count
@@ -137,7 +171,11 @@ try {
                 SchemaVersion = $snapshot.schemaVersion
             }
             $report.Validation.Passed = ($report.Validation.Objects -eq $report.ExpectedObjects -and $report.Validation.Errors -eq 0 -and -not $snapshot.cancelled -and $report.Validation.RootMatches -and $snapshot.schemaVersion -eq 1)
-        } finally { $reader.Dispose(); $snapshot = $null; $line = $null; $message = $null }
+            if ($MeasurePhases) { $consumer.ValidationMilliseconds = $phaseTimer.Elapsed.TotalMilliseconds; $consumer.Status = 'complete' }
+        } finally {
+            if ($MeasurePhases) { $monitor.Refresh(); $consumer.WorkingSetAfterBytes = $monitor.WorkingSet64; $monitor.Dispose() }
+            $reader.Dispose(); $snapshot = $null; $line = $null; $message = $null
+        }
         Save-Report
         $report.TerminationProbe = Invoke-MeasuredWorker 'termination-probe' $true
         if ($report.TerminationProbe.Status -eq 'completed-before-cancel') {

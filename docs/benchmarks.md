@@ -34,6 +34,20 @@ Measurements cover the CLI child: elapsed time including startup, identity resol
 
 A second run requests forced worker termination after `-CancelAfterMilliseconds` (default 500). This uses the same process-tree termination mechanism as the wrapper but does not exercise the GUI button or cooperative cancellation. A run that finishes before the request has no measured termination latency. Timeouts and invalid/incomplete output must be reported as such, never as successful scan measurements.
 
+### Optional phase diagnostics
+
+Pass `-MeasurePhases` to `build/Measure-Scan.ps1` when investigating where worker time is spent. The harness asks the CLI for an opt-in `--worker-metrics <file>` sidecar and records consumer timings after the process measurement:
+
+```powershell
+pwsh -File build/Measure-Scan.ps1 -CliPath ./artifacts/production-trust-cli/permissionscope-cli.exe -FileCount 100 -MeasurePhases
+```
+
+Worker metrics distinguish scanning (including identity resolution and progress), the single final snapshot serialization, and writing that serialized message to standard output. The write phase includes encoding and any blocking at the worker boundary; it does not represent the monitor's entire output drain.
+
+Consumer metrics distinguish reading worker lines, PowerShell JSON parsing and snapshot validation. Working-set values before and after parsing are boundary observations for the monitor process, not peak memory and not WinUI measurements. The PowerShell parser is useful for attribution in this harness but does not represent the app's JSON deserializer or UI responsiveness.
+
+The sidecar is optional, non-overwriting and best effort. An unavailable, invalid or interrupted sidecar is reported as missing/invalid diagnostics with null phase values; it does not turn a completed scan into a failure or a missing measurement into zero. Without `-MeasurePhases`, the worker protocol and benchmark behavior remain unchanged.
+
 ## Production Trust benchmark matrix
 
 `build/Measure-TrustBenchmarks.ps1` wraps the detailed harness for repeatable CI trend evidence. By default it measures 100- and 1,000-file fixtures; `-Extended` adds 10,000 files. It fails if the underlying scan validation fails.

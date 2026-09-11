@@ -1,5 +1,23 @@
 # Continuous improvement ledger
 
+## Rodada 2026-09-11 23:12 UTC — instrumentação por fase em validação
+
+- PR #24: o head `a66ce57` teve Dependency Review, Windows Build, CodeQL e Production Trust aprovados. Como `main` avançou novamente, a branch foi sincronizada por merge sem force push no head `7920254`; documentação, recursos e site passaram localmente em oito idiomas e três larguras. O novo CI segue pendente; não integrar antes da aprovação completa.
+- Implementado em lote separado `codex/worker-phase-metrics`: opção interna `--worker-metrics <arquivo>`, aceita somente com worker, registra scan, serialização única e escrita em sidecar atômico/best-effort. Sem a opção, stdout, snapshot e exit code permanecem iguais. Arquivos existentes não são sobrescritos; falha do sidecar não invalida o scan.
+- `build/Measure-Scan.ps1 -MeasurePhases` registra leitura, parsing e validação do consumidor, além de memória do monitor antes/depois como observações de fronteira. Não chama esses valores de pico ou memória da GUI. Sidecar ausente/parcial é diagnóstico indisponível, nunca zero.
+- Teste novo cobre protocolo sem flag, equivalência semântica, fases numéricas, falha de escrita, preservação de arquivo existente, argumentos inválidos e interrupção imediata. Build CLI passou sem warnings/erros; smoke 100 validou 201 objetos, zero erros/Unknown e diagnóstico completo. Um probe de 1 ms confirmou término forçado com diagnóstico ausente, sem métricas falsas. QA independente aprovou os três arquivos; ramos de sidecar corrompido e interrupção durante rename não foram injetados.
+- Validação final: build Release x64 com o SDK .NET 10 isolado passou com zero warnings/erros; o harness Windows passou 88 testes e zero falhas; teste específico de métricas passou; verificador de documentação validou 65 documentos/72 imagens; `npm run check` e `git diff --check` passaram. A primeira tentativa de build usou o SDK global .NET 9 e foi rejeitada corretamente pelo `global.json`; a repetição usou a toolchain do projeto. O apphost de teste framework-dependent também exigiu `DOTNET_ROOT` apontado para a mesma toolchain e então passou; isso foi ambiente de teste, não falha do recurso.
+- Medições smoke servem apenas para validar o instrumento e não são baseline. Um exemplo observado separou aproximadamente 300,02 ms de scan, 31,17 ms de serialização, 10,48 ms de escrita, 6,63 ms de leitura, 233,99 ms de parsing PowerShell e 36,84 ms de validação. Não representam GUI, SLA ou concorrentes.
+- Próximo passo: concluir harness Windows e checks do lote; revisar diff; enviar PR separado. Depois repetir 10 mil com métricas por fase e decidir se Scanner ou transporte/consumidor domina o custo antes de qualquer mudança arquitetural ou teste de 100 mil.
+
+### Autoanálise competitiva — 11/09/2026, rodada 23:12 UTC
+
+A baseline de 10 mil e a nova instrumentação melhoram a capacidade de diagnosticar o próprio produto; não demonstram que ele ficou mais rápido nem que supera concorrentes. AccessChk continua mais amplo em tipos de objetos Windows; Netwrix e SolarWinds destacam usuários/grupos, AD e herança. PermissionScope mantém diferenciais documentados de evidência por ACE, Authz, Unknown explícito, execução local, snapshots e rollback, mas faltam testes equivalentes de correção, desempenho e usabilidade.
+
+Distribuição v1.0.1, Apache-2.0, checksums, CI e documentação multilíngue são avanços públicos. Permanecem lacunas de assinatura Authenticode, Store/WinGet, ARM64 físico, acessibilidade WinUI certificada e ambientes reais de domínio/DFS. A prioridade discutida por produto, engenharia e QA é atribuir custo entre scanner, serialização e consumidor antes de otimizar ou ampliar o escopo.
+
+Fontes oficiais consultadas nesta data: [Microsoft AccessChk](https://learn.microsoft.com/en-us/sysinternals/downloads/accesschk), [Netwrix Effective Permissions Reporting Tool](https://netwrix.com/en/resources/freeware/effective-permissions-reporting-tool/) e [SolarWinds Permissions Analyzer](https://www.solarwinds.com/free-tools/permissions-analyzer-for-active-directory).
+
 ## Rodada 2026-09-10 17:07 UTC — implementada e validada, integração adiada
 
 - Apache-2.0 já implementada em `c79d101` e presente no PR #8; não repetir a migração. PR #8 ainda aberto no início desta rodada, head `c8e66fe`: CI x64 falhou, ARM64 e CodeQL passaram. A tarefa de publicação está corrigindo o fingerprint SVG (LF/CRLF) e preparando os pacotes.
