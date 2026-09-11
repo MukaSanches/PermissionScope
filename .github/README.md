@@ -11,6 +11,7 @@
   <a href="../CONTRIBUTING.md">Contributing</a> ·
   <a href="../SECURITY.md">Security</a> ·
   <a href="../SUPPORT.md">Support</a> ·
+  <a href="../docs/maintainers/TRIAGE.md">Triage</a> ·
   <a href="../docs/brand/README.md">Brand</a> ·
   <a href="../docs/decisions/README.md">Decision records</a>
 </p>
@@ -28,6 +29,8 @@ This directory is the operating layer for the PermissionScope repository. It def
 | Security | [`SECURITY.md`](../SECURITY.md) | Private disclosure for vulnerabilities; Unknown must remain Unknown |
 | Community conduct | [`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md) | Technical rigor without hostility or exclusion |
 | Support | [`SUPPORT.md`](../SUPPORT.md) | Privacy-safe diagnostics and minimal reproducible examples |
+| Triage | [`docs/maintainers/TRIAGE.md`](../docs/maintainers/TRIAGE.md) | Priority follows impact and evidence, not comment volume |
+| Repository settings | [`docs/maintainers/REPOSITORY-SETTINGS.md`](../docs/maintainers/REPOSITORY-SETTINGS.md) | Versioned baseline for GitHub-hosted controls |
 | Brand | [`docs/brand/README.md`](../docs/brand/README.md) | Precise, calm, verifiable; no fake certification or cyber-theater |
 | Decisions | [`docs/decisions/`](../docs/decisions/) | Durable records for high-impact architectural and security decisions |
 | Releases | [`docs/release-status.md`](../docs/release-status.md) | Claims must match shipped evidence and current limitations |
@@ -86,6 +89,8 @@ Pull requests should be small enough to review as a coherent decision. A reviewe
 2. Why is it correct?
 3. What evidence verifies it?
 4. What can still fail or remain unknown?
+
+The maintainer triage model, priority definitions and stale-work policy live in [`docs/maintainers/TRIAGE.md`](../docs/maintainers/TRIAGE.md).
 
 ## Repository presentation standard
 
