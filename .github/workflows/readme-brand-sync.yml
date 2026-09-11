@@ -40,6 +40,12 @@ jobs:
         run: node build/Polish-Readmes.mjs
       - name: Regenerate every localized README
         run: node build/Build-Documentation.mjs
+      - name: Preserve independent repository and website surfaces
+        shell: bash
+        run: |
+          # The Operations Hub is maintained independently from localized product
+          # READMEs. README branding must also never create a website change.
+          git restore --worktree -- .github/README.md site
       - name: Commit synchronized presentation
         shell: bash
         run: |
@@ -49,7 +55,7 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add build/Build-Documentation.mjs README*.md .github/README.md docs/brand/repository-banner.png docs/brand/project-avatar.png site
+          git add build/Build-Documentation.mjs README*.md docs/brand/repository-banner.png docs/brand/project-avatar.png
           git commit -m 'Polish multilingual README branding and navigation'
           git pull --rebase origin main
           git push origin HEAD:main
