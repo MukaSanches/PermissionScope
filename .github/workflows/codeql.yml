@@ -13,19 +13,36 @@ concurrency:
   cancel-in-progress: true
 jobs:
   analyze:
-    runs-on: windows-2022
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     permissions:
       security-events: write
       contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: csharp
+            build-mode: manual
+            os: windows-2022
+          - language: javascript-typescript
+            build-mode: none
+            os: ubuntu-latest
+          - language: actions
+            build-mode: none
+            os: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        if: matrix.language == 'csharp'
         with:
           dotnet-version: '10.0.x'
-      - uses: github/codeql-action/init@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+      - uses: github/codeql-action/init@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
         with:
-          languages: csharp
-          build-mode: manual
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
       - run: dotnet build PermissionScope.sln -c Release -p:Platform=x64
-      - uses: github/codeql-action/analyze@faaca9a8f6edddba5725ffe5adefdab6669a2eca # v3
+        if: matrix.language == 'csharp'
+      - uses: github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63 # v4.38.0
