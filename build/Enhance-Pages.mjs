@@ -53,6 +53,7 @@ const releaseScript='<script src="release-sync.js" defer></script>';
 const platformScript='<script src="platform.js" defer></script>';
 const theme='<meta name="theme-color" content="#17315C">';
 const referrer='<meta name="referrer" content="no-referrer">';
+const contentSecurityPolicy='<meta http-equiv="Content-Security-Policy" content="default-src \'self\'; img-src \'self\'; script-src \'self\'; style-src \'self\'; connect-src \'none\'; object-src \'none\'; base-uri \'none\'; form-action \'none\'">';
 const xDefault='<link rel="alternate" hreflang="x-default" href="https://mukasanches.github.io/PermissionScope/index.html">';
 const ogType='<meta property="og:type" content="website">';
 
@@ -72,6 +73,11 @@ function enhanced(source,file){
   if(!html.includes('data-release-version=')) html=html.replace(/<html([^>]*)>/,`<html$1 data-release-version="${releaseVersion}">`);
   if(!html.includes(referrer)) html=html.replace('<meta name="viewport" content="width=device-width,initial-scale=1">',`<meta name="viewport" content="width=device-width,initial-scale=1">\n${referrer}`);
   if(!html.includes(theme)) html=html.replace('<meta name="description"',`${theme}\n<meta name="description"`);
+  if(/<meta http-equiv="Content-Security-Policy" content="[^"]*">/.test(html)){
+    html=html.replace(/<meta http-equiv="Content-Security-Policy" content="[^"]*">/,contentSecurityPolicy);
+  }else{
+    html=html.replace('<meta name="description"',`${contentSecurityPolicy}\n<meta name="description"`);
+  }
   if(!html.includes(xDefault)) html=html.replace(/(<link rel="alternate" hreflang="zh-Hans"[^>]+>)/,`$1\n${xDefault}`);
   const canonicalMatch=html.match(/<link rel="canonical" href="([^"]+)">/);
   if(!canonicalMatch) throw new Error(`Missing canonical URL in ${file}`);
@@ -202,10 +208,11 @@ for(const file of pages){
     if(!source.includes(languageFallback(file))) throw new Error(`Missing localized no-script language navigation in ${file}`);
     if(!source.includes(enhancementStylePreloads)) throw new Error(`Missing early enhancement stylesheet discovery in ${file}`);
     if(!source.includes(releaseScript)) throw new Error(`Missing release sync script in ${file}`);
+    if(!source.includes(contentSecurityPolicy)) throw new Error(`Content Security Policy must disable legacy object/embed content in ${file}`);
     if(!source.includes(`<a class="skip" href="#main">${skipLabels[file]}</a>`)) throw new Error(`Incorrect localized skip-navigation label in ${file}`);
   } else {
     fs.writeFileSync(target,result);
   }
 }
 
-console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, complete localized Open Graph metadata, no-script language navigation, early enhancement stylesheet discovery, conservative installed-window behavior, localized shortcut and skip-navigation accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);
+console.log(`PASS ${check?'verified':'enhanced'} privacy/PWA/platform integration, hardened object/embed CSP, complete localized Open Graph metadata, no-script language navigation, early enhancement stylesheet discovery, conservative installed-window behavior, localized shortcut and skip-navigation accessibility, Safari/iOS touch identity, page and manifest shortcuts, scoped offline-cache ownership, disclosure metadata and release ${releaseVersion} parity across ${pages.length} localized Pages`);

@@ -6,7 +6,7 @@ on:
     paths:
       - 'site/**'
       - 'build/test-site*.mjs'
-      - 'build/validate-resources.mjs'
+      - 'build/validate-*.mjs'
       - 'build/Enhance-Pages.mjs'
       - 'build/Build-Documentation.mjs'
       - 'docs/content/locales.json'
@@ -17,7 +17,7 @@ on:
     paths:
       - 'site/**'
       - 'build/test-site*.mjs'
-      - 'build/validate-resources.mjs'
+      - 'build/validate-*.mjs'
       - 'build/Enhance-Pages.mjs'
       - 'build/Build-Documentation.mjs'
       - 'docs/content/locales.json'
