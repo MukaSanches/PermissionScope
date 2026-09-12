@@ -67,6 +67,7 @@ try {
     & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'Measure-WorkerReplay.ps1') -ReplayPath $replay -InputPath $valid -ExpectedObjects 999 -Runs 2 -MaxInputBytes 1048576 1>$failureOutput 2>$failureError
     $failureExit=$LASTEXITCODE; $failedRows=Get-Content $failureOutput -Raw|ConvertFrom-Json
     Assert-True ($failureExit -ne 0 -and @($failedRows).Count -eq 2 -and @($failedRows|Where-Object {$_.Status -ne 'failed'}).Count -eq 0) 'Supervisor did not preserve sanitized failed rows.'
+    $global:LASTEXITCODE=0
     'PASS: typed replay, Unicode root, malformed/truncated/duplicate/missing snapshots, hash and size limits, sanitized failures and retained failure rows.'
 } finally {
     $resolvedRoot=[IO.Path]::GetFullPath($root); $resolvedTemp=[IO.Path]::GetFullPath([IO.Path]::GetTempPath())
