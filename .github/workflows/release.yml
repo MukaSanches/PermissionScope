@@ -44,6 +44,8 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: '10.0.x'
@@ -76,7 +78,7 @@ jobs:
         run: npm run test:site
       - name: Documentation and native-capture integrity
         run: ./build/Verify-Documentation.ps1 -SkipBrowser
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: PermissionScope-v${{ steps.version.outputs.version }}-preflight
           path: |
@@ -103,6 +105,8 @@ jobs:
       RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: '10.0.x'
@@ -139,7 +143,7 @@ jobs:
             artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-${{ matrix.architecture }}-Setup.exe
             artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-win-${{ matrix.architecture }}.zip
           sbom-path: artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-win-${{ matrix.architecture }}/sbom.cdx.json
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: PermissionScope-v${{ env.RELEASE_VERSION }}-${{ matrix.architecture }}
           path: |
@@ -158,6 +162,8 @@ jobs:
       RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Ensure ripgrep is available
         shell: pwsh
         run: |
@@ -174,7 +180,7 @@ jobs:
       - name: Create source archive
         shell: pwsh
         run: ./build/Package-Source.ps1
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: PermissionScope-v${{ env.RELEASE_VERSION }}-source
           path: artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-source.zip
@@ -213,7 +219,7 @@ jobs:
           done
           (cd dist && sha256sum "${expected[@]}" | sed 's/  \*/  /' > SHA256SUMS.txt)
           test "$(wc -l < dist/SHA256SUMS.txt)" -eq 5
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: PermissionScope-v${{ env.RELEASE_VERSION }}-release
           path: dist/*
@@ -236,6 +242,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Require exact current main and successful CI
         shell: bash
         run: |
