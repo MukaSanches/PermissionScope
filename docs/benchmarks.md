@@ -34,6 +34,20 @@ Measurements cover the CLI child: elapsed time including startup, identity resol
 
 A second run requests forced worker termination after `-CancelAfterMilliseconds` (default 500). This uses the same process-tree termination mechanism as the wrapper but does not exercise the GUI button or cooperative cancellation. A run that finishes before the request has no measured termination latency. Timeouts and invalid/incomplete output must be reported as such, never as successful scan measurements.
 
+### Optional phase diagnostics
+
+Pass `-MeasurePhases` to `build/Measure-Scan.ps1` when investigating where worker time is spent. The harness asks the CLI for an opt-in `--worker-metrics <file>` sidecar and records consumer timings after the process measurement:
+
+```powershell
+pwsh -File build/Measure-Scan.ps1 -CliPath ./artifacts/production-trust-cli/permissionscope-cli.exe -FileCount 100 -MeasurePhases
+```
+
+Worker metrics distinguish scanning (including identity resolution and progress), the single final snapshot serialization, and writing that serialized message to standard output. The write phase includes encoding and any blocking at the worker boundary; it does not represent the monitor's entire output drain.
+
+Consumer metrics distinguish reading worker lines, PowerShell JSON parsing and snapshot validation. Working-set values before and after parsing are boundary observations for the monitor process, not peak memory and not WinUI measurements. The PowerShell parser is useful for attribution in this harness but does not represent the app's JSON deserializer or UI responsiveness.
+
+The sidecar is optional, non-overwriting and best effort. An unavailable, invalid or interrupted sidecar is reported as missing/invalid diagnostics with null phase values; it does not turn a completed scan into a failure or a missing measurement into zero. Without `-MeasurePhases`, the worker protocol and benchmark behavior remain unchanged.
+
 ## Production Trust benchmark matrix
 
 `build/Measure-TrustBenchmarks.ps1` wraps the detailed harness for repeatable CI trend evidence. By default it measures 100- and 1,000-file fixtures; `-Extended` adds 10,000 files. It fails if the underlying scan validation fails.
@@ -69,3 +83,18 @@ Each synthetic fixture contained 10,000 empty files, 100 subdirectories and the 
 This is a local baseline for this package and fixture. It does not measure the WinUI process, JSON parsing in the parent, cooperative cancellation, remote/domain behavior or competing tools. Forced termination was requested after 500 ms and may include startup or identity resolution rather than active enumeration. The slower first run does not establish a cache or warm-up cause.
 
 The approximately 46.4 MB worker response and approximately 296 MB observed child peak at 10,101 objects justify measuring scan, serialization and consumer parsing separately before attempting 100,000 files on this host. They do not establish linear growth, an out-of-memory failure or a single root cause. The 100,000-file run was deferred pending a resource budget and monitoring plan.
+
+## Local 10,000-file phase diagnostics — 12 September 2026
+
+Three consecutive runs used a self-contained Release x64 CLI built from PR #25 head `a6e2dd2` before its final synchronization-only merge with `main`. All runs produced 10,101 resources with zero errors and zero Unknown decisions. Raw JSONL and local identity/path evidence were retained locally and were not committed.
+
+| Run | Worker elapsed | Scan | Serialize | Worker write | PowerShell parse | Observed worker peak |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 16,002.68 ms | 4,568.32 ms | 778.27 ms | 416.85 ms | 6,854.00 ms | 300,011,520 bytes |
+| 2 | 4,557.28 ms | 2,986.05 ms | 582.02 ms | 477.84 ms | 6,639.19 ms | 296,587,264 bytes |
+| 3 | 4,904.49 ms | 2,969.73 ms | 643.78 ms | 413.99 ms | 7,292.57 ms | 296,759,296 bytes |
+| Median | 4,904.49 ms | 2,986.05 ms | 643.78 ms | 416.85 ms | 6,854.00 ms | 296,759,296 bytes |
+
+Median PowerShell line-reading and validation times were 192.63 ms and 284.63 ms. Median output was 46,396,935 bytes and median forced process-termination latency was 22.09 ms.
+
+Within the worker, scan is the largest measured phase. PowerShell `ConvertFrom-Json` is a separate offline harness cost and must not be attributed to the WinUI app, which uses typed `System.Text.Json`. The first run has 10,239.24 ms outside the three worker phases; the data do not identify its cause. The next experiment should replay the captured JSONL through an isolated .NET consumer using the same read and deserialization path as `ScanWorker`, without repeating the filesystem scan.

@@ -30,6 +30,9 @@ internal static class Program
             PermissionSnapshot Load(string value) => File.Exists(value) ? SnapshotJson.Parse(File.ReadAllText(value)) : new SnapshotStore().Load(value);
             void Json(object value) => Console.WriteLine(JsonSerializer.Serialize(value, SnapshotJson.Options));
             var json = args.Contains("--json");
+            var workerMetrics = Option("--worker-metrics");
+            if (workerMetrics != null && (!args.Contains("--worker") || args[0] is not ("scan" or "explain")))
+                throw new ArgumentException("--worker-metrics requires scan/explain with --worker.");
             switch (args[0])
             {
                 case "demo":
@@ -54,8 +57,22 @@ internal static class Program
                             if (progressClock.ElapsedMilliseconds < 100) return;
                             progressClock.Restart(); Console.WriteLine(JsonSerializer.Serialize(new ScanMessage(Progress: value), compact));
                         }) : null;
+                        var phaseClock = workerMetrics != null ? System.Diagnostics.Stopwatch.StartNew() : null;
                         var snapshot = await new Scanner().ScanAsync(new(Pos(1), Option("--user"), args[0] != "explain" && !args.Contains("--shallow"), args.Contains("--files")), progress, cancellation.Token);
-                        if (worker) { Console.WriteLine(JsonSerializer.Serialize(new ScanMessage(Snapshot: snapshot), compact)); return 0; }
+                        var scanMilliseconds = phaseClock?.Elapsed.TotalMilliseconds;
+                        if (worker)
+                        {
+                            phaseClock?.Restart();
+                            var serialized = JsonSerializer.Serialize(new ScanMessage(Snapshot: snapshot), compact);
+                            var serializeMilliseconds = phaseClock?.Elapsed.TotalMilliseconds;
+                            phaseClock?.Restart();
+                            Console.WriteLine(serialized);
+                            var writeMilliseconds = phaseClock?.Elapsed.TotalMilliseconds;
+                            if (workerMetrics != null && !snapshot.Cancelled)
+                                WriteWorkerMetrics(workerMetrics, new { SchemaVersion = 1, Complete = true, Objects = snapshot.Resources.Count,
+                                    ScanMilliseconds = scanMilliseconds, SerializeMilliseconds = serializeMilliseconds, WriteMilliseconds = writeMilliseconds }, compact);
+                            return 0;
+                        }
                         if (args.Contains("--save")) new SnapshotStore().Save(snapshot);
                         if (Option("--output") is { } output) ReportExporter.Export(snapshot, output, "json");
                         if (json) Json(snapshot);
@@ -113,6 +130,29 @@ internal static class Program
         catch (ArgumentException e) { Console.Error.WriteLine(e.Message); return 2; }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or Win32Exception or JsonException or InvalidOperationException or System.Security.Principal.IdentityNotMappedException or Microsoft.Data.Sqlite.SqliteException)
         { Console.Error.WriteLine(e.Message); return 1; }
+    }
+
+    // Optional diagnostics must never replace existing files or affect the worker protocol/result.
+    private static void WriteWorkerMetrics(string path, object metrics, JsonSerializerOptions options)
+    {
+        string? temporary = null;
+        try
+        {
+            var fullPath = Path.GetFullPath(path);
+            temporary = Path.Combine(Path.GetDirectoryName(fullPath)!, $".permissionscope-metrics-{Guid.NewGuid():N}.tmp");
+            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                JsonSerializer.Serialize(stream, metrics, options);
+                stream.Flush(true);
+            }
+            File.Move(temporary, fullPath, false);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException or ArgumentException or System.Security.SecurityException or NotSupportedException) { }
+        finally
+        {
+            try { if (temporary != null && File.Exists(temporary)) File.Delete(temporary); }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException or System.Security.SecurityException) { }
+        }
     }
 }
 
