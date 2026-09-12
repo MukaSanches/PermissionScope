@@ -98,3 +98,29 @@ Three consecutive runs used a self-contained Release x64 CLI built from PR #25 h
 Median PowerShell line-reading and validation times were 192.63 ms and 284.63 ms. Median output was 46,396,935 bytes and median forced process-termination latency was 22.09 ms.
 
 Within the worker, scan is the largest measured phase. PowerShell `ConvertFrom-Json` is a separate offline harness cost and must not be attributed to the WinUI app, which uses typed `System.Text.Json`. The first run has 10,239.24 ms outside the three worker phases; the data do not identify its cause. The next experiment should replay the captured JSONL through an isolated .NET consumer using the same read and deserialization path as `ScanWorker`, without repeating the filesystem scan.
+
+## Typed .NET worker replay — 12 September 2026
+
+`tests/PermissionScope.WorkerReplay` replays a private worker JSONL through `ReadLineAsync` and typed `JsonSerializer.Deserialize<ScanMessage>` with `SnapshotJson.Options`. `build/Measure-WorkerReplay.ps1` starts a new process for every run, checks an input hash, samples the child working set and emits only aggregate metrics. The replay keeps one read-only handle from size/hash verification through parsing, defaults to a 128 MiB input limit and fails closed on timeout or malformed evidence.
+
+```powershell
+dotnet build tests/PermissionScope.WorkerReplay/PermissionScope.WorkerReplay.csproj -c Release -r win-x64
+pwsh -File build/Measure-WorkerReplay.ps1 `
+  -ReplayPath tests/PermissionScope.WorkerReplay/bin/Release/net10.0-windows10.0.19041.0/win-x64/permissionscope-worker-replay.exe `
+  -InputPath <private-worker-jsonl> -ExpectedObjects 10101 -Runs 3
+```
+
+The input must remain local because it can contain paths and token identities. The SHA-256 and file-size pass before each measured replay can warm the filesystem cache. Failure output uses stable categories; raw child errors are not included in the aggregate JSON.
+
+Three processes replayed the same 46,396,935-byte synthetic capture containing 29 progress messages and one 10,101-object snapshot. All returned zero errors and zero Unknown decisions.
+
+| Run | Read | Typed deserialize | Validate | Total | Allocated bytes | Working set after deserialize | Observed process peak |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 179.45 ms | 1,394.66 ms | 6.56 ms | 1,584.60 ms | 720,800,800 | 472,178,688 | 472,686,592 |
+| 2 | 188.50 ms | 1,273.84 ms | 7.52 ms | 1,473.64 ms | 720,799,424 | 472,190,976 | 472,711,168 |
+| 3 | 147.31 ms | 1,274.31 ms | 6.55 ms | 1,431.42 ms | 720,789,384 | 469,659,648 | 469,848,064 |
+| Median | 179.45 ms | 1,274.31 ms | 6.56 ms | 1,473.64 ms | 720,799,424 | 472,178,688 | 472,686,592 |
+
+Allocated bytes are cumulative allocations, not simultaneous live memory. The observed peak includes process startup, hash verification, parsing and validation; `WorkingSetAfterDeserializeBytes` is the closest boundary observation before validation. The validation path checks unique/non-empty resource paths and therefore adds some memory after that observation.
+
+This result establishes that the typed consumer is materially faster than this harness's PowerShell parser, while still materializing a large object graph. It does not measure the pipe, concurrent parent/worker memory, WinUI binding/rendering or responsiveness. A transport or representation change needs an end-to-end equivalence test and a measured reduction before it can be called an optimization.

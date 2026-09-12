@@ -1,5 +1,22 @@
 # Continuous improvement ledger
 
+## Rodada 2026-09-12 14:16 UTC — consumidor .NET medido
+
+- O PR [#25](https://github.com/MukaSanches/PermissionScope/pull/25) foi sincronizado com os seis commits mais recentes de `main`. No head `93e1e90`, Dependency Review, Windows Build, CodeQL, Production Trust e Release passaram; o PR foi integrado por squash em `61fb120`.
+- Implementado na branch `codex/dotnet-worker-replay`: consumidor isolado em `tests/PermissionScope.WorkerReplay`, supervisor `build/Measure-WorkerReplay.ps1`, teste de segurança `build/Test-WorkerReplay.ps1` e execução automática no job x64. O produto e o protocolo do worker não foram alterados.
+- O consumidor usa `ReadLineAsync`, `JsonSerializer.Deserialize<ScanMessage>` e `SnapshotJson.Options`, como `ScanWorker`. O mesmo handle somente leitura permanece aberto durante limite, SHA-256 e parsing; cada rodada roda em processo novo com timeout e teto de entrada. Falhas preservam linhas sanitizadas das demais rodadas e não publicam JSONL, caminhos, identidades ou erro bruto.
+- O teste cobre raiz Unicode decodificada e divergente, JSON inválido/truncado, snapshot ausente/duplicado, SHA incorreto, limite de tamanho, falha sanitizada e preservação de duas rodadas rejeitadas. Build Release passou sem avisos/erros; o harness Windows manteve 88 testes aprovados.
+- Três replays da mesma captura sintética de 46.396.935 bytes e 10.101 objetos passaram com zero erros/Unknown. Medianas: leitura 179,45 ms; desserialização tipada 1.274,31 ms; validação 6,56 ms; total 1.473,64 ms; 720.799.424 bytes alocados cumulativamente; 472.178.688 bytes de working set após desserialização; pico externo observado 472.686.592 bytes.
+- Interpretação: o parser .NET é muito mais rápido que `ConvertFrom-Json`, mas materializa uma estrutura grande e aloca aproximadamente 15,5 vezes o tamanho do JSONL nesta captura. Isso não mede pipe, binding, renderização, dispatcher ou pico da GUI. O hash prévio pode aquecer o cache de arquivos; o primeiro resultado não é chamado de cold run.
+- A equipe corrigiu dois findings P2 antes da entrega: a janela entre hash e parsing e a perda do relatório agregado após uma rodada falhar. Engenharia e QA aprovaram a revisão corrigida, mantendo as limitações acima.
+- Próximo passo exato: revisar CI deste lote e, se aprovado, integrar; depois medir memória do fluxo pai+worker concorrente e reduzir a representação/transporte somente com teste de equivalência e regressão mensurável. O teste de 100 mil permanece adiado.
+
+### Autoanálise competitiva — 12/09/2026, rodada 14:16 UTC
+
+PermissionScope evoluiu em engenharia: agora mede separadamente worker, consumidor PowerShell e consumidor .NET tipado. Continua uma ferramenta especializada pública, com boa explicabilidade e controles de segurança, sem evidência para afirmar maturidade corporativa ou superioridade. A Microsoft documenta que AccessChk cobre arquivos, diretórios, Registro, processos, serviços e objetos globais; sua cobertura de tipos permanece maior. Netwrix reúne permissões NTFS, compartilhamentos, usuários, grupos e herança de AD em relatórios. SolarWinds também destaca usuário, grupo e origem da herança.
+
+Os pontos fortes atuais são Authz, evidência por ACE, Unknown explícito, processamento local, snapshots/rollback, Apache-2.0, documentação em oito idiomas e medições reproduzíveis. As prioridades continuam: conter memória no fluxo real sem perder evidência; validar domínio/DFS e identidades remotas; avançar Authenticode e canais Store/WinGet; certificar acessibilidade WinUI e ARM64 físico. Fontes oficiais reabertas em 12/09/2026: [Microsoft AccessChk](https://learn.microsoft.com/en-us/sysinternals/downloads/accesschk), [Netwrix Effective Permissions Reporting Tool](https://netwrix.com/en/resources/freeware/effective-permissions-reporting-tool/) e [SolarWinds Permissions Analyzer](https://www.solarwinds.com/free-tools/permissions-analyzer-for-active-directory).
+
 ## Rodada 2026-09-12 09:15 UTC — diagnóstico de 10 mil concluído; integração em validação
 
 - O PR [#25](https://github.com/MukaSanches/PermissionScope/pull/25) foi sincronizado duas vezes com `main`, sem force-push ou conflitos de conteúdo. O head desta rodada é `4f07ec0`; a integração permanece condicionada a todos os checks do head atual.

@@ -48,6 +48,10 @@ jobs:
       - name: Test
         if: matrix.architecture == 'x64'
         run: dotnet run --project tests/PermissionScope.Tests -c Release -- --results artifacts/test-results.json
+      - name: Typed worker replay safety
+        if: matrix.architecture == 'x64'
+        shell: pwsh
+        run: ./build/Test-WorkerReplay.ps1 -ReplayPath ./tests/PermissionScope.WorkerReplay/bin/Release/net10.0-windows10.0.19041.0/permissionscope-worker-replay.exe -CliPath ./src/PermissionScope.Cli/bin/Release/net10.0-windows10.0.19041.0/permissionscope-cli.exe
       - name: Website regression and accessibility
         if: matrix.architecture == 'x64'
         run: npm run test:site
