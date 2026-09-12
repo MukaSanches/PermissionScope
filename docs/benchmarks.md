@@ -83,3 +83,18 @@ Each synthetic fixture contained 10,000 empty files, 100 subdirectories and the 
 This is a local baseline for this package and fixture. It does not measure the WinUI process, JSON parsing in the parent, cooperative cancellation, remote/domain behavior or competing tools. Forced termination was requested after 500 ms and may include startup or identity resolution rather than active enumeration. The slower first run does not establish a cache or warm-up cause.
 
 The approximately 46.4 MB worker response and approximately 296 MB observed child peak at 10,101 objects justify measuring scan, serialization and consumer parsing separately before attempting 100,000 files on this host. They do not establish linear growth, an out-of-memory failure or a single root cause. The 100,000-file run was deferred pending a resource budget and monitoring plan.
+
+## Local 10,000-file phase diagnostics — 12 September 2026
+
+Three consecutive runs used a self-contained Release x64 CLI built from PR #25 head `a6e2dd2` before its final synchronization-only merge with `main`. All runs produced 10,101 resources with zero errors and zero Unknown decisions. Raw JSONL and local identity/path evidence were retained locally and were not committed.
+
+| Run | Worker elapsed | Scan | Serialize | Worker write | PowerShell parse | Observed worker peak |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 16,002.68 ms | 4,568.32 ms | 778.27 ms | 416.85 ms | 6,854.00 ms | 300,011,520 bytes |
+| 2 | 4,557.28 ms | 2,986.05 ms | 582.02 ms | 477.84 ms | 6,639.19 ms | 296,587,264 bytes |
+| 3 | 4,904.49 ms | 2,969.73 ms | 643.78 ms | 413.99 ms | 7,292.57 ms | 296,759,296 bytes |
+| Median | 4,904.49 ms | 2,986.05 ms | 643.78 ms | 416.85 ms | 6,854.00 ms | 296,759,296 bytes |
+
+Median PowerShell line-reading and validation times were 192.63 ms and 284.63 ms. Median output was 46,396,935 bytes and median forced process-termination latency was 22.09 ms.
+
+Within the worker, scan is the largest measured phase. PowerShell `ConvertFrom-Json` is a separate offline harness cost and must not be attributed to the WinUI app, which uses typed `System.Text.Json`. The first run has 10,239.24 ms outside the three worker phases; the data do not identify its cause. The next experiment should replay the captured JSONL through an isolated .NET consumer using the same read and deserialization path as `ScanWorker`, without repeating the filesystem scan.

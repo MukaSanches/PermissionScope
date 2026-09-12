@@ -1,5 +1,21 @@
 # Continuous improvement ledger
 
+## Rodada 2026-09-12 09:15 UTC — diagnóstico de 10 mil concluído; integração em validação
+
+- O PR [#25](https://github.com/MukaSanches/PermissionScope/pull/25) foi sincronizado duas vezes com `main`, sem force-push ou conflitos de conteúdo. O head desta rodada é `4f07ec0`; a integração permanece condicionada a todos os checks do head atual.
+- A instrumentação optativa por fase foi validada com build Release x64 (zero avisos/erros), teste específico de protocolo/equivalência/falhas/interrupção, verificação de 72 capturas e teste do site em Chromium, Firefox e WebKit: 11 viewports, oito idiomas e 11 verificações por engine.
+- A verificação de documentação invalidava capturas WinUI quando mudava somente a CLI. `Get-DocumentationFingerprint.ps1` agora cobre App, Core, Windows e assets, que são as fontes renderizadas; as 72 capturas foram reassociadas ao novo fingerprint. Desde a captura, esses caminhos só mudaram em lockfiles, já excluídos da regra.
+- Três medições sintéticas de 10 mil arquivos retornaram 10.101 objetos, zero erros e zero Unknown. Medianas: processo worker 4.904,49 ms; scan 2.986,05 ms; serialização 643,78 ms; escrita 416,85 ms; pico observado do worker 296.759.296 bytes; saída 46.396.935 bytes; término forçado 22,09 ms.
+- O consumidor PowerShell gastou mediana de 192,63 ms lendo linhas, 6.854,00 ms em `ConvertFrom-Json` e 284,63 ms validando. Isso mede o harness depois da execução do worker, não o parser `System.Text.Json`, memória ou responsividade da WinUI. A primeira execução teve 16.002,68 ms totais e 10.239,24 ms fora das fases do worker; a causa não foi atribuída.
+- Decisão da equipe: engenharia recomenda reproduzir o JSONL em um consumidor .NET isolado que use `ReadLineAsync`, `JsonSerializer.Deserialize<ScanMessage>` e `SnapshotJson.Options`. Produto mantém distribuição confiável e cobertura domínio/DFS como lacunas maiores. Licença confirmou Apache-2.0 coerente no head, sem referência própria obsoleta a MIT.
+- Próximo passo exato: concluir os checks e integrar o PR #25; depois medir três replays no consumidor .NET antes de projetar streaming ou lotes. O teste de 100 mil continua adiado.
+
+### Autoanálise competitiva — 12/09/2026
+
+PermissionScope está no nível de ferramenta especializada com distribuição pública e validação crescente. Apache-2.0, v1.0.1, a baseline de 10 mil e o diagnóstico por fases aumentam maturidade e verificabilidade, mas não provam superioridade nem ganho de desempenho. AccessChk permanece mais amplo em objetos Windows; Netwrix e SolarWinds apresentam análise de usuários, grupos, AD e herança. Os pontos fortes do PermissionScope continuam sendo evidência por ACE, Authz, Unknown explícito, execução local, snapshots e rollback.
+
+As três prioridades competitivas são: medir o consumidor .NET/GUI antes de mudar o transporte; validar domínios, DFS e identidades remotas em corpus representativo; e avançar assinatura Authenticode e canais Store/WinGet. Acessibilidade WinUI certificada e teste físico ARM64 também permanecem não avaliados. Fontes oficiais consultadas: [Microsoft AccessChk](https://learn.microsoft.com/en-us/sysinternals/downloads/accesschk), [Netwrix Effective Permissions Reporting Tool](https://netwrix.com/en/resources/freeware/effective-permissions-reporting-tool/) e [SolarWinds Permissions Analyzer](https://www.solarwinds.com/free-tools/permissions-analyzer-for-active-directory).
+
 ## Rodada 2026-09-11 23:12 UTC — instrumentação por fase implementada e validada
 
 - PR #24: após nova sincronização no head `7920254`, Dependency Review, Windows Build, CodeQL e Production Trust passaram; o diff continuou restrito à documentação e foi integrado por squash em `c843f36`.
