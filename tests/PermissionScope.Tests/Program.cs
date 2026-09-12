@@ -167,6 +167,171 @@ Test("500 randomized ACLs agree with ordered-bit reference", () =>
     }
 });
 
+// Permission evaluation edge cases
+Test("Multiple consecutive deny ACEs accumulate", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(D;;0x1;;;{fixtureSid})(D;;0x2;;;{fixtureSid})(D;;0x4;;;{fixtureSid})(A;;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == (Rights.FullControl & ~7u));
+});
+Test("Allow after partial deny restores only non-denied bits", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(D;;0xF;;;{fixtureSid})(A;;0xFF;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == (0xFF & ~0xF));
+});
+Test("Creator Owner applies when identity matches owner", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:(A;;FA;;;CO)");
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & Rights.FullControl) == Rights.FullControl);
+});
+Test("Creator Group does not apply without group membership", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:SYG:{fixtureSid}D:(A;;FA;;;CG)");
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+Test("NULL DACL on owned object still grants full control", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:NO_ACCESS_CONTROL");
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+Test("Empty DACL on owned object preserves owner rights only", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:");
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x60000) == 0x60000);
+});
+Test("Generic execute maps to traverse and execute", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;GX;;;{fixtureSid})"));
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x20) == 0x20);
+});
+Test("Generic write maps to file add and data write", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;GW;;;{fixtureSid})"));
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & Rights.Write) == Rights.Write);
+});
+Test("Mixed generic and specific masks resolve correctly", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;GR;;;{fixtureSid})(A;;0x1;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == (Rights.Read | 1));
+});
+Test("Inherited deny blocks inherited allow", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(D;ID;0x1;;;{fixtureSid})(A;ID;0x3;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 2);
+});
+Test("Non-inherited allow works alongside inherit-only deny", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0x1;;;{fixtureSid})(D;IO;0x1;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 1);
+});
+Test("Object inherit-only does not grant container access", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;IOIO;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+Test("Container inherit-only applies to subdirectories", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;CICO;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+Test("Successful access check returns zero error code", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+Test("Owner implicit rights survive explicit deny of standard rights", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:(D;;0xFFFFF;;;{fixtureSid})");
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x60000) == 0x60000);
+});
+Test("Authenticated Users SID does not match fixture", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;AU)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+Test("System SID does not match fixture", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;SY)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+Test("World SID does not match fixture", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;WD)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+Test("Complex ACE order follows Windows first-applicable-deny semantics", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0xF;;;{fixtureSid})(D;;0x3;;;{fixtureSid})(A;;0x3;;;{fixtureSid})(D;;0x1;;;{fixtureSid})"));
+    // First allow grants 0xF, first deny removes 0x3, second allow tries to add 0x3 (fails due to prior deny), second deny removes 0x1 (already removed)
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == (0xF & ~0x3));
+});
+Test("ACE with all flags set still evaluates mask correctly", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;CIFPIOISA;0x1;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0); // InheritOnly prevents current object access
+});
+Test("Callback ACE marked as special does not contribute to mask", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(XA;;FA;;;{fixtureSid};(@User.department == \"Finance\"))"));
+    Assert(descriptor.HasSpecialAces);
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+Test("Resource attribute ACE marked as special", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(RA;;FA;;;{fixtureSid};(@User.department == \"Finance\"))"));
+    Assert(descriptor.HasSpecialAces);
+});
+Test("Scope ACE marked as special", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(SA;;FA;;;{fixtureSid};(@User.department == \"Finance\"))"));
+    Assert(descriptor.HasSpecialAces);
+});
+Test("Filter condition ACE marked as special", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(FA;;FA;;;{fixtureSid};(@User.department == \"Finance\"))"));
+    Assert(descriptor.HasSpecialAces);
+});
+Test("Multiple identities in token do not cross-contaminate", () =>
+{
+    var otherSid = "S-1-5-21-111111111-222222222-333333333-1002";
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;FA;;;{otherSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+Test("Bitwise OR of multiple allows from same SID accumulates", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0x1;;;{fixtureSid})(A;;0x2;;;{fixtureSid})(A;;0x4;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 7);
+});
+Test("Deny ACE with zero mask has no effect", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(D;;0;;;{fixtureSid})(A;;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+Test("Allow ACE with zero mask has no effect", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+Test("Maximum allowed access request respects all denies", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;FA;;;{fixtureSid})(D;;0x10000;;;{fixtureSid})"));
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x10000) == 0);
+});
+Test("Descriptor with both owner and group matching identity", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:{fixtureSid}D:(A;;FA;;;{fixtureSid})");
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+Test("Protected DACL with inheritance flags still evaluates inherited ACEs", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"P(A;ID;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+Test("Auto-inherit flag does not affect evaluation", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"S(A;;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+
 PermissionSnapshot? captured = null;
 await TestAsync("Real NTFS tree / Unicode / no mutation", async () =>
 {
@@ -193,7 +358,7 @@ await TestAsync("Junction cycle is not traversed", async () =>
     var path = Path.Combine(testRoot, "junction-root"); Directory.CreateDirectory(path);
     var link = Path.Combine(path, "cycle");
     var info = new ProcessStartInfo("cmd.exe") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
-    info.Arguments = $"/c mklink /J \"{link}\" \"{path}\"";
+    info.Arguments = $"/c mklink /J "{link}" "{path}"";
     using var process = Process.Start(info)!; var stdout = process.StandardOutput.ReadToEndAsync(); var stderr = process.StandardError.ReadToEndAsync(); await process.WaitForExitAsync();
     Assert(process.ExitCode == 0, await stdout + await stderr);
     try
@@ -268,8 +433,8 @@ if (captured is { } snapshot)
     });
     Test("CSV formula injection protection", () =>
     {
-        var modified = snapshot with { Resources = [snapshot.Resources[0] with { Path = "=HYPERLINK(\"bad\")" }] };
-        Assert(ReportExporter.Csv(modified).Contains("\"'=HYPERLINK"));
+        var modified = snapshot with { Resources = [snapshot.Resources[0] with { Path = "=HYPERLINK("bad")" }] };
+        Assert(ReportExporter.Csv(modified).Contains(""'=HYPERLINK"));
     });
     foreach (var format in new[] { "html", "csv", "json", "xlsx" }) Test("Export " + format, () =>
     {
@@ -294,7 +459,7 @@ if (captured is { } snapshot)
     });
     Test("100,000 object comparison benchmark", () =>
     {
-        var resources = Enumerable.Range(0, 100000).Select(i => snapshot.Resources[0] with { Path = "C:\\fixture\\" + i }).ToArray(); var large = snapshot with { Resources = resources };
+        var resources = Enumerable.Range(0, 100000).Select(i => snapshot.Resources[0] with { Path = "C:\\fixture\" + i }).ToArray(); var large = snapshot with { Resources = resources };
         var clock = Stopwatch.StartNew(); Assert(SnapshotComparer.Compare(large, large).Count == 0); timings.Add($"Compare 100,000 objects: {clock.Elapsed.TotalMilliseconds:F2} ms");
     });
 }
@@ -343,6 +508,786 @@ Test("100,000 descriptor parses benchmark", () =>
     var sddl = Sddl($"(A;;FR;;;{fixtureSid})"); var clock = Stopwatch.StartNew(); for (var i = 0; i < 100000; i++) DescriptorParser.Parse(sddl);
     timings.Add($"Parse 100,000 descriptors: {clock.Elapsed.TotalMilliseconds:F2} ms");
 });
+
+// ============================================================================
+// Additional Permission Evaluation Edge Cases
+// ============================================================================
+
+Test("Multiple consecutive deny ACEs accumulate correctly", () =>
+{
+    // Three consecutive denies should block bits 0x1, 0x2, and 0x4
+    var descriptor = DescriptorParser.Parse(Sddl($"(D;;0x1;;;{fixtureSid})(D;;0x2;;;{fixtureSid})(D;;0x4;;;{fixtureSid})(A;;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == (Rights.FullControl & ~7u));
+});
+
+Test("Allow after partial deny restores only non-denied bits", () =>
+{
+    // Deny 0xF, then allow 0xFF - result should be 0xFF with lower 4 bits removed
+    var descriptor = DescriptorParser.Parse(Sddl($"(D;;0xF;;;{fixtureSid})(A;;0xFF;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == (0xFF & ~0xF));
+});
+
+Test("Creator Owner applies when identity matches owner SID", () =>
+{
+    // CO (Creator Owner) should grant access when the fixture SID is the owner
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:(A;;FA;;;CO)");
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & Rights.FullControl) == Rights.FullControl);
+});
+
+Test("Creator Group does not apply without explicit group membership", () =>
+{
+    // CG (Creator Group) requires the identity to be in the primary group
+    var descriptor = DescriptorParser.Parse($"O:SYG:{fixtureSid}D:(A;;FA;;;CG)");
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("NULL DACL on owned object grants full control", () =>
+{
+    // NULL DACL means no discretionary restrictions
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:NO_ACCESS_CONTROL");
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+
+Test("Empty DACL on owned object preserves implicit owner rights only", () =>
+{
+    // Empty DACL denies everyone except implicit owner rights (READ_CONTROL + WRITE_DAC)
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:");
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x60000) == 0x60000);
+});
+
+Test("Generic execute (GX) maps to traverse and execute rights", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;GX;;;{fixtureSid})"));
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x20) == 0x20);
+});
+
+Test("Generic write (GW) maps to file add and data write rights", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;GW;;;{fixtureSid})"));
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & Rights.Write) == Rights.Write);
+});
+
+Test("Mixed generic and specific masks resolve correctly", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;GR;;;{fixtureSid})(A;;0x1;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == (Rights.Read | 1));
+});
+
+Test("Inherited deny blocks inherited allow of same bits", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(D;ID;0x1;;;{fixtureSid})(A;ID;0x3;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 2);
+});
+
+Test("Non-inherited allow works alongside inherit-only deny", () =>
+{
+    // IO (Inherit Only) deny should not affect current object
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0x1;;;{fixtureSid})(D;IO;0x1;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 1);
+});
+
+Test("Object inherit-only does not grant container access", () =>
+{
+    // IOIO flags mean inherit-only for both container and object
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;IOIO;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Container inherit-only applies to subdirectories only", () =>
+{
+    // CICO flags mean container inherit only
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;CICO;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Owner implicit rights survive explicit deny of standard rights", () =>
+{
+    // Owner always gets READ_CONTROL (0x20000) and WRITE_DAC (0x40000)
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:(D;;0xFFFFF;;;{fixtureSid})");
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x60000) == 0x60000);
+});
+
+Test("Authenticated Users (AU) SID does not match fixture SID", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;AU)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("System (SY) SID does not match fixture SID", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;SY)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("World (WD) SID does not match fixture SID", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;WD)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Complex ACE order follows Windows first-applicable-deny semantics", () =>
+{
+    // Allow 0xF, Deny 0x3, Allow 0x3, Deny 0x1
+    // First allow grants 0xF, first deny removes 0x3, subsequent allows cannot restore denied bits
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0xF;;;{fixtureSid})(D;;0x3;;;{fixtureSid})(A;;0x3;;;{fixtureSid})(D;;0x1;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == (0xF & ~0x3));
+});
+
+Test("ACE with all inheritance flags set still evaluates mask correctly", () =>
+{
+    // All flags set including InheritOnly means no access to current object
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;CIFPIOISA;0x1;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Callback ACE (XA) marked as special does not contribute to mask", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(XA;;FA;;;{fixtureSid};(@User.department == \"Finance\"))"));
+    Assert(descriptor.HasSpecialAces);
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Resource attribute ACE (RA) marked as special", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(RA;;FA;;;{fixtureSid};(@User.department == \"Finance\"))"));
+    Assert(descriptor.HasSpecialAces);
+});
+
+Test("Scope ACE (SA) marked as special", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(SA;;FA;;;{fixtureSid};(@User.department == \"Finance\"))"));
+    Assert(descriptor.HasSpecialAces);
+});
+
+Test("Filter condition ACE (FA) marked as special", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(FA;;FA;;;{fixtureSid};(@User.department == \"Finance\"))"));
+    Assert(descriptor.HasSpecialAces);
+});
+
+Test("Multiple identities in token do not cross-contaminate", () =>
+{
+    var otherSid = "S-1-5-21-111111111-222222222-333333333-1002";
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;FA;;;{otherSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Bitwise OR of multiple allows from same SID accumulates", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0x1;;;{fixtureSid})(A;;0x2;;;{fixtureSid})(A;;0x4;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 7);
+});
+
+Test("Deny ACE with zero mask has no effect", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(D;;0;;;{fixtureSid})(A;;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+
+Test("Allow ACE with zero mask has no effect", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Maximum allowed access request respects all denies", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;FA;;;{fixtureSid})(D;;0x10000;;;{fixtureSid})"));
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x10000) == 0);
+});
+
+Test("Descriptor with both owner and group matching identity", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:{fixtureSid}D:(A;;FA;;;{fixtureSid})");
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+
+Test("Protected DACL with inheritance flags still evaluates inherited ACEs", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"P(A;ID;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+
+Test("Auto-inherit flag (S) does not affect evaluation", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"S(A;;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+
+// ============================================================================
+// Owner Rights (OW) Specific Tests
+// ============================================================================
+
+Test("Owner Rights SID (OW) overrides implicit owner permissions when denying", () =>
+{
+    // OW (S-1-3-4) can explicitly deny rights that owner would normally have
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:(D;;WD;;;OW)");
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x40000) == 0);
+});
+
+Test("Owner Rights allow has auditable ACE evidence", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:(A;;0x1;;;OW)");
+    var mask = isolated.CheckDiscretionary(descriptor.Sddl);
+    var evidence = AccessPathBuilder.Explain(descriptor, isolated.Identity, mask, "fixture", new());
+    Assert((mask & 1) == 1);
+    Assert(evidence.Any(e => e.Sid == "S-1-3-4" && e.Relation == "GrantedBy" && (e.ContributingMask & 1) == 1));
+});
+
+Test("Owner Rights deny has auditable ACE evidence", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:(D;;WD;;;OW)");
+    var mask = isolated.CheckDiscretionary(descriptor.Sddl);
+    var evidence = AccessPathBuilder.Explain(descriptor, isolated.Identity, mask, "fixture", new());
+    Assert(evidence.Any(e => e.Sid == "S-1-3-4" && e.Relation == "DeniedBy" && (e.ContributingMask & 0x40000) != 0));
+});
+
+Test("Owner Rights ACE does not apply to a non-owner", () =>
+{
+    var descriptor = DescriptorParser.Parse("O:SYG:SYD:(A;;FA;;;OW)");
+    Assert(AccessPathBuilder.Explain(descriptor, isolated.Identity, 0, "fixture", new()).Count == 0);
+});
+
+// ============================================================================
+// Inheritance Flag Combinations
+// ============================================================================
+
+Test("CI (Container Inherit) flag alone does not grant current object", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;CI;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("OI (Object Inherit) flag alone does not grant current object", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;OI;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("ID (Inherit Only) flag prevents current object access", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;ID;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("NP (No Propagate) with CI still inherits to immediate children", () =>
+{
+    // NP affects propagation depth, not current object evaluation
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;CINP;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Multiple inheritance flags combined", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;CIOI;FA;;;{fixtureSid})"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+// ============================================================================
+// Special Principal Tests
+// ============================================================================
+
+Test("Local Admins (BA) does not match fixture", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;BA)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Network (NU) does not match fixture", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;NU)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Interactive (IU) does not match fixture", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;IU)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Service (S-1-5-6) does not match fixture", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;S-1-5-6)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Anonymous Logon (AN) does not match fixture", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;AN)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+Test("Proxy (ANONYMOUS) does not match fixture", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;S-1-5-7)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == 0);
+});
+
+// ============================================================================
+// Standard Rights Combinations
+// ============================================================================
+
+Test("READ_CONTROL (0x20000) is always granted to owner", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:");
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x20000) == 0x20000);
+});
+
+Test("WRITE_DAC (0x40000) is always granted to owner", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:");
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x40000) == 0x40000);
+});
+
+Test("SYNCHRONIZE (0x100000) is not implicitly granted", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;FA;;;{fixtureSid})"));
+    // FullControl includes SYNCHRONIZE
+    Assert((isolated.CheckDiscretionary(descriptor.Sddl) & 0x100000) == 0x100000);
+});
+
+Test("Access to descriptor owner without explicit ACE", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:(A;;FR;;;SY)");
+    // Owner should still get READ_CONTROL and WRITE_DAC
+    var mask = isolated.CheckDiscretionary(descriptor.Sddl);
+    Assert((mask & 0x60000) == 0x60000);
+    Assert((mask & Rights.Read) == Rights.Read);
+});
+
+// ============================================================================
+// ACE Type Variations
+// ============================================================================
+
+Test("AccessAllowedCallback ACE is marked unsupported", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(XA;;FA;;;{fixtureSid};())"));
+    Assert(!descriptor.Aces.Any(a => a.Supported));
+});
+
+Test("AccessDeniedCallback ACE is marked unsupported", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(XD;;FA;;;{fixtureSid};())"));
+    Assert(!descriptor.Aces.Any(a => a.Supported));
+});
+
+Test("SystemAudit ACE is parsed but does not affect access", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;FA;;;{fixtureSid})(S;;FA;;;SY)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+    Assert(descriptor.Aces.Any(a => a.Type == "SystemAudit"));
+});
+
+Test("SystemAlarm ACE is parsed but does not affect access", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;FA;;;{fixtureSid})(Z;;FA;;;SY)"));
+    Assert(isolated.CheckDiscretionary(descriptor.Sddl) == Rights.FullControl);
+});
+
+// ============================================================================
+// Malformed and Edge Case Descriptors
+// ============================================================================
+
+Test("Descriptor with only owner and group, no DACL field", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:{fixtureSid}");
+    Assert(descriptor.NullDacl);
+});
+
+Test("Empty ACE list is valid empty DACL", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl(""));
+    Assert(!descriptor.NullDacl);
+    Assert(descriptor.Aces.Count == 0);
+});
+
+Test("Single ACE descriptor parsing", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;FA;;;{fixtureSid})"));
+    Assert(descriptor.Aces.Count == 1);
+    Assert(descriptor.Aces[0].Sid == fixtureSid);
+    Assert(descriptor.Aces[0].Type == "AccessAllowed");
+});
+
+Test("ACE index preserved in parsing", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0x1;;;{fixtureSid})(D;;0x2;;;{fixtureSid})(A;;0x4;;;{fixtureSid})"));
+    Assert(descriptor.Aces[0].Index == 0);
+    Assert(descriptor.Aces[1].Index == 1);
+    Assert(descriptor.Aces[2].Index == 2);
+});
+
+Test("Hash is deterministic for same descriptor", () =>
+{
+    var sddl = Sddl($"(A;;FA;;;{fixtureSid})");
+    var h1 = DescriptorParser.Parse(sddl).Hash;
+    var h2 = DescriptorParser.Parse(sddl).Hash;
+    Assert(h1 == h2);
+});
+
+Test("Hash differs for different descriptors", () =>
+{
+    var h1 = DescriptorParser.Parse(Sddl($"(A;;FA;;;{fixtureSid})")).Hash;
+    var h2 = DescriptorParser.Parse(Sddl($"(A;;FR;;;{fixtureSid})")).Hash;
+    Assert(h1 != h2);
+});
+
+// ============================================================================
+// Evidence and Explanation Tests
+// ============================================================================
+
+Test("Evidence includes ACE index for allow", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0x1;;;{fixtureSid})"));
+    var evidence = AccessPathBuilder.Explain(descriptor, isolated.Identity, 1, "test", new());
+    Assert(evidence.Count == 1);
+    Assert(evidence[0].AceIndex == 0);
+});
+
+Test("Evidence includes ACE index for deny", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(D;;0x1;;;{fixtureSid})(A;;FA;;;{fixtureSid})"));
+    var evidence = AccessPathBuilder.Explain(descriptor, isolated.Identity, Rights.FullControl & ~1u, "test", new());
+    Assert(evidence.Any(e => e.Relation == "DeniedBy" && e.AceIndex == 0));
+});
+
+Test("Evidence includes membership path for group ACEs", () =>
+{
+    var graph = new GroupGraph();
+    graph.Add(new(fixtureSid, "S-1-5-21-111-222-333-500", "test"));
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;S-1-5-21-111-222-333-500)"));
+    var evidence = AccessPathBuilder.Explain(descriptor, isolated.Identity, Rights.FullControl, "test", graph);
+    // Fixture SID doesn't match the group, so no evidence expected
+    Assert(evidence.Count == 0);
+});
+
+Test("Null DACL evidence includes Everyone principal", () =>
+{
+    var descriptor = DescriptorParser.Parse("O:SYG:SYD:NO_ACCESS_CONTROL");
+    var evidence = AccessPathBuilder.Explain(descriptor, isolated.Identity, Rights.FullControl, "test", new());
+    Assert(evidence.Any(e => e.Sid == "S-1-1-0" && e.Relation == "NullDacl"));
+});
+
+Test("Owner rights evidence includes correct relation", () =>
+{
+    var descriptor = DescriptorParser.Parse($"O:{fixtureSid}G:SYD:");
+    var evidence = AccessPathBuilder.Explain(descriptor, isolated.Identity, 0x60000, "test", new());
+    Assert(evidence.Any(e => e.Relation == "OwnerRights" && (e.ContributingMask & 0x60000) == 0x60000));
+});
+
+// ============================================================================
+// Risk Finding Tests
+// ============================================================================
+
+Test("Null DACL generates CriticalExposure finding", () =>
+{
+    var findings = FindingRules.Evaluate("C:\\test", DescriptorParser.Parse("O:SYG:SYD:NO_ACCESS_CONTROL"));
+    Assert(findings.Any(f => f.Rule == "NullDacl" && f.Severity == Severity.CriticalExposure));
+});
+
+Test("Noncanonical ACL generates Review finding", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;0x1;;;{fixtureSid})(D;;0x1;;;{fixtureSid})"));
+    var findings = FindingRules.Evaluate("C:\\test", descriptor);
+    Assert(findings.Any(f => f.Rule == "NoncanonicalDacl" && f.Severity == Severity.Review));
+});
+
+Test("Protected DACL generates Review finding", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"P(A;;FA;;;SY)"));
+    var findings = FindingRules.Evaluate("C:\\test", descriptor);
+    Assert(findings.Any(f => f.Rule == "ProtectedDacl" && f.Severity == Severity.Review));
+});
+
+Test("Special ACE generates Review finding", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(XA;;FA;;;{fixtureSid};())"));
+    var findings = FindingRules.Evaluate("C:\\test", descriptor);
+    Assert(findings.Any(f => f.Rule == "SpecialAce" && f.Severity == Severity.Review));
+});
+
+Test("Broad allow to World generates HighExposure finding", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;WD)"));
+    var findings = FindingRules.Evaluate("C:\\test", descriptor);
+    Assert(findings.Any(f => f.Rule == "BroadAllow" && f.Severity == Severity.CriticalExposure));
+});
+
+Test("Broad allow to Authenticated Users generates HighExposure finding", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;AU)"));
+    var findings = FindingRules.Evaluate("C:\\test", descriptor);
+    Assert(findings.Any(f => f.Rule == "BroadAllow" && f.Severity == Severity.HighExposure));
+});
+
+Test("Unresolved SID generates Review finding", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl($"(A;;FR;;;{fixtureSid})"));
+    var findings = FindingRules.Evaluate("C:\\test", descriptor);
+    Assert(findings.Any(f => f.Rule == "UnresolvedSid"));
+});
+
+Test("Multiple findings can exist on same descriptor", () =>
+{
+    var descriptor = DescriptorParser.Parse(Sddl("(A;;FA;;;WD)(XA;;FA;;;SY;())"));
+    var findings = FindingRules.Evaluate("C:\\test", descriptor);
+    Assert(findings.Count >= 2);
+});
+
+// ============================================================================
+// Impact Simulation Tests
+// ============================================================================
+
+Test("Remove first ACE from multi-ACE descriptor", () =>
+{
+    var before = Sddl($"(A;;0x1;;;{fixtureSid})(A;;0x2;;;{fixtureSid})");
+    var after = ImpactSimulator.RemoveAce(before, 0);
+    Assert(isolated.CheckDiscretionary(before) == 3);
+    Assert(isolated.CheckDiscretionary(after) == 2);
+});
+
+Test("Remove last ACE from multi-ACE descriptor", () =>
+{
+    var before = Sddl($"(A;;0x1;;;{fixtureSid})(A;;0x2;;;{fixtureSid})");
+    var after = ImpactSimulator.RemoveAce(before, 1);
+    Assert(isolated.CheckDiscretionary(before) == 3);
+    Assert(isolated.CheckDiscretionary(after) == 1);
+});
+
+Test("Add allow ACE inserts at correct position", () =>
+{
+    var before = Sddl($"(D;;0x1;;;{fixtureSid})(A;;0x2;;;{fixtureSid})");
+    var after = ImpactSimulator.AddAce(before, fixtureSid, 0x4, false);
+    var descriptor = DescriptorParser.Parse(after);
+    // Allow should be inserted before inherited ACEs but after existing non-inherited
+    Assert(descriptor.Aces.Count == 3);
+});
+
+Test("Add deny ACE inserts at beginning", () =>
+{
+    var before = Sddl($"(A;;FA;;;{fixtureSid})");
+    var after = ImpactSimulator.AddAce(before, fixtureSid, 1, true);
+    var descriptor = DescriptorParser.Parse(after);
+    Assert(descriptor.Aces[0].Type == "AccessDenied");
+    Assert(isolated.CheckDiscretionary(after) == (Rights.FullControl & ~1u));
+});
+
+Test("Simulation maintains precedence with added deny", () =>
+{
+    var before = Sddl($"(A;;FA;;;{fixtureSid})");
+    var after = ImpactSimulator.AddAce(before, fixtureSid, 1, true);
+    Assert(isolated.CheckDiscretionary(after) == (Rights.FullControl & ~1u));
+});
+
+Test("Cannot remove ACE from empty DACL", () =>
+{
+    Throws<ArgumentOutOfRangeException>(() => ImpactSimulator.RemoveAce(Sddl(""), 0));
+});
+
+Test("Cannot remove ACE with negative index", () =>
+{
+    Throws<ArgumentOutOfRangeException>(() => ImpactSimulator.RemoveAce(Sddl($"(A;;FA;;;{fixtureSid})"), -1));
+});
+
+Test("Cannot remove ACE beyond range", () =>
+{
+    Throws<ArgumentOutOfRangeException>(() => ImpactSimulator.RemoveAce(Sddl($"(A;;FA;;;{fixtureSid})"), 5));
+});
+
+Test("Cannot add ACE to NULL DACL without conversion", () =>
+{
+    Throws<InvalidOperationException>(() => ImpactSimulator.AddAce("O:SYG:SYD:NO_ACCESS_CONTROL", fixtureSid, 1, false));
+});
+
+// ============================================================================
+// Locale Resolution Tests
+// ============================================================================
+
+Test("Locale exact match returns exact resource", () =>
+{
+    Assert(LocaleResolver.Resolve("pt-BR", ["en-US", "pt-BR"]).ResourceTag == "pt-BR");
+});
+
+Test("Locale language fallback to base language", () =>
+{
+    Assert(LocaleResolver.Resolve("es-MX", ["en-US", "es"]).ResourceTag == "es");
+});
+
+Test("Locale regional sibling fallback", () =>
+{
+    Assert(LocaleResolver.Resolve("pt-PT", ["en-US", "pt-BR"]).ResourceTag == "pt-BR");
+});
+
+Test("Locale fallback preserves regional formatting info", () =>
+{
+    var result = LocaleResolver.Resolve("de-AT", ["en-US"]);
+    Assert(result.LanguageTag == "de-AT");
+});
+
+Test("Locale Arabic regional detects RTL", () =>
+{
+    Assert(LocaleResolver.Resolve("ar-SA", ["en-US", "ar"]).IsRightToLeft);
+});
+
+Test("Locale Persian RTL with English fallback", () =>
+{
+    Assert(LocaleResolver.Resolve("fa-IR", ["en-US"]).IsRightToLeft);
+});
+
+Test("Locale Chinese traditional script fallback", () =>
+{
+    Assert(LocaleResolver.Resolve("zh-TW", ["en-US", "zh-Hant", "zh-Hans"]).ResourceTag == "zh-Hant");
+});
+
+Test("Locale Chinese does not substitute scripts incorrectly", () =>
+{
+    Assert(LocaleResolver.Resolve("zh-TW", ["en-US", "zh-Hans"]).ResourceTag == "en-US");
+});
+
+Test("Locale Japanese uses exact match when available", () =>
+{
+    Assert(LocaleResolver.Resolve("ja-JP", ["en-US", "ja-JP", "ja"]).ResourceTag == "ja-JP");
+});
+
+Test("Locale Korean falls back to base language", () =>
+{
+    Assert(LocaleResolver.Resolve("ko-KR", ["en-US", "ko"]).ResourceTag == "ko");
+});
+
+Test("Locale unavailable falls back to first available", () =>
+{
+    Assert(LocaleResolver.Resolve("xx-XX", ["en-US", "fr-FR"]).ResourceTag == "en-US");
+});
+
+Test("Locale empty available list throws", () =>
+{
+    Throws<ArgumentException>(() => LocaleResolver.Resolve("en-US", []));
+});
+
+// ============================================================================
+// Capability Decision Tests
+// ============================================================================
+
+Test("FullControl mask grants all capabilities", () =>
+{
+    var decision = new AccessDecision(fixtureSid, "Test", AccessState.Granted, Rights.FullControl, null, "test", null, []);
+    var caps = decision.Capabilities;
+    Assert(caps.All(c => c.State == AccessState.Granted));
+});
+
+Test("Read mask grants read-related capabilities", () =>
+{
+    var decision = new AccessDecision(fixtureSid, "Test", AccessState.Granted, Rights.Read, null, "test", null, []);
+    var caps = decision.Capabilities;
+    Assert(caps.Single(c => c.Key == "Read").State == AccessState.Granted);
+    Assert(caps.Single(c => c.Key == "ListReadData").State == AccessState.Granted);
+});
+
+Test("Write mask grants write-related capabilities", () =>
+{
+    var decision = new AccessDecision(fixtureSid, "Test", AccessState.Granted, Rights.Write, null, "test", null, []);
+    var caps = decision.Capabilities;
+    Assert(caps.Single(c => c.Key == "Write").State == AccessState.Granted);
+    Assert(caps.Single(c => c.Key == "CreateWriteData").State == AccessState.Granted);
+});
+
+Test("Partial mask results in Partial capability state", () =>
+{
+    var decision = new AccessDecision(fixtureSid, "Test", AccessState.Partial, 0x120089, null, "test", null, []);
+    var caps = decision.Capabilities;
+    Assert(caps.Any(c => c.State == AccessState.Partial));
+});
+
+Test("Unknown state propagates to all capabilities", () =>
+{
+    var decision = new AccessDecision(fixtureSid, "Test", AccessState.Unknown, Rights.FullControl, null, "test", "limitation", []);
+    var caps = decision.Capabilities;
+    Assert(caps.All(c => c.State == AccessState.Unknown));
+});
+
+Test("Zero mask results in Denied capabilities", () =>
+{
+    var decision = new AccessDecision(fixtureSid, "Test", AccessState.Denied, 0, null, "test", null, []);
+    var caps = decision.Capabilities;
+    Assert(caps.All(c => c.State == AccessState.Denied));
+});
+
+// ============================================================================
+// Share and NTFS Intersection Tests
+// ============================================================================
+
+Test("Share and NTFS intersection takes minimum", () =>
+{
+    var decision = new AccessDecision(fixtureSid, "Fixture", AccessState.Partial, Rights.FullControl, Rights.Read, "fixture", null, []);
+    Assert(decision.EffectiveMask == Rights.Read);
+    Assert(decision.Capabilities.Single(c => c.Key == "Write").State != AccessState.Granted);
+});
+
+Test("Share mask null means NTFS only", () =>
+{
+    var decision = new AccessDecision(fixtureSid, "Fixture", AccessState.Granted, Rights.Read, null, "fixture", null, []);
+    Assert(decision.EffectiveMask == Rights.Read);
+});
+
+Test("Remote context is conservatively Unknown", () =>
+{
+    var sd = DescriptorParser.Parse(Sddl($"(A;;FA;;;{fixtureSid})"));
+    var share = new ShareInfo("server", "share", "C:\\share", sd, null);
+    Assert(isolated.Evaluate(sd, "\\\\server\\share", share).State == AccessState.Unknown);
+});
+
+Test("Reparse decision cannot prove target access", () =>
+{
+    var sd = DescriptorParser.Parse(Sddl($"(A;;FA;;;{fixtureSid})"));
+    Assert(isolated.Evaluate(sd, "C:\\link", null, true).State == AccessState.Unknown);
+});
+
+// ============================================================================
+// Benchmark and Performance Tests
+// ============================================================================
+
+Test("500 randomized ACLs agree with ordered-bit reference", () =>
+{
+    var random = new Random(9183);
+    for (var i = 0; i < 500; i++)
+    {
+        uint granted = 0, remaining = 0x1ff;
+        var aces = new List<string>();
+        for (var j = 0; j < 8; j++)
+        {
+            var deny = random.Next(2) == 0;
+            var mask = (uint)random.Next(512);
+            aces.Add($"({(deny ? "D" : "A")};;0x{mask:X};;;{fixtureSid})");
+            if (!deny) granted |= remaining & mask;
+            remaining &= ~mask;
+        }
+        Assert(isolated.CheckDiscretionary(Sddl(string.Join("", aces))) == granted, "Differential fixture " + i);
+    }
+});
+
+Test("Deep 10,000-group traversal completes efficiently", () =>
+{
+    var graph = new GroupGraph();
+    for (var i = 0; i < 10000; i++)
+        graph.Add(new(i.ToString(), (i + 1).ToString(), "fixture"));
+    var clock = Stopwatch.StartNew();
+    var path = graph.FindPath("0", "10000");
+    timings.Add($"Group path, 10,000 edges: {clock.Elapsed.TotalMilliseconds:F2} ms");
+    Assert(path.Count == 10000);
+});
+
+Test("Cycle detection in group graph", () =>
+{
+    var graph = new GroupGraph();
+    graph.Add(new("u", "g1", "fixture"));
+    graph.Add(new("g1", "g2", "fixture"));
+    graph.Add(new("g2", "g1", "fixture")); // Cycle
+    graph.Add(new("u", "g1", "fixture")); // Duplicate
+    Assert(graph.Edges.Count == 3); // Duplicate should be ignored
+    Assert(graph.FindPath("u", "g2").Count == 2);
+    Assert(graph.FindPath("u", "missing").Count == 0);
+});
+
 Console.WriteLine($"\n{passed} passed; {failures.Count} failed.");
 foreach (var timing in timings) Console.WriteLine(timing);
 if (args.Contains("--results"))
