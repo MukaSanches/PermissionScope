@@ -1,7 +1,15 @@
 function Get-DocumentationFingerprint {
     param([Parameter(Mandatory)][string]$Root)
     # Track rendered behavior and dependencies, without invalidating images for test-only or license changes.
-    $files = Get-ChildItem -LiteralPath (Join-Path $Root 'src'),(Join-Path $Root 'assets') -Recurse -File |
+    # Native screenshots exercise the WinUI app and its Core/Windows dependencies.
+    # CLI-only protocol or benchmark changes do not alter the captured interface.
+    $renderedRoots = @(
+        (Join-Path $Root 'src/PermissionScope.App'),
+        (Join-Path $Root 'src/PermissionScope.Core'),
+        (Join-Path $Root 'src/PermissionScope.Windows'),
+        (Join-Path $Root 'assets')
+    )
+    $files = Get-ChildItem -LiteralPath $renderedRoots -Recurse -File |
         Where-Object { $_.FullName -notmatch '[\\/](bin|obj)[\\/]' -and $_.Name -ne 'packages.lock.json' } | Sort-Object FullName
     $lines = foreach ($file in $files) {
         $relative=[IO.Path]::GetRelativePath($Root,$file.FullName).Replace('\','/')
