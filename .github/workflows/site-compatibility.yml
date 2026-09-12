@@ -43,7 +43,7 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - run: npm ci
+      - run: npm ci --ignore-scripts --no-fund
       - name: Install browser engines
         run: npx playwright install --with-deps chromium firefox webkit
       - name: Syntax and resource checks
