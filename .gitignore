@@ -1,11 +1,51 @@
-**/bin/
-**/obj/
-.vs/
-artifacts/
-*.user
-*.db*
-TestResults/
-.toolchain/
-node_modules/
-playwright-report/
-test-results/
+```
+# Dependencies
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.venv/
+.env
+.env.local
+.env.*
+.venv.bak/
+venv.bak/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing
+.coverage
+coverage/
+htmlcov/
+.noserc
+.pytest_cache/
+.hypothesis/
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+```
