@@ -74,6 +74,12 @@ if (!future.includes("intelligence.src='intelligence.js'")) throw new Error('Fut
 const manifest = JSON.parse(fs.readFileSync(path.join(siteDir, 'manifest.webmanifest'), 'utf8'));
 if (manifest.id !== '/PermissionScope/') throw new Error('PWA manifest must keep a stable explicit app id');
 if (manifest.start_url !== './' || manifest.scope !== './') throw new Error('Unexpected PWA start URL or scope');
+if (!Array.isArray(manifest.icons) || manifest.icons.length < 1) throw new Error('PWA manifest has no app icons');
+for (const icon of manifest.icons) {
+  if (!icon.src || !icon.sizes || !icon.type || !icon.purpose) throw new Error('Incomplete PWA icon metadata');
+  if (!fs.existsSync(path.join(siteDir, icon.src))) throw new Error(`Missing PWA icon asset: ${icon.src}`);
+  if (!sw.includes(`./${icon.src}`)) throw new Error(`PWA icon missing from offline shell: ${icon.src}`);
+}
 if (!Array.isArray(manifest.screenshots) || manifest.screenshots.length < 1) throw new Error('PWA manifest has no install preview screenshot');
 for (const screenshot of manifest.screenshots) {
   if (!screenshot.src || !screenshot.sizes || !screenshot.type || !screenshot.label) throw new Error('Incomplete PWA screenshot metadata');
@@ -83,7 +89,7 @@ for (const screenshot of manifest.screenshots) {
 for (const locale of webLocales.filter(locale => locale !== 'en-US')) {
   if (!manifest.description_localized?.[locale]) throw new Error(`Missing localized PWA description: ${locale}`);
   for (const shortcut of manifest.shortcuts ?? []) {
-    if (!shortcut.name_localized?.[locale] || !shortcut.short_name_localized?.[locale]) throw new Error(`Missing localized PWA shortcut metadata: ${locale}/${shortcut.url}`);
+    if (!shortcut.name_localized?.[locale] || !shortcut.short_name_localized?.[locale] || !shortcut.description_localized?.[locale]) throw new Error(`Missing localized PWA shortcut metadata: ${locale}/${shortcut.url}`);
   }
 }
 if (!sw.includes('navigationPreload.enable()')) throw new Error('Service worker navigation preload is not enabled');
