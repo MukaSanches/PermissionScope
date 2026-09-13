@@ -21,5 +21,6 @@ jobs:
         with:
           fail-on-severity: moderate
           show-openssf-scorecard: true
+          show-patched-versions: true
           retry-on-snapshot-warnings: true
           retry-on-snapshot-warnings-timeout: 180
