@@ -37,6 +37,21 @@ function Find-Control($window, [string]$id) {
     }
     throw "Missing demo control: $id"
 }
+function Assert-RenderedCapture([Drawing.Bitmap]$bitmap, [string]$relative) {
+    $colors=@{}
+    $samples=0
+    for($y=96; $y -lt $bitmap.Height-64; $y+=12) {
+        for($x=64; $x -lt $bitmap.Width-64; $x+=12) {
+            $argb=$bitmap.GetPixel($x,$y).ToArgb()
+            if($colors.ContainsKey($argb)) { $colors[$argb]++ } else { $colors[$argb]=1 }
+            $samples++
+        }
+    }
+    $dominant=($colors.Values | Measure-Object -Maximum).Maximum
+    if($samples -eq 0 -or $colors.Count -lt 4 -or ($dominant / $samples) -ge 0.995) {
+        throw "Native window capture has no rendered content: $relative"
+    }
+}
 foreach ($locale in $Locales) {
     if ($locale -notin @('en-US','pt-BR','es','fr','de','ar','ja','zh-Hans')) { throw 'Unsupported locale.' }
     foreach ($scene in $Scenes) {
@@ -99,7 +114,8 @@ foreach ($locale in $Locales) {
             $graphics = [Drawing.Graphics]::FromImage($bitmap); $dc=$graphics.GetHdc()
             try { if (-not [DocumentationCapture]::PrintWindow($handle,$dc,2)) { throw 'Native window capture failed.' } }
             finally { $graphics.ReleaseHdc($dc); $graphics.Dispose() }
-            try { $bitmap.Save($path,[Drawing.Imaging.ImageFormat]::Png) } finally { $bitmap.Dispose() }
+            try { Assert-RenderedCapture $bitmap $relative; $bitmap.Save($path,[Drawing.Imaging.ImageFormat]::Png) }
+            finally { $bitmap.Dispose() }
             $records = @($records | Where-Object { $_.path -ne $relative })
             $records += [pscustomobject]@{path=$relative;locale=$locale;scene=$scene;theme=$Theme;fixture='permissionscope-demo-v1';version='1.0.0';sourceSha256=$fingerprint;sha256=(Get-FileHash $path -Algorithm SHA256).Hash;width=$rect.Right-$rect.Left;height=$rect.Bottom-$rect.Top;dpi=[DocumentationCapture]::GetDpiForWindow($handle);capturedAt=[DateTimeOffset]::UtcNow.ToString('O');privacyCheck='Synthetic source and own-process accessibility tree checked; no OCR certification'}
             @{schema=1;captures=@($records | Sort-Object path)} | ConvertTo-Json -Depth 5 | Set-Content $manifestPath -Encoding UTF8
