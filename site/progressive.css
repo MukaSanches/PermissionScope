@@ -1,6 +1,12 @@
 /* Progressive, cross-browser enhancements for PermissionScope Pages.
    Everything here is additive: unsupported features simply fall back to the base styles. */
 
+/* Align browser-provided UI (form controls, scrollbars and canvas defaults) with
+   the light/dark theme that the site already renders via prefers-color-scheme. */
+:root{
+  color-scheme:light dark;
+}
+
 /* Defer below-the-fold rendering work while preserving layout, semantics and find-in-page. */
 @supports (content-visibility:auto){
   .section:not(.hero),

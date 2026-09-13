@@ -110,6 +110,8 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts --no-fund
+      - name: Verify npm package signatures
+        run: npm audit signatures
       - name: Audit npm dependencies
         run: npm audit --audit-level=moderate
       - name: Documentation and screenshot integrity
