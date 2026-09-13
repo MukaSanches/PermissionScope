@@ -110,5 +110,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts --no-fund
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=moderate
       - name: Documentation and screenshot integrity
         run: ./build/Verify-Documentation.ps1 -SkipBrowser

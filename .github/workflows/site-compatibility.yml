@@ -59,4 +59,5 @@ jobs:
         with:
           name: site-compatibility-report
           path: artifacts/site-compatibility.json
+          archive: false
           if-no-files-found: warn

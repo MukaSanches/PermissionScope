@@ -50,6 +50,25 @@
   }
 }
 
+/* Respect operating-system requests to reduce translucent/glass surfaces.
+   Unsupported browsers ignore this media feature and retain the normal design. */
+@media (prefers-reduced-transparency:reduce){
+  .navigation,
+  .spatial-badge,
+  .ps-command-launch,
+  .ps-assistant-launch{
+    background:var(--surface)!important;
+    backdrop-filter:none!important;
+  }
+  .ps-command::backdrop{
+    background:#070d16;
+    backdrop-filter:none!important;
+  }
+  .ps-grid-field{
+    display:none;
+  }
+}
+
 /* Preserve visible boundaries and keyboard focus in Windows High Contrast mode.
    Forced colors remain user-agent controlled; these rules only restore cues that
    can otherwise disappear when shadows and authored colors are suppressed. */
