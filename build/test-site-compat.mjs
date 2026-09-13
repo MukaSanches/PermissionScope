@@ -26,7 +26,7 @@ const viewports = [
   ['short-landscape',{width:844,height:390}]
 ];
 const locales = ['en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'];
-const report = { passed:true, engines:{}, viewports:viewports.map(v=>v[0]), locales, atelier:true, qualityAudit:true, monitorOnly3D:true };
+const report = { passed:true, engines:{}, viewports:viewports.map(v=>v[0]), locales, atelier:true, qualityAudit:true, monitorOnly3D:true, forcedColors:true };
 const errors = [];
 
 async function waitForProgressiveStyles(page) {
@@ -122,6 +122,38 @@ try {
         assert.equal(await page.evaluate(() => document.documentElement.dataset.localeLeak), 'false', `${engineName}/${locale}: locale leak audit failed`);
       }
       await context.close();
+
+      const forcedColorsContext = await browser.newContext({
+        viewport:{width:390,height:844},
+        locale:'en-US',
+        reducedMotion:'reduce',
+        contrast:'more',
+        forcedColors:'active'
+      });
+      await forcedColorsContext.route('**/*', route => route.request().url().startsWith(origin) ? route.continue() : route.abort());
+      const forcedColorsPage = await forcedColorsContext.newPage();
+      await forcedColorsPage.goto(origin + '/index.html', { waitUntil:'domcontentloaded' });
+      await waitForProgressiveStyles(forcedColorsPage);
+      assert.equal(await forcedColorsPage.evaluate(() => matchMedia('(forced-colors: active)').matches), true, `${engineName}: forced-colors emulation inactive`);
+      await assertNoHorizontalOverflow(forcedColorsPage, `${engineName}/forced-colors`);
+      const commandLaunch = forcedColorsPage.locator('.ps-command-launch');
+      assert(await commandLaunch.isVisible(), `${engineName}: command launch hidden in forced-colors`);
+      const forcedStyles = await commandLaunch.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return { borderStyle:style.borderTopStyle, borderWidth:style.borderTopWidth, boxShadow:style.boxShadow };
+      });
+      assert.notEqual(forcedStyles.borderStyle, 'none', `${engineName}: forced-colors boundary missing`);
+      assert.notEqual(forcedStyles.borderWidth, '0px', `${engineName}: forced-colors boundary width missing`);
+      assert.equal(forcedStyles.boxShadow, 'none', `${engineName}: forced-colors should not depend on shadow`);
+      await commandLaunch.focus();
+      const focusStyles = await commandLaunch.evaluate((el) => {
+        const style = getComputedStyle(el);
+        return { outlineStyle:style.outlineStyle, outlineWidth:style.outlineWidth };
+      });
+      assert.notEqual(focusStyles.outlineStyle, 'none', `${engineName}: forced-colors focus outline missing`);
+      assert.notEqual(focusStyles.outlineWidth, '0px', `${engineName}: forced-colors focus outline width missing`);
+      report.engines[engineName].checks++;
+      await forcedColorsContext.close();
     } finally { await browser.close(); }
   }
   fs.mkdirSync(path.join(root,'artifacts'), { recursive:true });
