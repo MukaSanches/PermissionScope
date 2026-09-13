@@ -15,7 +15,6 @@ on:
 
 permissions:
   contents: write
-  actions: write
 
 concurrency:
   group: permissionscope-docs-sync
@@ -64,8 +63,7 @@ jobs:
           gh auth setup-git
           for attempt in 1 2 3; do
             if git push origin HEAD:main; then
-              gh workflow run pages.yml --ref main
-              gh workflow run site-compatibility.yml --ref main
+              gh api --method POST "repos/${GITHUB_REPOSITORY}/dispatches" -f event_type='permissionscope-docs-synced'
               exit 0
             fi
             git fetch origin main

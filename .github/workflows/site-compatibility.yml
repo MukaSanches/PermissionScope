@@ -24,6 +24,8 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/site-compatibility.yml'
+  repository_dispatch:
+    types: [permissionscope-docs-synced]
   workflow_dispatch:
 
 permissions:
