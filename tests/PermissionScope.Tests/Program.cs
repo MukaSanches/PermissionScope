@@ -104,6 +104,37 @@ Test("Unknown context never exposes granted capabilities", () =>
     var decision = new AccessDecision(fixtureSid, "Fixture", AccessState.Unknown, Rights.FullControl, null, "fixture", "unavailable", []);
     Assert(decision.Capabilities.All(c => c.State == AccessState.Unknown));
 });
+Test("Remote Unknown guidance distinguishes server context", () =>
+{
+    var descriptor = DescriptorParser.Parse("O:SYG:SYD:(A;;FR;;;SY)");
+    var share = new ShareInfo("server", "share", null, null, null);
+    ResourceAccess Resource(DescriptorInfo? currentDescriptor = null, bool reparse = false, ScanError? error = null) =>
+        new("\\\\server\\share", true, reparse, DateTimeOffset.UtcNow, currentDescriptor, share, null, [], error);
+
+    var remote = Resource(descriptor);
+    Assert(AccessSummary.UnknownReason(remote) == "UnknownRemote");
+    Assert(AccessSummary.UnknownKnown(remote) == "KnownRemoteRules");
+    Assert(AccessSummary.UnknownNext(remote) == "UnknownRemoteNext");
+
+    var unavailableShare = Resource();
+    Assert(AccessSummary.UnknownReason(unavailableShare) == "UnknownRemote");
+    Assert(AccessSummary.UnknownKnown(unavailableShare) == "UnknownRead");
+    Assert(AccessSummary.UnknownNext(unavailableShare) == "UnknownRemoteNext");
+
+    var conditional = Resource(DescriptorParser.Parse(Sddl($"(XA;;FR;;;{fixtureSid};(@User.department == \"Finance\"))")));
+    Assert(AccessSummary.UnknownReason(conditional) == "UnknownConditional");
+    Assert(AccessSummary.UnknownKnown(conditional) == "KnownDescriptor");
+    Assert(AccessSummary.UnknownNext(conditional) == "UnknownNext");
+
+    var link = Resource(descriptor, reparse: true);
+    Assert(AccessSummary.UnknownReason(link) == "UnknownLink");
+    Assert(AccessSummary.UnknownNext(link) == "UnknownNext");
+
+    var unreadable = Resource(error: new ScanError("redacted", 5, "Access denied"));
+    Assert(AccessSummary.UnknownReason(unreadable) == "UnknownRead");
+    Assert(AccessSummary.UnknownKnown(unreadable) == "UnknownRead");
+    Assert(AccessSummary.UnknownNext(unreadable) == "UnknownNext");
+});
 Test("Share and NTFS intersection", () =>
 {
     var decision = new AccessDecision(fixtureSid, "Fixture", AccessState.Partial, Rights.FullControl, Rights.Read, "fixture", null, []);

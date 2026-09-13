@@ -463,7 +463,7 @@ public sealed class MainWindow : Window
         if (d is null || d.State == AccessState.Unknown)
         {
             var unknown = new StackPanel { Spacing = 8 };
-            foreach (var pair in new[] { ("WhatWeKnow", resource.Descriptor != null ? "KnownDescriptor" : "UnknownRead"), ("CouldNotVerify", AccessSummary.UnknownReason(resource)), ("WhyItMatters", "UnknownMeaning"), ("NextStep", "UnknownNext") })
+            foreach (var pair in new[] { ("WhatWeKnow", AccessSummary.UnknownKnown(resource)), ("CouldNotVerify", AccessSummary.UnknownReason(resource)), ("WhyItMatters", "UnknownMeaning"), ("NextStep", AccessSummary.UnknownNext(resource)) })
             { unknown.Children.Add(Text(T(pair.Item1), 14, true)); unknown.Children.Add(Text(T(pair.Item2), 13)); }
             detail.Children.Add(new Expander { Header = T("SummaryUnknown"), Content = unknown, IsExpanded = true, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch });
         }

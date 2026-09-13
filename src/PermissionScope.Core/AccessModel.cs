@@ -90,6 +90,13 @@ public static class AccessSummary
         resource.Descriptor?.HasSpecialAces == true ? "UnknownConditional" : resource.IsReparsePoint ? "UnknownLink" :
         resource.Share != null ? "UnknownRemote" : "UnknownContext";
 
+    public static string UnknownKnown(ResourceAccess resource) => resource.Error != null ? "UnknownRead" :
+        UnknownReason(resource) == "UnknownRemote" && (resource.Descriptor != null || resource.Share?.Descriptor != null) ? "KnownRemoteRules" :
+        resource.Descriptor != null ? "KnownDescriptor" : "UnknownRead";
+
+    public static string UnknownNext(ResourceAccess resource) =>
+        UnknownReason(resource) == "UnknownRemote" ? "UnknownRemoteNext" : "UnknownNext";
+
     public static string Diagnostic(string operation, int? errorCode, AccessState? state, bool remote) =>
         $"PermissionScope 1.0.0\nWindows: {Environment.OSVersion.Version}\nArchitecture: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}\nOperation: {operation}\nError code: {errorCode?.ToString() ?? "none"}\nDecision: {state?.ToString() ?? "unavailable"}\nResource kind: {(remote ? "remote" : "local")}\nPaths, account names, SIDs and descriptors are intentionally excluded.";
 }

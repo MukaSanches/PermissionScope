@@ -1,5 +1,21 @@
 # Continuous improvement ledger
 
+## Rodada 2026-09-13 15:18 UTC — orientação contextual para Unknown remoto
+
+- Implementado em `codex/remote-unknown-guidance`: o painel Unknown agora escolhe “o que sabemos” e “próximo passo” pela causa já classificada. Em recursos remotos com regras disponíveis, informa que a evidência foi obtida no contexto local e orienta validar a mesma identidade e caminho UNC no servidor do recurso, incluindo grupos locais e políticas do destino DFS aplicáveis. Os novos textos estão nos oito idiomas publicados.
+- A precedência conservadora foi preservada: erro de leitura, ACE especial e reparse point continuam usando sua própria razão e a orientação genérica; apenas `UnknownRemote` recebe a ação remota. Compartilhamento sem descritor disponível continua sendo informação indisponível, nunca acesso negado. Estado, máscaras, evidências, limitações, protocolo e schema de snapshots não mudaram.
+- Revisão real da equipe: engenharia exigiu derivar a ação de `UnknownReason` para evitar conselhos contraditórios; produto alertou que uma unidade mapeada não resolvida e DFS não permitem inferir o servidor efetivo; qualidade exigiu não confundir ACL ausente com negação e não sugerir elevação ou alteração de ACL. A implementação e os testes incorporam esses limites.
+- Validação local: build completo Release x64 passou com zero avisos e erros; harness Windows passou 89 testes e zero falhas; recursos e documentação validaram oito catálogos, 65 documentos, 72 imagens e oito mapeamentos de locale; `npm run check` passou. A automação nativa Production Trust percorreu 16 combinações de idioma/tema, comparação e simulação, todas aprovadas.
+- Próximo passo exato: publicar o lote em PR, confirmar o head exato e integrar somente após as verificações obrigatórias. Depois, medir legibilidade do texto remoto com leitor de tela manual e planejar um corpus autorizado de domínio/DFS; isso ainda não foi executado.
+
+### Autoanálise competitiva — 13/09/2026, rodada 15:18 UTC
+
+PermissionScope evoluiu em clareza e segurança de interpretação: a interface agora distingue evidência local disponível de contexto remoto não confirmado e dá uma ação concreta sem promover a projeção a resultado verificado. Isso fortalece seus diferenciais de Authz, evidência por ACE, Unknown explícito, processamento local, snapshots/rollback, Apache-2.0 e documentação em oito idiomas. Não demonstra maior correção ou cobertura que concorrentes em ambientes corporativos.
+
+AccessChk continua cobrindo mais tipos de objeto Windows, como Registro, processos, serviços e objetos globais. Netwrix e SolarWinds destacam usuários, grupos, Active Directory e herança; PermissionScope ainda não possui cobertura representativa de domínio, grupos locais do servidor ou DFS. A Microsoft documenta que avaliações remotas podem divergir por causa do token relativo à máquina de avaliação e recomenda executar a avaliação no servidor de recursos ou usar um gerenciador remoto; para permissões de compartilhamento, orienta usar caminho UNC. A mudança desta rodada comunica esse limite, sem resolvê-lo.
+
+Fatos verificados: testes automatizados acima, PR #31 integrado e textos contextuais locais. Inferência: a explicação reduz o risco de confiança indevida, mas não houve estudo de usabilidade. Não avaliados: benchmark equivalente de concorrentes, leitor de tela manual, domínio/DFS real, Authenticode, Store/WinGet, ARM64 físico e traduções humanas. Fontes consultadas em 13/09/2026: [Microsoft sobre verificações remotas](https://learn.microsoft.com/en-us/troubleshoot/windows-server/windows-security/access-checks-windows-apis-return-incorrect-results), [Microsoft AccessChk](https://learn.microsoft.com/en-us/sysinternals/downloads/accesschk), [Netwrix Effective Permissions Reporting Tool](https://netwrix.com/en/resources/freeware/effective-permissions-reporting-tool/) e [SolarWinds Permissions Analyzer](https://www.solarwinds.com/free-tools/permissions-analyzer-for-active-directory).
+
 ## Rodada 2026-09-13 00:17 UTC — memória simultânea do worker e consumidor
 
 - O PR [#30](https://github.com/MukaSanches/PermissionScope/pull/30) foi integrado por squash em `ae71b54` depois de Dependency Review, Windows build, Production Trust, CodeQL e Release passarem. Esta rodada partiu da `main` remota `68569fb`, já com as modernizações posteriores de CI.
