@@ -124,3 +124,27 @@ Three processes replayed the same 46,396,935-byte synthetic capture containing 2
 Allocated bytes are cumulative allocations, not simultaneous live memory. The observed peak includes process startup, hash verification, parsing and validation; `WorkingSetAfterDeserializeBytes` is the closest boundary observation before validation. The validation path checks unique/non-empty resource paths and therefore adds some memory after that observation.
 
 This result establishes that the typed consumer is materially faster than this harness's PowerShell parser, while still materializing a large object graph. It does not measure the pipe, concurrent parent/worker memory, WinUI binding/rendering or responsiveness. A transport or representation change needs an end-to-end equivalence test and a measured reduction before it can be called an optimization.
+
+## Concurrent worker and typed consumer — 13 September 2026
+
+`build/Measure-ConcurrentWorkerMemory.ps1` creates a bounded synthetic fixture, starts the .NET replay as the consumer and lets that process start the CLI worker. The consumer reads the worker's standard output directly with the production message contract. An atomic control file contains only the worker PID and start time so the external PowerShell supervisor can verify the exact child and sample both processes in the same cycle.
+
+```powershell
+pwsh -File build/Measure-ConcurrentWorkerMemory.ps1 `
+  -ReplayPath tests/PermissionScope.WorkerReplay/bin/x64/Release/net10.0-windows10.0.19041.0/permissionscope-worker-replay.exe `
+  -CliPath src/PermissionScope.Cli/bin/x64/Release/net10.0-windows10.0.19041.0/permissionscope-cli.exe `
+  -FileCount 10000 -Runs 3
+```
+
+Three local runs used base commit `68569fb` plus the working concurrent-measurement changes described in this section. They returned 10,101 objects with zero errors and zero Unknown decisions. The fixture used 10,000 empty files, 100 subdirectories and the root. The final commit identifies the complete tested source; executable hashes in the report identify the apphosts but not every accompanying DLL. Only sanitized aggregates were retained.
+
+| Run | Consumer total | Worker-active / consumer-only samples | Average observed interval | Maximum observed pipeline working set | Maximum observed pipeline private memory |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | 4,991.41 ms | 107 / 26 | 37.68 ms | 555,061,248 bytes | 672,518,144 bytes |
+| 2 | 4,561.09 ms | 100 / 24 | 37.02 ms | 548,716,544 bytes | 665,739,264 bytes |
+| 3 | 4,675.70 ms | 103 / 25 | 36.60 ms | 557,424,640 bytes | 666,435,584 bytes |
+| Median | 4,675.70 ms | 103 / 25 | 37.02 ms | 555,061,248 bytes | 666,435,584 bytes |
+
+Each pipeline maximum is the largest sum from one sample. While the worker is active, the sample sums worker and consumer; after its confirmed exit, the worker contributes zero and the consumer continues to be sampled through validation. Cycles before the verified worker identity was available are counted as missing rather than zero. The result is not the sum of independent process peaks. Working-set sums can count shared pages twice and therefore are not exclusive physical RAM; private-memory sums are committed private bytes and are not resident physical RAM. The requested interval was 20 ms, but the observed average was about 37 ms, so shorter peaks may be missed.
+
+The three runs were close enough to provide a bounded local observation, but they do not provide statistical significance or an SLA. The supervisor, kernel memory, WinUI binding/rendering and unrelated processes are excluded. The live mode has no preliminary file-hash pass, unlike the offline replay. Its output limit is enforced after each complete worker line is read, so it is a total-output rejection boundary for this trusted synthetic CLI, not a strict cap on the memory needed for one line. Standard error is drained but not published and is likewise trusted to the project CLI in this harness.

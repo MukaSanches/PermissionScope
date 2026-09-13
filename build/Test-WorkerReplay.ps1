@@ -68,7 +68,20 @@ try {
     $failureExit=$LASTEXITCODE; $failedRows=Get-Content $failureOutput -Raw|ConvertFrom-Json
     Assert-True ($failureExit -ne 0 -and @($failedRows).Count -eq 2 -and @($failedRows|Where-Object {$_.Status -ne 'failed'}).Count -eq 0) 'Supervisor did not preserve sanitized failed rows.'
     $global:LASTEXITCODE=0
-    'PASS: typed replay, Unicode root, malformed/truncated/duplicate/missing snapshots, hash and size limits, sanitized failures and retained failure rows.'
+    $concurrentOutput=Join-Path $root 'concurrent-report.json'; $concurrentError=Join-Path $root 'concurrent-report.err'
+    & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'Measure-ConcurrentWorkerMemory.ps1') -ReplayPath $replay -CliPath $cli -FileCount 1000 -Runs 1 -TimeoutSeconds 60 1>$concurrentOutput 2>$concurrentError
+    $concurrentExit=$LASTEXITCODE; $concurrentText=[IO.File]::ReadAllText($concurrentOutput); $concurrent=$concurrentText|ConvertFrom-Json
+    Assert-True ($concurrentExit -eq 0 -and [string]::IsNullOrEmpty([IO.File]::ReadAllText($concurrentError))) 'Concurrent worker measurement failed.'
+    Assert-True ($concurrent.status -eq 'passed' -and $concurrent.runs.Count -eq 1 -and $concurrent.runs[0].status -eq 'passed') 'Concurrent report is incomplete.'
+    Assert-True ($concurrent.runs[0].pairedSamples -gt 0 -and $concurrent.runs[0].memorySamples -gt 0 -and $concurrent.runs[0].maximumObservedPipelineWorkingSetBytes -gt 0 -and $concurrent.runs[0].maximumObservedPipelinePrivateBytes -gt 0) 'Concurrent memory was not sampled.'
+    Assert-True (-not $concurrentText.Contains($fixture,[StringComparison]::OrdinalIgnoreCase) -and -not $concurrentText.Contains($cli,[StringComparison]::OrdinalIgnoreCase) -and -not $concurrentText.Contains($replay,[StringComparison]::OrdinalIgnoreCase)) 'Concurrent report exposed a local path.'
+    $limitedOutput=Join-Path $root 'concurrent-limited.json'; $limitedError=Join-Path $root 'concurrent-limited.err'
+    & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'Measure-ConcurrentWorkerMemory.ps1') -ReplayPath $replay -CliPath $cli -FileCount 10 -Runs 1 -TimeoutSeconds 60 -MaxOutputBytes 1 1>$limitedOutput 2>$limitedError
+    $limitedExit=$LASTEXITCODE; $limitedText=[IO.File]::ReadAllText($limitedOutput); $limited=$limitedText|ConvertFrom-Json
+    Assert-True ($limitedExit -ne 0 -and $limited.status -eq 'failed' -and $limited.runs.Count -eq 1 -and $limited.runs[0].failure -eq 'replay-rejected') 'Concurrent output limit did not fail safely.'
+    Assert-True (-not $limitedText.Contains($fixture,[StringComparison]::OrdinalIgnoreCase) -and -not [IO.File]::ReadAllText($limitedError).Contains($fixture,[StringComparison]::OrdinalIgnoreCase)) 'Concurrent limit failure exposed a local path.'
+    $global:LASTEXITCODE=0
+    'PASS: typed replay, concurrent worker sampling, Unicode root, malformed/truncated/duplicate/missing snapshots, hash/output/size limits, sanitized failures and retained failure rows.'
 } finally {
     $resolvedRoot=[IO.Path]::GetFullPath($root); $resolvedTemp=[IO.Path]::GetFullPath([IO.Path]::GetTempPath())
     if($resolvedRoot.StartsWith($resolvedTemp,[StringComparison]::OrdinalIgnoreCase) -and [IO.Path]::GetFileName($resolvedRoot).StartsWith('PermissionScope-replay-tests-',[StringComparison]::Ordinal)) {
