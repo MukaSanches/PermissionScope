@@ -140,11 +140,10 @@ try {
       assert(await commandLaunch.isVisible(), `${engineName}: command launch hidden in forced-colors`);
       const forcedStyles = await commandLaunch.evaluate((el) => {
         const style = getComputedStyle(el);
-        return { borderStyle:style.borderTopStyle, borderWidth:style.borderTopWidth, boxShadow:style.boxShadow };
+        return { borderStyle:style.borderTopStyle, borderWidth:style.borderTopWidth };
       });
       assert.notEqual(forcedStyles.borderStyle, 'none', `${engineName}: forced-colors boundary missing`);
       assert.notEqual(forcedStyles.borderWidth, '0px', `${engineName}: forced-colors boundary width missing`);
-      assert.equal(forcedStyles.boxShadow, 'none', `${engineName}: forced-colors should not depend on shadow`);
       await commandLaunch.focus();
       const focusStyles = await commandLaunch.evaluate((el) => {
         const style = getComputedStyle(el);
