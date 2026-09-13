@@ -28,6 +28,10 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci --ignore-scripts --no-fund
+      - name: Verify npm supply chain
+        run: |
+          npm audit signatures
+          npm audit --audit-level=moderate
       - name: Validate site before deploy
         run: |
           npm run check
