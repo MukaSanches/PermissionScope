@@ -16,6 +16,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    cache-mode: read
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
