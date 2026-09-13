@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
     paths: ['site/**', '.github/workflows/pages.yml']
+  repository_dispatch:
+    types: [permissionscope-docs-synced]
   workflow_dispatch:
 permissions:
   contents: read

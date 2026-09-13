@@ -49,3 +49,38 @@
     color:var(--ink)!important;
   }
 }
+
+/* Preserve visible boundaries and keyboard focus in Windows High Contrast mode.
+   Forced colors remain user-agent controlled; these rules only restore cues that
+   can otherwise disappear when shadows and authored colors are suppressed. */
+@media (forced-colors:active){
+  a{text-decoration-thickness:2px}
+  :focus-visible{
+    outline:2px solid Highlight!important;
+    outline-offset:3px!important;
+  }
+  .primary,
+  .features article,
+  .course,
+  .proof-strip,
+  .trust-card,
+  .download-row,
+  .ps-download-card,
+  .ps-state,
+  .ps-format-card,
+  .ps-chain,
+  .ps-hash-drop,
+  .ps-command,
+  .ps-assistant,
+  .spatial-badge,
+  .ps-command-launch,
+  .ps-assistant-launch{
+    border:1px solid currentColor!important;
+    box-shadow:none!important;
+  }
+  .product img,
+  .spatial-device{
+    outline:1px solid CanvasText;
+    outline-offset:2px;
+  }
+}
