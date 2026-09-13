@@ -114,26 +114,26 @@ Test("Remote Unknown guidance distinguishes server context", () =>
     var remote = Resource(descriptor);
     Assert(AccessSummary.UnknownReason(remote) == "UnknownRemote");
     Assert(AccessSummary.UnknownKnown(remote) == "KnownRemoteRules");
-    Assert(AccessSummary.UnknownNext(remote) == "UnknownRemoteNext");
+    Assert(AccessSummary.UnknownNextStep(remote) == "UnknownRemoteNext");
 
     var unavailableShare = Resource();
     Assert(AccessSummary.UnknownReason(unavailableShare) == "UnknownRemote");
     Assert(AccessSummary.UnknownKnown(unavailableShare) == "UnknownRead");
-    Assert(AccessSummary.UnknownNext(unavailableShare) == "UnknownRemoteNext");
+    Assert(AccessSummary.UnknownNextStep(unavailableShare) == "UnknownRemoteNext");
 
     var conditional = Resource(DescriptorParser.Parse(Sddl($"(XA;;FR;;;{fixtureSid};(@User.department == \"Finance\"))")));
     Assert(AccessSummary.UnknownReason(conditional) == "UnknownConditional");
     Assert(AccessSummary.UnknownKnown(conditional) == "KnownDescriptor");
-    Assert(AccessSummary.UnknownNext(conditional) == "UnknownNext");
+    Assert(AccessSummary.UnknownNextStep(conditional) == "UnknownNext");
 
     var link = Resource(descriptor, reparse: true);
     Assert(AccessSummary.UnknownReason(link) == "UnknownLink");
-    Assert(AccessSummary.UnknownNext(link) == "UnknownNext");
+    Assert(AccessSummary.UnknownNextStep(link) == "UnknownNext");
 
     var unreadable = Resource(error: new ScanError("redacted", 5, "Access denied"));
     Assert(AccessSummary.UnknownReason(unreadable) == "UnknownRead");
     Assert(AccessSummary.UnknownKnown(unreadable) == "UnknownRead");
-    Assert(AccessSummary.UnknownNext(unreadable) == "UnknownNext");
+    Assert(AccessSummary.UnknownNextStep(unreadable) == "UnknownNext");
 });
 Test("Share and NTFS intersection", () =>
 {

@@ -94,7 +94,7 @@ public static class AccessSummary
         UnknownReason(resource) == "UnknownRemote" && (resource.Descriptor != null || resource.Share?.Descriptor != null) ? "KnownRemoteRules" :
         resource.Descriptor != null ? "KnownDescriptor" : "UnknownRead";
 
-    public static string UnknownNext(ResourceAccess resource) =>
+    public static string UnknownNextStep(ResourceAccess resource) =>
         UnknownReason(resource) == "UnknownRemote" ? "UnknownRemoteNext" : "UnknownNext";
 
     public static string Diagnostic(string operation, int? errorCode, AccessState? state, bool remote) =>
