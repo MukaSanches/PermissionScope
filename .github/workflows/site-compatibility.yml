@@ -49,6 +49,10 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts --no-fund
+      - name: Verify npm supply chain
+        run: |
+          npm audit signatures
+          npm audit --audit-level=moderate
       - name: Install browser engines
         run: npx playwright install --with-deps chromium firefox webkit
       - name: Syntax and resource checks
