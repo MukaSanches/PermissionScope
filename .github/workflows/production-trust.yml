@@ -22,6 +22,12 @@ on:
       - 'tests/**'
       - 'build/**'
       - 'distribution/**'
+      - 'docs/accessibility.md'
+      - 'docs/benchmarks.md'
+      - 'docs/capability-matrix.md'
+      - 'docs/hardware-validation.md'
+      - 'docs/store-readiness.md'
+      - 'docs/testing.md'
       - 'Directory.Build.props'
       - '.github/workflows/production-trust.yml'
   schedule:
