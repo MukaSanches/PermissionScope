@@ -78,7 +78,7 @@ async function focusedExposure(page) {
         if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) continue;
         totalSamples++;
         const hit = document.elementFromPoint(x, y);
-        if (hit && (hit === element || element.contains(hit))) visibleSamples++;
+        if (hit && (hit === element || element.contains(hit) || hit.contains(element))) visibleSamples++;
       }
     }
     return {
