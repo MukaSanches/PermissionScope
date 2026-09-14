@@ -48,7 +48,21 @@ async function focusedExposure(page) {
   return page.evaluate(() => {
     const element = document.activeElement;
     if (!(element instanceof HTMLElement) || element === document.body || element === document.documentElement) return null;
-    const rect = element.getBoundingClientRect();
+
+    // Custom file pickers commonly keep the native input tiny while exposing a
+    // larger, semantically associated label. Measure that label as the visible
+    // interaction surface instead of treating the intentionally hidden input as
+    // an obscured control. Do not generalize this to arbitrary hidden controls.
+    let visualElement = element;
+    if (element instanceof HTMLInputElement && element.type === 'file' && element.labels?.length) {
+      visualElement = [...element.labels].find(labelElement => {
+        const labelRect = labelElement.getBoundingClientRect();
+        const style = getComputedStyle(labelElement);
+        return labelRect.width > 1 && labelRect.height > 1 && style.display !== 'none' && style.visibility !== 'hidden';
+      }) ?? element;
+    }
+
+    const rect = visualElement.getBoundingClientRect();
     const left = Math.max(0, rect.left);
     const top = Math.max(0, rect.top);
     const right = Math.min(innerWidth, rect.right);
@@ -78,7 +92,7 @@ async function focusedExposure(page) {
         if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) continue;
         totalSamples++;
         const hit = document.elementFromPoint(x, y);
-        if (hit && (hit === element || element.contains(hit) || hit.contains(element))) visibleSamples++;
+        if (hit && (hit === visualElement || visualElement.contains(hit) || hit.contains(visualElement))) visibleSamples++;
       }
     }
     return {
@@ -86,6 +100,7 @@ async function focusedExposure(page) {
       exposed:visibleSamples > 0,
       visibleSamples,
       totalSamples,
+      visualProxy:visualElement === element ? null : visualElement.tagName.toLowerCase(),
       rect:{ x:rect.x, y:rect.y, width:rect.width, height:rect.height }
     };
   });
