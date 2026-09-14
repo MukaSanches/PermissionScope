@@ -54,7 +54,7 @@ jobs:
           npm audit signatures
           npm audit --audit-level=moderate
       - name: Install browser engines
-        run: npx playwright install --with-deps chromium firefox webkit
+        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
       - name: Syntax and resource checks
         run: npm run check
       - name: Universal compatibility suite
