@@ -15,8 +15,6 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-      id-token: write
-      attestations: write
     strategy:
       fail-fast: false
       matrix:
@@ -73,21 +71,6 @@ jobs:
       - name: Install and uninstall on disposable runner
         if: matrix.architecture == 'x64'
         run: ./build/Test-Installer.ps1
-      - name: Attest package provenance
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-path: |
-            artifacts/*.exe
-            artifacts/*.zip
-      - name: Attest package SBOM
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-path: |
-            artifacts/*.exe
-            artifacts/*.zip
-          sbom-path: artifacts/PermissionScope-${{ env.PERMISSIONSCOPE_VERSION }}-win-${{ matrix.architecture }}/sbom.cdx.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: PermissionScope-windows-${{ matrix.architecture }}
@@ -96,7 +79,55 @@ jobs:
             artifacts/*.zip
             artifacts/*.json
             artifacts/SHA256SUMS-*.txt
+            artifacts/PermissionScope-${{ env.PERMISSIONSCOPE_VERSION }}-win-${{ matrix.architecture }}/sbom.cdx.json
           if-no-files-found: error
+
+  attest:
+    name: Attest ${{ matrix.architecture }} packages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    cache-mode: none
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [x64, arm64]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Download this run's package artifact
+        shell: bash
+        run: |
+          gh run download "$GITHUB_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name "PermissionScope-windows-${{ matrix.architecture }}" \
+            --dir artifacts
+      - name: Locate SBOM
+        id: sbom
+        shell: bash
+        run: |
+          sbom="$(find artifacts -type f -name sbom.cdx.json -print -quit)"
+          test -n "$sbom"
+          echo "path=$sbom" >> "$GITHUB_OUTPUT"
+      - name: Attest package provenance
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            artifacts/*.exe
+            artifacts/*.zip
+      - name: Attest package SBOM
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            artifacts/*.exe
+            artifacts/*.zip
+          sbom-path: ${{ steps.sbom.outputs.path }}
 
   documentation:
     runs-on: windows-2022
