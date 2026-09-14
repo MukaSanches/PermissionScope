@@ -49,8 +49,12 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts --no-fund
+      - name: Verify npm supply chain
+        run: |
+          npm audit signatures
+          npm audit --audit-level=moderate
       - name: Install browser engines
-        run: npx playwright install --with-deps chromium firefox webkit
+        run: ./node_modules/.bin/playwright install --with-deps chromium firefox webkit
       - name: Syntax and resource checks
         run: npm run check
       - name: Universal compatibility suite
@@ -60,5 +64,19 @@ jobs:
         with:
           name: site-compatibility-report
           path: artifacts/site-compatibility.json
+          archive: false
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: site-touch-compatibility-report
+          path: artifacts/site-touch-compatibility.json
+          archive: false
+          if-no-files-found: warn
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: site-text-resize-compatibility-report
+          path: artifacts/site-text-resize-compatibility.json
           archive: false
           if-no-files-found: warn
