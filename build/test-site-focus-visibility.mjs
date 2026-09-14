@@ -125,9 +125,19 @@ try {
         assert.equal(await page.locator('html').getAttribute('lang'), locale, `${engineName}/${locale}: language metadata drifted`);
         assert.equal(await page.locator('html').getAttribute('dir'), locale === 'ar' ? 'rtl' : 'ltr', `${engineName}/${locale}: direction metadata drifted`);
 
-        await page.locator('body').click({ position:{ x:1, y:1 } });
-        const seen = new Set();
-        let focusStops = 0;
+        // Browser engines can choose different sequential-focus starting points
+        // after a synthetic pointer click. Anchor the traversal on the skip link
+        // itself, verify it is a normal tabbable link, then continue with real Tab
+        // presses through the rest of the document.
+        const skip = page.locator('a.skip');
+        assert.notEqual(await skip.getAttribute('tabindex'), '-1', `${engineName}/${locale}: skip link was removed from sequential focus order`);
+        await skip.focus();
+        const initialExposure = await focusedExposure(page);
+        assert(initialExposure?.label.startsWith('a.skip'), `${engineName}/${locale}: skip link could not receive focus`);
+        assert(initialExposure.exposed, `${engineName}/${locale}: skip link is entirely obscured or outside the viewport: ${JSON.stringify(initialExposure)}`);
+
+        const seen = new Set([initialExposure.label]);
+        let focusStops = 1;
         for (let step = 0; step < 80; step++) {
           await page.keyboard.press('Tab');
           const exposure = await focusedExposure(page);
