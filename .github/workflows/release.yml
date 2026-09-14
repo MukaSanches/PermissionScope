@@ -164,6 +164,10 @@ jobs:
     needs: preflight
     runs-on: windows-2022
     timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     env:
       RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
     steps:
@@ -186,6 +190,11 @@ jobs:
       - name: Create source archive
         shell: pwsh
         run: ./build/Package-Source.ps1
+      - name: Attest source archive provenance
+        if: github.event_name != 'pull_request'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-source.zip
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: PermissionScope-v${{ env.RELEASE_VERSION }}-source
@@ -226,7 +235,7 @@ jobs:
           done
           (cd dist && sha256sum "${expected[@]}" | sed 's/  \*/  /' > SHA256SUMS.txt)
           test "$(wc -l < dist/SHA256SUMS.txt)" -eq 5
-      - name: Verify package provenance before promotion
+      - name: Verify release provenance before promotion
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
@@ -236,6 +245,7 @@ jobs:
             "dist/PermissionScope-${RELEASE_VERSION}-win-x64.zip"
             "dist/PermissionScope-${RELEASE_VERSION}-arm64-Setup.exe"
             "dist/PermissionScope-${RELEASE_VERSION}-win-arm64.zip"
+            "dist/PermissionScope-${RELEASE_VERSION}-source.zip"
           )
           for artifact in "${artifacts[@]}"; do
             gh attestation verify "$artifact" \
