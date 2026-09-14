@@ -124,7 +124,7 @@ try {
         }
 
         assert(focusStops >= 8, `${engineName}/${locale}: keyboard traversal covered only ${focusStops} focus stops`);
-        assert(seen.has('a.skip'), `${engineName}/${locale}: skip link was not keyboard reachable`);
+        assert([...seen].some(label => label.startsWith('a.skip')), `${engineName}/${locale}: skip link was not keyboard reachable`);
         assert([...seen].some(label => label.includes('ps-command-launch')), `${engineName}/${locale}: command launcher was not keyboard reachable`);
         assert([...seen].some(label => label.includes('ps-assistant-launch')), `${engineName}/${locale}: assistant launcher was not keyboard reachable`);
         assert.equal(pageErrors.length, 0, `${engineName}/${locale}: ${pageErrors.join('; ')}`);
