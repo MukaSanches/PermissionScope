@@ -131,11 +131,29 @@ foreach ($locale in $Locales) {
             $path = Join-Path $output $relative
             $rect = New-Object DocumentationCapture+Rect
             if (-not [DocumentationCapture]::GetWindowRect($handle,[ref]$rect)) { throw 'Cannot obtain window bounds.' }
-            $bitmap = New-Object Drawing.Bitmap ($rect.Right-$rect.Left),($rect.Bottom-$rect.Top)
-            $graphics = [Drawing.Graphics]::FromImage($bitmap); $dc=$graphics.GetHdc()
-            try { if (-not [DocumentationCapture]::PrintWindow($handle,$dc,2)) { throw 'Native window capture failed.' } }
-            finally { $graphics.ReleaseHdc($dc); $graphics.Dispose() }
-            try { Assert-RenderedCapture $bitmap $relative; $bitmap.Save($path,[Drawing.Imaging.ImageFormat]::Png) }
+            $bitmap=$null
+            foreach($captureAttempt in 1..10) {
+                $candidate=New-Object Drawing.Bitmap ($rect.Right-$rect.Left),($rect.Bottom-$rect.Top)
+                try {
+                    $graphics=[Drawing.Graphics]::FromImage($candidate)
+                    try {
+                        $dc=$graphics.GetHdc()
+                        try { if (-not [DocumentationCapture]::PrintWindow($handle,$dc,2)) { throw 'Native window capture failed.' } }
+                        finally { $graphics.ReleaseHdc($dc) }
+                    } finally { $graphics.Dispose() }
+                    Assert-RenderedCapture $candidate $relative
+                    $bitmap=$candidate
+                    break
+                } catch {
+                    $candidate.Dispose()
+                    $retryable=$_.Exception.Message -eq 'Native window capture failed.' -or
+                        $_.Exception.Message -like 'Native window capture has no rendered content:*'
+                    if(-not $retryable -or $captureAttempt -eq 10) { throw }
+                    Start-Sleep -Milliseconds 500
+                }
+            }
+            if($null -eq $bitmap) { throw "Native window capture did not produce a bitmap: $relative" }
+            try { $bitmap.Save($path,[Drawing.Imaging.ImageFormat]::Png) }
             finally { $bitmap.Dispose() }
             $records = @($records | Where-Object { $_.path -ne $relative })
             $records += [pscustomobject]@{path=$relative;locale=$locale;scene=$scene;theme=$Theme;fixture='permissionscope-demo-v1';version='1.0.0';sourceSha256=$fingerprint;sha256=(Get-FileHash $path -Algorithm SHA256).Hash;width=$rect.Right-$rect.Left;height=$rect.Bottom-$rect.Top;dpi=[DocumentationCapture]::GetDpiForWindow($handle);capturedAt=[DateTimeOffset]::UtcNow.ToString('O');privacyCheck='Synthetic source and own-process accessibility tree checked; no OCR certification'}
