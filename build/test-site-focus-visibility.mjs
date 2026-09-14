@@ -33,6 +33,10 @@ const viewport = { width:390, height:844 };
 const report = { passed:true, criterion:'WCAG 2.2 2.4.11 Focus Not Obscured (Minimum)', viewport, locales, engines:{} };
 const errors = [];
 
+async function nextPaint(page) {
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+}
+
 async function waitForProgressiveStyles(page) {
   await page.waitForFunction(() => {
     const command = document.querySelector('.ps-command-launch');
@@ -41,7 +45,7 @@ async function waitForProgressiveStyles(page) {
     const expected = ['premium.css','experience.css','future.css','intelligence.css','atelier.css','quality.css'];
     return expected.every(name => [...document.styleSheets].some(sheet => sheet.href?.endsWith('/' + name)));
   }, null, { timeout:10000 });
-  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await nextPaint(page);
 }
 
 async function focusedExposure(page) {
@@ -132,6 +136,7 @@ try {
         const skip = page.locator('a.skip');
         assert.notEqual(await skip.getAttribute('tabindex'), '-1', `${engineName}/${locale}: skip link was removed from sequential focus order`);
         await skip.focus();
+        await nextPaint(page);
         const initialExposure = await focusedExposure(page);
         assert(initialExposure?.label.startsWith('a.skip'), `${engineName}/${locale}: skip link could not receive focus`);
         assert(initialExposure.exposed, `${engineName}/${locale}: skip link is entirely obscured or outside the viewport: ${JSON.stringify(initialExposure)}`);
@@ -140,6 +145,9 @@ try {
         let focusStops = 1;
         for (let step = 0; step < 80; step++) {
           await page.keyboard.press('Tab');
+          // Let the engine finish any focus-triggered scroll/layout work before
+          // measuring. This observes native behavior; it does not scroll for it.
+          await nextPaint(page);
           const exposure = await focusedExposure(page);
           if (!exposure) continue;
           if (seen.has(exposure.label)) break;
