@@ -2,12 +2,12 @@ param(
     [string]$Application = "$PSScriptRoot/../artifacts/documentation-app/PermissionScope.exe",
     [string[]]$Locales = @('en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'),
     [string[]]$Scenes = @('home','analyze','access','access-path','compare','simulation','technical','unknown'),
-    [ValidateSet('Light','Dark')][string]$Theme = 'Light'
+    [ValidateSet('Light','Dark')][string]$Theme = 'Light',
+    [switch]$TestContentGuard
 )
 $ErrorActionPreference = 'Stop'
 $repository = [IO.Path]::GetFullPath("$PSScriptRoot/..")
 $Application = [IO.Path]::GetFullPath($Application)
-if (-not (Test-Path -LiteralPath $Application)) { throw 'Publish the application to artifacts/documentation-app first.' }
 Add-Type -AssemblyName UIAutomationClient,UIAutomationTypes,System.Drawing
 Add-Type @'
 using System;
@@ -37,6 +37,42 @@ function Find-Control($window, [string]$id) {
     }
     throw "Missing demo control: $id"
 }
+function Assert-RenderedCapture([Drawing.Bitmap]$bitmap, [string]$relative) {
+    $colors=@{}
+    $samples=0
+    for($y=96; $y -lt $bitmap.Height-64; $y+=12) {
+        for($x=64; $x -lt $bitmap.Width-64; $x+=12) {
+            $argb=$bitmap.GetPixel($x,$y).ToArgb()
+            if($colors.ContainsKey($argb)) { $colors[$argb]++ } else { $colors[$argb]=1 }
+            $samples++
+        }
+    }
+    $dominant=($colors.Values | Measure-Object -Maximum).Maximum
+    if($samples -eq 0 -or $colors.Count -lt 4 -or ($dominant / $samples) -ge 0.995) {
+        throw "Native window capture has no rendered content: $relative"
+    }
+}
+if($TestContentGuard) {
+    foreach($color in @([Drawing.Color]::White,[Drawing.Color]::Black)) {
+        $bitmap=[Drawing.Bitmap]::new(320,240)
+        $graphics=[Drawing.Graphics]::FromImage($bitmap)
+        try { $graphics.Clear($color) } finally { $graphics.Dispose() }
+        try {
+            $rejected=$false
+            try { Assert-RenderedCapture $bitmap "synthetic-$($color.Name.ToLowerInvariant()).png" }
+            catch { if($_.Exception.Message -like 'Native window capture has no rendered content:*') { $rejected=$true } else { throw } }
+            if(-not $rejected) { throw "Uniform synthetic image was accepted: $($color.Name)" }
+        } finally { $bitmap.Dispose() }
+    }
+    $rendered=@(Get-ChildItem -LiteralPath (Join-Path $repository 'docs/screenshots') -Filter '*.png' -Recurse)
+    foreach($file in $rendered) {
+        $bitmap=[Drawing.Bitmap]::new($file.FullName)
+        try { Assert-RenderedCapture $bitmap $file.FullName } finally { $bitmap.Dispose() }
+    }
+    Write-Output "PASS capture content guard: uniform Light/Dark rejected; $($rendered.Count) rendered images accepted."
+    return
+}
+if (-not (Test-Path -LiteralPath $Application)) { throw 'Publish the application to artifacts/documentation-app first.' }
 foreach ($locale in $Locales) {
     if ($locale -notin @('en-US','pt-BR','es','fr','de','ar','ja','zh-Hans')) { throw 'Unsupported locale.' }
     foreach ($scene in $Scenes) {
@@ -95,11 +131,30 @@ foreach ($locale in $Locales) {
             $path = Join-Path $output $relative
             $rect = New-Object DocumentationCapture+Rect
             if (-not [DocumentationCapture]::GetWindowRect($handle,[ref]$rect)) { throw 'Cannot obtain window bounds.' }
-            $bitmap = New-Object Drawing.Bitmap ($rect.Right-$rect.Left),($rect.Bottom-$rect.Top)
-            $graphics = [Drawing.Graphics]::FromImage($bitmap); $dc=$graphics.GetHdc()
-            try { if (-not [DocumentationCapture]::PrintWindow($handle,$dc,2)) { throw 'Native window capture failed.' } }
-            finally { $graphics.ReleaseHdc($dc); $graphics.Dispose() }
-            try { $bitmap.Save($path,[Drawing.Imaging.ImageFormat]::Png) } finally { $bitmap.Dispose() }
+            $bitmap=$null
+            foreach($captureAttempt in 1..10) {
+                $candidate=New-Object Drawing.Bitmap ($rect.Right-$rect.Left),($rect.Bottom-$rect.Top)
+                try {
+                    $graphics=[Drawing.Graphics]::FromImage($candidate)
+                    try {
+                        $dc=$graphics.GetHdc()
+                        try { if (-not [DocumentationCapture]::PrintWindow($handle,$dc,2)) { throw 'Native window capture failed.' } }
+                        finally { $graphics.ReleaseHdc($dc) }
+                    } finally { $graphics.Dispose() }
+                    Assert-RenderedCapture $candidate $relative
+                    $bitmap=$candidate
+                    break
+                } catch {
+                    $candidate.Dispose()
+                    $retryable=$_.Exception.Message -eq 'Native window capture failed.' -or
+                        $_.Exception.Message -like 'Native window capture has no rendered content:*'
+                    if(-not $retryable -or $captureAttempt -eq 10) { throw }
+                    Start-Sleep -Milliseconds 500
+                }
+            }
+            if($null -eq $bitmap) { throw "Native window capture did not produce a bitmap: $relative" }
+            try { $bitmap.Save($path,[Drawing.Imaging.ImageFormat]::Png) }
+            finally { $bitmap.Dispose() }
             $records = @($records | Where-Object { $_.path -ne $relative })
             $records += [pscustomobject]@{path=$relative;locale=$locale;scene=$scene;theme=$Theme;fixture='permissionscope-demo-v1';version='1.0.0';sourceSha256=$fingerprint;sha256=(Get-FileHash $path -Algorithm SHA256).Hash;width=$rect.Right-$rect.Left;height=$rect.Bottom-$rect.Top;dpi=[DocumentationCapture]::GetDpiForWindow($handle);capturedAt=[DateTimeOffset]::UtcNow.ToString('O');privacyCheck='Synthetic source and own-process accessibility tree checked; no OCR certification'}
             @{schema=1;captures=@($records | Sort-Object path)} | ConvertTo-Json -Depth 5 | Set-Content $manifestPath -Encoding UTF8

@@ -12,6 +12,8 @@ It means the evaluated discretionary rules allow the named capability. Integrity
 
 Reading its share and NTFS descriptors is not the same as reproducing the server's logon token. Server-local groups, claims, DFS target policies and the authentication context can differ. The local projections remain inspectable; they are not promoted to a verified remote result.
 
+The expanded Unknown panel separates the permission rules that were available from the server context that was not confirmed. Ask the resource administrator to confirm the account, share and applicable groups on the server. If DFS is involved, also confirm the target that was used.
+
 ## Does an unresolved SID mean the account was deleted?
 
 No. Name resolution can fail because of connectivity, directory visibility, trust boundaries or unavailable services. The SID is preserved as evidence.
