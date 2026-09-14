@@ -40,12 +40,15 @@ try {
       await command.waitFor({ state:'visible' });
       await assistant.waitFor({ state:'visible' });
 
-      assert((await page.evaluate(() => navigator.maxTouchPoints)) > 0, `${engineName}: touch capability was not exposed`);
+      const touchPoints = await page.evaluate(() => navigator.maxTouchPoints);
       for (const [label, control] of [['command', command], ['assistant', assistant]]) {
         const box = await control.boundingBox();
         assert(box && box.width >= 24 && box.height >= 24, `${engineName}: ${label} touch target is smaller than 24x24 CSS px`);
       }
 
+      // A successful Playwright tap is the portable cross-engine assertion here:
+      // tap gestures require a context created with hasTouch:true, while individual
+      // engines do not expose navigator.maxTouchPoints identically in headless mode.
       await command.tap();
       assert(await page.locator('.ps-command').evaluate(el => el.open), `${engineName}: command dialog did not open from touch`);
       await page.locator('.ps-command').evaluate(el => el.close());
@@ -55,7 +58,7 @@ try {
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert(overflow <= 1, `${engineName}: touch viewport has horizontal overflow of ${overflow}px`);
       assert.equal(pageErrors.length, 0, `${engineName}: ${pageErrors.join('; ')}`);
-      report.engines[engineName] = { passed:true };
+      report.engines[engineName] = { passed:true, maxTouchPoints:touchPoints };
       await context.close();
     } finally {
       await browser.close();
