@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: handbooks-main
@@ -20,17 +20,23 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    cache-mode: read
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24'
           cache: npm
       - run: npm ci --ignore-scripts --no-fund
-      - run: npx playwright install --with-deps chromium
+      - name: Verify npm supply chain
+        run: |
+          npm audit signatures
+          npm audit --audit-level=moderate
+      - run: npx --no-install playwright install --with-deps chromium
       - run: node build/Generate-Handbooks.mjs
       - name: Verify PDFs
         shell: bash
@@ -38,19 +44,53 @@ jobs:
           set -euo pipefail
           test "$(find docs/handbooks -maxdepth 1 -name 'PermissionScope-Handbook-*.pdf' | wc -l)" -eq 8
           test -f docs/handbooks/README.md
-      - name: Commit generated handbooks
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: PermissionScope-handbooks-generated
+          path: docs/handbooks
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    cache-mode: none
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download generated handbooks from this run
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -rf generated-handbooks
+          gh run download "$GITHUB_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name PermissionScope-handbooks-generated \
+            --dir generated-handbooks
+          test "$(find generated-handbooks -maxdepth 1 -name 'PermissionScope-Handbook-*.pdf' | wc -l)" -eq 8
+          test -f generated-handbooks/README.md
+      - name: Stage generated handbooks only
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf docs/handbooks
+          mkdir -p docs/handbooks
+          cp -a generated-handbooks/. docs/handbooks/
           git add docs/handbooks
           if git diff --cached --quiet; then
             echo 'Handbooks already current.'
             exit 0
           fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Generate official multilingual PermissionScope handbooks'
           gh auth setup-git
           git pull --rebase origin main
