@@ -201,6 +201,7 @@ jobs:
     permissions:
       contents: read
       actions: read
+      attestations: read
     env:
       GH_TOKEN: ${{ github.token }}
       RELEASE_VERSION: ${{ needs.preflight.outputs.version }}
@@ -225,6 +226,24 @@ jobs:
           done
           (cd dist && sha256sum "${expected[@]}" | sed 's/  \*/  /' > SHA256SUMS.txt)
           test "$(wc -l < dist/SHA256SUMS.txt)" -eq 5
+      - name: Verify package provenance before promotion
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifacts=(
+            "dist/PermissionScope-${RELEASE_VERSION}-x64-Setup.exe"
+            "dist/PermissionScope-${RELEASE_VERSION}-win-x64.zip"
+            "dist/PermissionScope-${RELEASE_VERSION}-arm64-Setup.exe"
+            "dist/PermissionScope-${RELEASE_VERSION}-win-arm64.zip"
+          )
+          for artifact in "${artifacts[@]}"; do
+            gh attestation verify "$artifact" \
+              --repo "$GITHUB_REPOSITORY" \
+              --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/release.yml" \
+              --source-digest "$GITHUB_SHA" \
+              --deny-self-hosted-runners
+          done
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: PermissionScope-v${{ env.RELEASE_VERSION }}-release
