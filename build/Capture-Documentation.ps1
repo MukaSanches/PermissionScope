@@ -2,12 +2,12 @@ param(
     [string]$Application = "$PSScriptRoot/../artifacts/documentation-app/PermissionScope.exe",
     [string[]]$Locales = @('en-US','pt-BR','es','fr','de','ar','ja','zh-Hans'),
     [string[]]$Scenes = @('home','analyze','access','access-path','compare','simulation','technical','unknown'),
-    [ValidateSet('Light','Dark')][string]$Theme = 'Light'
+    [ValidateSet('Light','Dark')][string]$Theme = 'Light',
+    [switch]$TestContentGuard
 )
 $ErrorActionPreference = 'Stop'
 $repository = [IO.Path]::GetFullPath("$PSScriptRoot/..")
 $Application = [IO.Path]::GetFullPath($Application)
-if (-not (Test-Path -LiteralPath $Application)) { throw 'Publish the application to artifacts/documentation-app first.' }
 Add-Type -AssemblyName UIAutomationClient,UIAutomationTypes,System.Drawing
 Add-Type @'
 using System;
@@ -52,6 +52,27 @@ function Assert-RenderedCapture([Drawing.Bitmap]$bitmap, [string]$relative) {
         throw "Native window capture has no rendered content: $relative"
     }
 }
+if($TestContentGuard) {
+    foreach($color in @([Drawing.Color]::White,[Drawing.Color]::Black)) {
+        $bitmap=[Drawing.Bitmap]::new(320,240)
+        $graphics=[Drawing.Graphics]::FromImage($bitmap)
+        try { $graphics.Clear($color) } finally { $graphics.Dispose() }
+        try {
+            $rejected=$false
+            try { Assert-RenderedCapture $bitmap "synthetic-$($color.Name.ToLowerInvariant()).png" }
+            catch { if($_.Exception.Message -like 'Native window capture has no rendered content:*') { $rejected=$true } else { throw } }
+            if(-not $rejected) { throw "Uniform synthetic image was accepted: $($color.Name)" }
+        } finally { $bitmap.Dispose() }
+    }
+    $rendered=@(Get-ChildItem -LiteralPath (Join-Path $repository 'docs/screenshots') -Filter '*.png' -Recurse)
+    foreach($file in $rendered) {
+        $bitmap=[Drawing.Bitmap]::new($file.FullName)
+        try { Assert-RenderedCapture $bitmap $file.FullName } finally { $bitmap.Dispose() }
+    }
+    Write-Output "PASS capture content guard: uniform Light/Dark rejected; $($rendered.Count) rendered images accepted."
+    return
+}
+if (-not (Test-Path -LiteralPath $Application)) { throw 'Publish the application to artifacts/documentation-app first.' }
 foreach ($locale in $Locales) {
     if ($locale -notin @('en-US','pt-BR','es','fr','de','ar','ja','zh-Hans')) { throw 'Unsupported locale.' }
     foreach ($scene in $Scenes) {
