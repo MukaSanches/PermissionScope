@@ -126,6 +126,7 @@
   "FilterModify": "Ändern erlaubt (geprüfter Kontext)",
   "FilterFindings": "Mit Prüfhinweisen",
   "Share": "Freigabe",
+  "ResolvedUnc": "Aufgelöster UNC-Pfad",
   "Notice": "Umfang und Grenzen",
   "Schedule": "Analyse planen",
   "ScheduleIntro": "Erstellt eine tägliche Windows-Aufgabe für Ihr Konto. Sie läuft nur während Ihrer Anmeldung. Momentaufnahmen bleiben lokal.",

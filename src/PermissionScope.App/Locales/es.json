@@ -152,6 +152,7 @@
   "FilterModify": "Puede modificar (contexto verificado)",
   "FilterFindings": "Con aspectos a revisar",
   "Share": "Recurso compartido",
+  "ResolvedUnc": "Ruta UNC resuelta",
   "Ntfs": "NTFS",
   "Notice": "Ámbito y limitaciones",
   "NoFindings": "No se activó ninguna regla para este objeto.",
