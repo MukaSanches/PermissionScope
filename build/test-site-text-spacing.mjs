@@ -74,10 +74,18 @@ try {
         await waitForProgressiveStyles(page);
 
         const fullSpacing = fullSpacingLocales.has(locale);
-        await page.addStyleTag({ content: `
-          body * { line-height: 1.5 !important; ${fullSpacing ? 'letter-spacing: 0.12em !important; word-spacing: 0.16em !important;' : ''} }
-          p { margin-bottom: 2em !important; }
-        ` });
+        await page.evaluate(({ fullSpacing }) => {
+          for (const element of document.body.querySelectorAll('*')) {
+            element.style.setProperty('line-height', '1.5', 'important');
+            if (fullSpacing) {
+              element.style.setProperty('letter-spacing', '0.12em', 'important');
+              element.style.setProperty('word-spacing', '0.16em', 'important');
+            }
+          }
+          for (const paragraph of document.querySelectorAll('p')) {
+            paragraph.style.setProperty('margin-bottom', '2em', 'important');
+          }
+        }, { fullSpacing });
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
         assert.equal(await page.locator('html').getAttribute('lang'), locale, `${engineName}/${locale}: language metadata drifted`);
