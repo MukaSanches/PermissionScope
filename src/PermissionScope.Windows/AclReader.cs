@@ -41,8 +41,10 @@ public sealed class AclReader(IdentityResolver identities)
 public sealed class ShareResolver(AclReader reader)
 {
     private readonly Dictionary<string, ShareInfo> cache = new(StringComparer.OrdinalIgnoreCase);
-    public ShareInfo? Resolve(string path)
+    public ShareInfo? Resolve(string path) => Resolve(path, out _);
+    public ShareInfo? Resolve(string path, out string? resolvedUncPath)
     {
+        resolvedUncPath = null;
         var driveRoot = Path.GetPathRoot(path);
         if (driveRoot is { Length: >= 2 } && driveRoot[1] == ':' && new DriveInfo(driveRoot).DriveType == DriveType.Network)
         {
@@ -62,6 +64,7 @@ public sealed class ShareResolver(AclReader reader)
         if (!normalized.StartsWith("\\\\", StringComparison.Ordinal) || normalized.StartsWith("\\\\?\\", StringComparison.Ordinal)) return null;
         var parts = normalized[2..].Split('\\', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 2) throw new ArgumentException("A UNC path must contain a server and share.");
+        resolvedUncPath = path;
         var key = $"{parts[0]}\\{parts[1]}";
         if (cache.TryGetValue(key, out var cached)) return cached;
         var error = Native.NetShareGetInfo($"\\\\{parts[0]}", parts[1], 502, out var buffer);

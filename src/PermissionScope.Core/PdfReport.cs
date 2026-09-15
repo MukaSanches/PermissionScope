@@ -10,7 +10,7 @@ internal static class PdfReport
     public static void Write(PermissionSnapshot snapshot, Stream output)
     {
         // Complex-script shaping requires a text layout engine. Do not silently emit missing glyphs.
-        if (snapshot.Resources.Any(r => r.Path.Any(c => c > 0x052F) || r.Decision?.Identity.Any(c => c > 0x052F) == true))
+        if (snapshot.Resources.Any(r => r.Path.Any(c => c > 0x052F) || r.ResolvedUncPath?.Any(c => c > 0x052F) == true || r.Decision?.Identity.Any(c => c > 0x052F) == true))
             throw new InvalidOperationException("This PDF font path supports Latin, Greek and Cyrillic text. Export HTML and print to PDF for complex scripts, CJK or emoji.");
         lock (FontLock) { if (GlobalFontSettings.FontResolver == null) GlobalFontSettings.FontResolver = new WindowsReportFonts(); }
         using var document = new PdfDocument();
@@ -59,6 +59,7 @@ internal static class PdfReport
             foreach (var resource in snapshot.Resources)
             {
                 Paragraph(resource.Path, bold);
+                if (resource.ResolvedUncPath is { } resolvedUncPath) Paragraph($"Resolved UNC: {resolvedUncPath}");
                 if (resource.Decision is { } decision)
                 {
                     Paragraph($"{decision.Identity}\nDecision: {decision.State} · NTFS: 0x{decision.GrantedMask:X8}" + (decision.ShareMask is { } share ? $" · Share: 0x{share:X8}" : ""));

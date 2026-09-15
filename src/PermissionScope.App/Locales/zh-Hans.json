@@ -107,6 +107,7 @@
   "SummaryDenied": "这些规则不授予访问权限",
   "SummaryPartial": "这些规则允许部分操作",
   "ScopeCaution": "此评估针对权限规则。其他 Windows 限制仍可能阻止访问。",
+  "ResolvedUnc": "已解析的 UNC 路径",
   "CopyDiagnostic": "复制安全诊断信息",
   "EvidenceIntro": "通过记录的成员关系和权限依据追踪身份。"
 }
