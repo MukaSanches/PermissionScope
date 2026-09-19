@@ -12,6 +12,7 @@ on:
       - 'docs/content/locales.json'
       - 'package.json'
       - 'package-lock.json'
+      - '.npmrc'
       - '.github/workflows/site-compatibility.yml'
   pull_request:
     paths:
@@ -23,6 +24,7 @@ on:
       - 'docs/content/locales.json'
       - 'package.json'
       - 'package-lock.json'
+      - '.npmrc'
       - '.github/workflows/site-compatibility.yml'
   repository_dispatch:
     types: [permissionscope-docs-synced]
