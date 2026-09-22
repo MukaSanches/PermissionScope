@@ -16,4 +16,14 @@ done
 base64 -d /tmp/source.b64 > /tmp/source.tar.xz
 tar -xJf /tmp/source.tar.xz -C /work/qp
 cd /work/qp
+
+# Railway builder memory guard: override the source's workstation-sized heap.
+cat >> gradle.properties <<'EOF'
+org.gradle.jvmargs=-Xmx512m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF-8
+org.gradle.workers.max=1
+org.gradle.parallel=false
+org.gradle.daemon=false
+kotlin.compiler.execution.strategy=in-process
+EOF
+
 exec bash railway/railway_build.sh
