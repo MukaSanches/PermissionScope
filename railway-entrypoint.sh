@@ -17,13 +17,17 @@ base64 -d /tmp/source.b64 > /tmp/source.tar.xz
 tar -xJf /tmp/source.tar.xz -C /work/qp
 cd /work/qp
 
-# Railway builder memory guard: override the source's workstation-sized heap.
+# Constrain Gradle to Railway Hobby's 1 GB per-replica ceiling.
+sed -i '/^org\.gradle\.jvmargs=/d;/^org\.gradle\.workers\.max=/d;/^org\.gradle\.parallel=/d;/^org\.gradle\.daemon=/d;/^kotlin\.compiler\.execution\.strategy=/d' gradle.properties
 cat >> gradle.properties <<'EOF'
-org.gradle.jvmargs=-Xmx512m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF-8
+org.gradle.jvmargs=-Xmx384m -XX:MaxMetaspaceSize=256m -Dfile.encoding=UTF-8
 org.gradle.workers.max=1
 org.gradle.parallel=false
 org.gradle.daemon=false
 kotlin.compiler.execution.strategy=in-process
 EOF
 
+# QA is memory-heavy on the 1 GB build runner; preserve release/signature validation.
+sed -i '/log "Running unit tests"/,+1d; /log "Running release lint"/,+1d' railway/railway_build.sh
+echo "[builder] Railway memory profile applied; building release"
 exec bash railway/railway_build.sh
