@@ -8,7 +8,7 @@
     "test:site:compat": "node build/test-site-compat.mjs && node build/test-site-touch.mjs && node build/test-site-text-resize.mjs && node build/test-site-text-spacing.mjs && node build/test-site-focus-visibility.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
-    "axe-core": "4.13.0"
+    "@playwright/test": "1.64.0",
+    "axe-core": "4.14.0"
   }
 }
