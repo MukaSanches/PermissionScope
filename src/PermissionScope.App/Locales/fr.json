@@ -126,6 +126,7 @@
   "FilterModify": "Modification possible (contexte vérifié)",
   "FilterFindings": "Avec points à examiner",
   "Share": "Partage",
+  "ResolvedUnc": "Chemin UNC résolu",
   "Notice": "Périmètre et limites",
   "Schedule": "Planifier une analyse",
   "ScheduleIntro": "Crée une tâche Windows quotidienne avec votre compte actuel. Elle s’exécute uniquement pendant votre session. Les instantanés restent locaux.",

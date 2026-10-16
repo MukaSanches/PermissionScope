@@ -14,7 +14,7 @@ Integrity labels, central access policy, claims, encrypted content, parent trave
 
 ## SMB and identity evidence
 
-`NetShareGetInfo(502)` reads share permissions and the backing local path. Mapped drives are resolved through `WNetGetUniversalName`. File and share masks are computed and intersected as projections; the remote context remains Unknown. Server-local groups, DFS target divergence and cross-trust logons are not certified.
+`NetShareGetInfo(502)` reads share permissions and the backing local path. Mapped drives are resolved through `WNetGetUniversalName`; the complete UNC returned for each resource is preserved separately from the entered path and share cache. This is evidence of what Windows resolved during that observation, not proof of the physical DFS target. File and share masks are computed and intersected as projections; the remote context remains Unknown. Server-local groups, DFS target divergence and cross-trust logons are not certified.
 
 `NetLocalGroupGetMembers` provides real local-group edges. LDAP `memberOf` provides direct group edges; `primaryGroupID`, account-disabled state and SID history are recorded where available. Parent groups are traversed with cycle detection. Ranged memberships, referrals and unreachable domains generate warnings. SID history is recorded as history, never fabricated as group membership. A transitive token SID is identified as token inclusion, not as a direct member-of edge.
 

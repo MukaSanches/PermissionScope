@@ -140,6 +140,15 @@ try{
 }
 finally{ Stop-Demo $process }
 
+$process=Start-Demo 'en-US' 'Light' 'unknown'
+try{
+    $window=Wait-MainWindow $process
+    $visible=Wait-AllText $window @([string]$english.ResolvedUnc,'P:\Finance','\\LAB-FILESERVER\Shared\Finance') 15
+    if($visible.Contains('file://')){ throw 'Resolved UNC evidence was exposed as a file link.' }
+    Write-Host 'PASS native UI workflow: resolved UNC evidence'
+}
+finally{ Stop-Demo $process }
+
 $report=[ordered]@{
     schema=1
     applicationSha256=$appHash
@@ -148,10 +157,11 @@ $report=[ordered]@{
     journeys=$records
     comparisonWorkflow='passed'
     simulationWorkflow='passed'
+    resolvedUncEvidenceWorkflow='passed'
     privateHostDataCheck='passed'
     screenReaderCertification=$false
-    note='UI Automation verifies stable control reachability, localized synthetic surfaces and key workflows. It does not claim Narrator/NVDA certification.'
+    note='UI Automation verifies stable control reachability, localized synthetic surfaces, key workflows and inert resolved-UNC evidence. It does not claim Narrator/NVDA certification.'
     completedUtc=[DateTimeOffset]::UtcNow.ToString('O')
 }
 $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $outputDir 'ui-trust.json') -Encoding UTF8
-Write-Host "PASS Production Trust UI automation: $($records.Count) locale/theme journeys plus compare and simulation."
+Write-Host "PASS Production Trust UI automation: $($records.Count) locale/theme journeys plus compare, simulation and resolved UNC evidence."

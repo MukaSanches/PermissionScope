@@ -52,6 +52,7 @@ public sealed class Scanner
                 if (!seen.Add(path)) continue;
                 var isDirectory = false;
                 var reparse = false;
+                string? resolvedUncPath = null;
                 try
                 {
                     var attributes = File.GetAttributes(path);
@@ -60,15 +61,16 @@ public sealed class Scanner
                     cancellation.ThrowIfCancellationRequested();
                     var descriptor = reparse ? reader.ReadReparsePoint(path) : reader.Read(path);
                     cancellation.ThrowIfCancellationRequested();
-                    var share = shares.Resolve(path);
+                    var share = shares.Resolve(path, out resolvedUncPath);
                     var decision = access.Evaluate(descriptor, path, share, reparse);
-                    results.Add(new(path, isDirectory, reparse, DateTimeOffset.UtcNow, descriptor, share, decision, FindingRules.Evaluate(path, descriptor), null));
+                    results.Add(new(path, isDirectory, reparse, DateTimeOffset.UtcNow, descriptor, share, decision, FindingRules.Evaluate(path, descriptor), null)
+                    { ResolvedUncPath = resolvedUncPath });
                 }
                 catch (Exception error) when (IsExpected(error))
                 {
                     errors++;
                     results.Add(new(path, isDirectory, reparse, DateTimeOffset.UtcNow, null, null, null, [],
-                        new(path, ErrorCode(error), error.Message)));
+                        new(path, ErrorCode(error), error.Message)) { ResolvedUncPath = resolvedUncPath });
                 }
                 progress?.Report(new(results.Count, errors, clock.Elapsed, path));
                 if (!options.Recursive || !isDirectory || reparse) continue;

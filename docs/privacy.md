@@ -4,7 +4,7 @@ PermissionScope does not operate an account system, telemetry endpoint, advertis
 
 Analysis reads paths, security descriptors, account identifiers, group membership and related Windows access metadata. It does not read file contents. When you request a network path or domain identity, Windows may contact that server or directory using your current Windows credentials.
 
-Snapshots, preferences, diagnostics and rollback journals are stored under `%LOCALAPPDATA%\PermissionScope`. Reports are written only to a destination you choose. Diagnostic messages and reports may contain personal account names and confidential paths. Review them before sharing. Imported snapshots are untrusted historical observations, not proof of current access.
+Snapshots, preferences, diagnostics and rollback journals are stored under `%LOCALAPPDATA%\PermissionScope`. Reports are written only to a destination you choose. Diagnostic messages and reports may contain personal account names and confidential paths. For mapped or UNC resources, snapshots and exports can also contain the resolved server, share and directory path, which may reveal internal network topology. Review them before sharing. Imported snapshots are untrusted historical observations, not proof of current access; opening one never re-resolves its recorded network paths.
 
 You can remove local observations by closing the app and removing the appropriate files from its data folder. Do not discard rollback records while an applied change may still need to be reversed. Uninstalling the app preserves these local records.
 

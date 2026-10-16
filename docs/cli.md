@@ -15,7 +15,7 @@ The packaged `permissionscope-cli.exe` uses the same Windows engine as the GUI. 
 
 `--user DOMAIN\name` or `--user SID` selects another identity. Omit it for the current token. Other identities use S4U and may remain Unknown. `--shallow` disables recursive scanning; `--files` includes files. Use Ctrl+C to request cancellation. The GUI worker's termination behavior is described in [release scope](release-status.md).
 
-Export formats: HTML for interactive evidence and browser printing; CSV for rows; JSON for full snapshots; XLSX for six structured worksheets; PDF for supported scripts. CSV cells protect against spreadsheet formula injection; HTML escapes evidence. Never treat exports as anonymized.
+Export formats: HTML for interactive evidence and browser printing; CSV for rows; JSON for full snapshots; XLSX for six structured worksheets; PDF for supported scripts. CSV cells protect against spreadsheet formula injection; HTML escapes evidence. Resolved UNC values are emitted as text evidence without application-created file links. Never treat exports as anonymized.
 
 Exit codes: `0` success, `1` operational failure, `2` invalid arguments, `3` incomplete/unknown scan, explanation or simulation, `130` cancellation. Simulation returns full before/after decisions, including state and limitations; projections alone are not verification of a remote logon.
 

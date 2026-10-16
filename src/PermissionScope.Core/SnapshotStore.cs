@@ -45,6 +45,8 @@ public static class SnapshotJson
         {
             if (item is null || string.IsNullOrWhiteSpace(item.Path) || !paths.Add(item.Path))
                 throw new InvalidDataException("Invalid or duplicate resource path.");
+            if (item.ResolvedUncPath is { } resolvedUncPath && !IsUncPath(resolvedUncPath))
+                throw new InvalidDataException("Resolved UNC path is invalid.");
             if (item.Findings is null) throw new InvalidDataException("Resource findings are missing.");
             if (item.Descriptor is { } descriptor) ValidateDescriptor(descriptor, "NTFS security descriptor");
             if (item.Share?.Descriptor is { } shareDescriptor) ValidateDescriptor(shareDescriptor, "Share security descriptor");
@@ -68,6 +70,18 @@ public static class SnapshotJson
                     string.IsNullOrWhiteSpace(finding.Evidence) || string.IsNullOrWhiteSpace(finding.Recommendation))
                     throw new InvalidDataException("Risk finding metadata is incomplete.");
         }
+    }
+
+    private static bool IsUncPath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || path.Length > 32767 || path.Contains('\0')) return false;
+        var normalized = path.StartsWith("\\\\?\\UNC\\", StringComparison.OrdinalIgnoreCase) ? "\\\\" + path[8..] : path;
+        if (!normalized.StartsWith("\\\\", StringComparison.Ordinal) || normalized.StartsWith("\\\\?\\", StringComparison.Ordinal)) return false;
+        var parts = normalized[2..].Split('\\', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 2 || parts[0] is "." or "?" || parts[1] is "." or "..") return false;
+        char[] invalid = ['<', '>', ':', '"', '/', '|', '?', '*'];
+        return parts[0].IndexOfAny(invalid) < 0 && parts[1].IndexOfAny(invalid) < 0 &&
+            !parts[0].Any(c => c < ' ') && !parts[1].Any(c => c < ' ');
     }
 
     private static void ValidateDescriptor(DescriptorInfo descriptor, string label)

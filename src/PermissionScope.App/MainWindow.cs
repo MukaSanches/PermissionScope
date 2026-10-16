@@ -443,7 +443,9 @@ public sealed class MainWindow : Window
         if (selectedResource is not { } resource) { detail.Children.Add(Text(T("NoSelection"))); return; }
         detail.Children.Add(Text(System.IO.Path.GetFileName(resource.Path.TrimEnd('\\')) is { Length: > 0 } name ? name : resource.Path, 24, true));
         detail.Children.Add(Mono(resource.Path));
-        detail.Children.Add(Text(T(resource.Share == null ? "LocalScope" : "RemoteScope"), 12));
+        if (resource.ResolvedUncPath is { } resolvedUncPath)
+        { detail.Children.Add(Text(T("ResolvedUnc"), 12)); detail.Children.Add(Mono(resolvedUncPath)); }
+        detail.Children.Add(Text(T(resource.Share == null && resource.ResolvedUncPath == null ? "LocalScope" : "RemoteScope"), 12));
         var tabs = new FlowPanel { Spacing = 6 };
         var keys = new[] { "Access", "Why", "Findings", "Permissions", "Technical", "Simulate" };
         foreach (var key in keys)
@@ -509,7 +511,7 @@ public sealed class MainWindow : Window
                 if (d?.Limitation != null) detail.Children.Add(Text(d.Limitation, 12));
                 detail.Children.Add(Button(T("CopyDiagnostic"), () =>
                 {
-                    var data = new DataPackage(); data.SetText(AccessSummary.Diagnostic("Inspect", resource.Error?.Code, d?.State, resource.Share != null)); Clipboard.SetContent(data); Notify(T("Copied"));
+                    var data = new DataPackage(); data.SetText(AccessSummary.Diagnostic("Inspect", resource.Error?.Code, d?.State, resource.Share != null || resource.ResolvedUncPath != null)); Clipboard.SetContent(data); Notify(T("Copied"));
                 }));
                 if (resource.Descriptor is { } sd)
                 {

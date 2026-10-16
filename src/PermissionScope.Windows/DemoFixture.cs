@@ -40,10 +40,11 @@ public static class DemoFixture
         var resources = new List<ResourceAccess>();
         void Add(string leaf, string aces, bool remote = false)
         {
-            var path = remote ? @"\\LAB-FILESERVER\Shared" : Root + "\\" + leaf;
+            var path = remote ? @"P:\Finance" : Root + "\\" + leaf;
             var descriptor = DescriptorParser.Parse("O:SYG:SYD:P" + aces, Name);
             var share = remote ? new ShareInfo("LAB-FILESERVER", "Shared", null, descriptor, "Synthetic server; no connection is made") : null;
-            resources.Add(new(path, true, false, observed, descriptor, share, Evaluate(descriptor.Sddl, path, remote), FindingRules.Evaluate(path, descriptor), null));
+            resources.Add(new(path, true, false, observed, descriptor, share, Evaluate(descriptor.Sddl, path, remote), FindingRules.Evaluate(path, descriptor), null)
+            { ResolvedUncPath = remote ? @"\\LAB-FILESERVER\Shared\Finance" : null });
         }
         Add("Finance", $"(A;;{(after ? "FR" : "0x1301BF")};;;{FinanceSid})");
         Add("Projects", $"(A;;FA;;;{EmployeesSid})");

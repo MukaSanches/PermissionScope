@@ -107,6 +107,7 @@
   "SummaryDenied": "これらの規則はアクセスを許可しません",
   "SummaryPartial": "これらの規則は一部の操作を許可します",
   "ScopeCaution": "アクセス許可の規則を評価しています。その他の Windows の制限でアクセスできない場合があります。",
+  "ResolvedUnc": "解決済み UNC パス",
   "CopyDiagnostic": "安全な診断情報をコピー",
   "EvidenceIntro": "記録された所属とアクセス許可の根拠から ID の経路を確認します。"
 }

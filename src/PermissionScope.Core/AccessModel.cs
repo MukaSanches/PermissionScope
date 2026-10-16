@@ -1,6 +1,7 @@
 using System.Security.AccessControl;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace PermissionScope.Core;
 
@@ -33,7 +34,11 @@ public sealed record RiskFinding(string Rule, Severity Severity, string Path, st
 public sealed record ScanError(string Path, int Code, string Message);
 public sealed record ShareInfo(string Server, string Share, string? LocalPath, DescriptorInfo? Descriptor, string? Error);
 public sealed record ResourceAccess(string Path, bool IsDirectory, bool IsReparsePoint, DateTimeOffset ObservedAt,
-    DescriptorInfo? Descriptor, ShareInfo? Share, AccessDecision? Decision, IReadOnlyList<RiskFinding> Findings, ScanError? Error);
+    DescriptorInfo? Descriptor, ShareInfo? Share, AccessDecision? Decision, IReadOnlyList<RiskFinding> Findings, ScanError? Error)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ResolvedUncPath { get; init; }
+}
 public sealed record ScanProgress(long Analyzed, long Errors, TimeSpan Elapsed, string Path);
 public sealed record PermissionSnapshot(int SchemaVersion, string AppVersion, string Id, string Root,
     DateTimeOffset CreatedAt, DateTimeOffset CompletedAt, bool Cancelled, string IdentitySid,
@@ -88,7 +93,7 @@ public static class AccessSummary
 
     public static string UnknownReason(ResourceAccess resource) => resource.Error != null ? "UnknownRead" :
         resource.Descriptor?.HasSpecialAces == true ? "UnknownConditional" : resource.IsReparsePoint ? "UnknownLink" :
-        resource.Share != null ? "UnknownRemote" : "UnknownContext";
+        resource.Share != null || resource.ResolvedUncPath != null ? "UnknownRemote" : "UnknownContext";
 
     public static string Diagnostic(string operation, int? errorCode, AccessState? state, bool remote) =>
         $"PermissionScope 1.0.0\nWindows: {Environment.OSVersion.Version}\nArchitecture: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}\nOperation: {operation}\nError code: {errorCode?.ToString() ?? "none"}\nDecision: {state?.ToString() ?? "unavailable"}\nResource kind: {(remote ? "remote" : "local")}\nPaths, account names, SIDs and descriptors are intentionally excluded.";

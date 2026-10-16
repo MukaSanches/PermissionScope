@@ -181,6 +181,17 @@ await TestAsync("Invalid path produces a read error", async () =>
 {
     var snapshot = await new Scanner().ScanAsync(new(Path.Combine(testRoot, "missing"), Recursive: false)); Assert(snapshot.Resources.Count == 1 && snapshot.Resources[0].Error != null);
 });
+Test("UNC evidence preserves each resource suffix across share cache hits", () =>
+{
+    var shareName = "PermissionScope-Missing-" + Guid.NewGuid().ToString("N");
+    var firstPath = $@"\\127.0.0.1\{shareName}\one";
+    var secondPath = $@"\\127.0.0.1\{shareName}\two";
+    var shares = new ShareResolver(new AclReader(resolver));
+    var first = shares.Resolve(firstPath, out var firstResolved);
+    var second = shares.Resolve(secondPath, out var secondResolved);
+    Assert(first?.Error != null && ReferenceEquals(first, second));
+    Assert(firstResolved == firstPath && secondResolved == secondPath);
+});
 await TestAsync("Long paths retain Windows descriptor access", async () =>
 {
     var path = Path.Combine(testRoot, new string('a', 110), new string('b', 110), new string('c', 90));
@@ -352,8 +363,52 @@ Test("Synthetic groups are evaluated by Windows Authz", () =>
     Assert(demo.Resources[3].Decision!.State == AccessState.Denied);
     Assert(demo.Resources[4].Decision!.State == AccessState.Unknown);
     Assert(AccessSummary.Key(demo.Resources[4].Decision) == "SummaryUnknown");
+    Assert(demo.Resources[4].Path == @"P:\Finance" && demo.Resources[4].ResolvedUncPath == @"\\LAB-FILESERVER\Shared\Finance");
     Assert(SnapshotComparer.Compare(demo, DemoFixture.Create(true)).Count == 1);
     Assert(DemoFixture.Evaluate(ImpactSimulator.RemoveAce(demo.Resources[0].Descriptor!.Sddl, 0), DemoFixture.Root).EffectiveMask == 0);
+});
+Test("Resolved UNC snapshot metadata is optional and validated", () =>
+{
+    var demo = DemoFixture.Create();
+    var json = JsonSerializer.Serialize(demo, SnapshotJson.Options);
+    Assert(SnapshotJson.Parse(json).Resources.Single(r => r.Share != null).ResolvedUncPath == @"\\LAB-FILESERVER\Shared\Finance");
+    var store = new SnapshotStore(Path.Combine(testRoot, "resolved-unc.db"));
+    store.Save(demo);
+    Assert(store.Load(demo.Id).Resources.Single(r => r.Share != null).ResolvedUncPath == @"\\LAB-FILESERVER\Shared\Finance");
+
+    var legacy = demo with { Resources = demo.Resources.Select(r => r with { ResolvedUncPath = null }).ToArray() };
+    var legacyJson = JsonSerializer.Serialize(legacy, SnapshotJson.Options);
+    Assert(!legacyJson.Contains("ResolvedUncPath"));
+    Assert(SnapshotJson.Parse(legacyJson).Resources.All(r => r.ResolvedUncPath == null));
+
+    var remote = demo.Resources.Single(r => r.Share != null);
+    var extended = demo with { Resources = [remote with { ResolvedUncPath = @"\\?\UNC\LAB-FILESERVER\Shared\Folder" }] };
+    Assert(SnapshotJson.Parse(JsonSerializer.Serialize(extended, SnapshotJson.Options)).Resources.Single().ResolvedUncPath!.StartsWith(@"\\?\UNC\"));
+    var uncommonUnicode = demo with { Resources = [remote with { ResolvedUncPath = "\\\\LAB-FILESERVER\\Shared\\file\u0085.txt" }] };
+    Assert(SnapshotJson.Parse(JsonSerializer.Serialize(uncommonUnicode, SnapshotJson.Options)).Resources.Single().ResolvedUncPath!.Contains('\u0085'));
+    var invalid = demo with { Resources = [remote with { ResolvedUncPath = @"C:\Shared" }] };
+    Throws<InvalidDataException>(() => SnapshotJson.Parse(JsonSerializer.Serialize(invalid, SnapshotJson.Options)));
+});
+Test("Resolved UNC metadata does not change snapshot comparison", () =>
+{
+    var demo = DemoFixture.Create();
+    var changed = demo with { Resources = demo.Resources.Select(r => r.Share == null ? r : r with { ResolvedUncPath = @"\\LAB-FILESERVER\Shared\Other" }).ToArray() };
+    Assert(SnapshotComparer.Compare(demo, changed).Count == 0);
+});
+Test("Resolved UNC metadata is exported as inert evidence", () =>
+{
+    var demo = DemoFixture.Create();
+    var csv = ReportExporter.Csv(demo);
+    Assert(csv.StartsWith("\uFEFFPath,Identity,Decision,NTFS mask,Share mask,Effective mask,Observed UTC,Limitation,Error,Fixture,Resolved UNC"));
+    Assert(csv.Contains(@"\\LAB-FILESERVER\Shared\Finance"));
+    var html = ReportExporter.Html(demo);
+    Assert(html.Contains("Resolved UNC: ") && html.Contains(@"\\LAB-FILESERVER\Shared\Finance") && !html.Contains("href=\"file:"));
+    var path = Path.Combine(testRoot, "resolved-unc.xlsx");
+    ReportExporter.Export(demo, path, "xlsx");
+    using var zip = ZipFile.OpenRead(path);
+    using var reader = new StreamReader(zip.GetEntry("xl/worksheets/sheet2.xml")!.Open());
+    var accessSheet = reader.ReadToEnd();
+    Assert(accessSheet.Contains("Resolved UNC") && accessSheet.Contains("LAB-FILESERVER"));
 });
 Test("Demo serialization is deterministic and contains no host identity", () =>
 {
