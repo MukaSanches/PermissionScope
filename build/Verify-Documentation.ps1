@@ -32,6 +32,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Locale validation failed.' }
     & node build/validate-documentation.mjs
     if ($LASTEXITCODE -ne 0) { throw 'Documentation validation failed.' }
+    & "$PSScriptRoot/Capture-Documentation.ps1" -TestContentGuard
+    if ($LASTEXITCODE -ne 0) { throw 'Screenshot content guard failed.' }
     . "$PSScriptRoot/Get-DocumentationFingerprint.ps1"
     $fingerprint=Get-DocumentationFingerprint -Root $root
     $manifest=Get-Content docs/screenshots/manifest.json -Raw -Encoding UTF8 | ConvertFrom-Json
