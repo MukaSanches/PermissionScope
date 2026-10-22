@@ -51,7 +51,7 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: '10.0.x'
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
           cache: npm
@@ -84,7 +84,7 @@ jobs:
         run: npm run test:site
       - name: Documentation and native-capture integrity
         run: ./build/Verify-Documentation.ps1 -SkipBrowser
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: PermissionScope-v${{ steps.version.outputs.version }}-preflight
           path: |
@@ -149,7 +149,7 @@ jobs:
             artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-${{ matrix.architecture }}-Setup.exe
             artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-win-${{ matrix.architecture }}.zip
           sbom-path: artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-win-${{ matrix.architecture }}/sbom.cdx.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: PermissionScope-v${{ env.RELEASE_VERSION }}-${{ matrix.architecture }}
           path: |
@@ -195,7 +195,7 @@ jobs:
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-path: artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-source.zip
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: PermissionScope-v${{ env.RELEASE_VERSION }}-source
           path: artifacts/PermissionScope-${{ env.RELEASE_VERSION }}-source.zip
@@ -254,7 +254,7 @@ jobs:
               --source-digest "$GITHUB_SHA" \
               --deny-self-hosted-runners
           done
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: PermissionScope-v${{ env.RELEASE_VERSION }}-release
           path: dist/*
