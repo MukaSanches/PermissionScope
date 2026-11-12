@@ -4,28 +4,28 @@
     "net10.0-windows10.0.19041": {
       "Microsoft.Windows.SDK.BuildTools": {
         "type": "Direct",
-        "requested": "[10.0.26100.7175, )",
-        "resolved": "10.0.26100.7175",
-        "contentHash": "8Ln51aKMOhnjOAIehd2EGBOL2+ZIsT96OUd7YVA/+9fYiAbzFI/u6kJMYX+XtW1FUsMLGsF4Fba3cBXlCKHV+w=="
+        "requested": "[10.0.28000.2957, )",
+        "resolved": "10.0.28000.2957",
+        "contentHash": "nTsRheC9AO+if3BykWkRJ4QXkIMfkqufnBFPIcSEOj7rnX60fqiGrORnxzVFnIXJvsMIjlDOvs/K5EzMLA2RKQ=="
       },
       "Microsoft.WindowsAppSDK.WinUI": {
         "type": "Direct",
-        "requested": "[1.8.260415005, )",
-        "resolved": "1.8.260415005",
-        "contentHash": "Yz6ErxcJcAvNjpOZjDAoI7hfS7ZCCA/3DgNYPz+rRtM3C2GQOpYL5ZQwI3dv29hLvwGn6eip0nmv3KiOSG1nKw==",
+        "requested": "[1.8.260803003, )",
+        "resolved": "1.8.260803003",
+        "contentHash": "yQFFlQ6IQj4dpDqGvMghRUQMAYlnu+hhf1unvkf4ymtdWDww+UotPi+MPTJyDc7x+xEyBXfXnlXZVk0NG0eMrA==",
         "dependencies": {
           "Microsoft.Web.WebView2": "1.0.3179.45",
           "Microsoft.WindowsAppSDK.Base": "1.8.251216001",
-          "Microsoft.WindowsAppSDK.Foundation": "1.8.260415000",
-          "Microsoft.WindowsAppSDK.InteractiveExperiences": "1.8.260415001"
+          "Microsoft.WindowsAppSDK.Foundation": "1.8.260803002",
+          "Microsoft.WindowsAppSDK.InteractiveExperiences": "1.8.260708001"
         }
       },
       "Microsoft.Data.Sqlite.Core": {
         "type": "Transitive",
-        "resolved": "10.0.12",
-        "contentHash": "2aL9eL5HQr0V4b8V909SD+jQAx6qnTTl7sT/v3D8dIvmr2UGdpZIQxqm1pj2Js3e4EYTvpw0oMH7DjapJJuPPw==",
+        "resolved": "10.0.14",
+        "contentHash": "1p9rO3Q2X/L/9YrYog3vaDzi8u+WZfJCOkDYoHqmofqYP0DLPLPyZcS2Rnh/79JXAodgbs1AgsaNwLpIvC3Xew==",
         "dependencies": {
-          "SQLitePCLRaw.core": "2.1.12"
+          "SQLitePCLRaw.core": "2.1.13"
         }
       },
       "Microsoft.Extensions.DependencyInjection.Abstractions": {
@@ -62,17 +62,17 @@
       },
       "Microsoft.WindowsAppSDK.Foundation": {
         "type": "Transitive",
-        "resolved": "1.8.260415000",
-        "contentHash": "4bIloiECRf6qY0MeAmXXo+j8xv78Q7zsSIOIctX7dcbU5WPWQKIWA9xhRpy3cNBmoZ+o8XAR9GK2JMLxHtN4gg==",
+        "resolved": "1.8.260803002",
+        "contentHash": "V2Mhddgyljl6jULPGbJ/J/kn6Y4D98Nckpr3Y27uK/CfbSnjcGTC6M+3aMJkyjNwoekyGAwEIRdBEYJBUCRRfA==",
         "dependencies": {
           "Microsoft.WindowsAppSDK.Base": "1.8.251216001",
-          "Microsoft.WindowsAppSDK.InteractiveExperiences": "1.8.260415001"
+          "Microsoft.WindowsAppSDK.InteractiveExperiences": "1.8.260708001"
         }
       },
       "Microsoft.WindowsAppSDK.InteractiveExperiences": {
         "type": "Transitive",
-        "resolved": "1.8.260415001",
-        "contentHash": "qedPRdo90uJPF8NzKvHw0RIxcVU7C2MkHiEfHer/tZjgw2F2umhEvQ/3b+cXlbbSGBqH3olkRmCJiSaRLhXyUA==",
+        "resolved": "1.8.260708001",
+        "contentHash": "lKvL9ArPGRhzbQwXUg7Spc8dgB7N2NnMoC6BKD9sn0Mzx9FxcJC55rohV9x52eBCfviHzrn5ZtujwORZthsqbA==",
         "dependencies": {
           "Microsoft.WindowsAppSDK.Base": "1.8.251216001"
         }
@@ -134,7 +134,7 @@
       "permissionscope.core": {
         "type": "Project",
         "dependencies": {
-          "Microsoft.Data.Sqlite.Core": "[10.0.12, )",
+          "Microsoft.Data.Sqlite.Core": "[10.0.14, )",
           "PDFsharp": "[6.2.4, )",
           "SQLitePCLRaw.bundle_e_sqlite3": "[3.0.5, )"
         }
@@ -147,37 +147,6 @@
         }
       }
     },
-    "net10.0-windows10.0.19041/win-arm64": {
-      "Microsoft.Web.WebView2": {
-        "type": "Transitive",
-        "resolved": "1.0.3179.45",
-        "contentHash": "3pokSH5CnN0G6rGhGFo1y87inxYhNxBQ2Vdf0wlvBj99KHxQJormjDACmqRnFeUsmuNFIhWwfAL1ztq7wD5qRA=="
-      },
-      "Microsoft.WindowsAppSDK.Foundation": {
-        "type": "Transitive",
-        "resolved": "1.8.260415000",
-        "contentHash": "4bIloiECRf6qY0MeAmXXo+j8xv78Q7zsSIOIctX7dcbU5WPWQKIWA9xhRpy3cNBmoZ+o8XAR9GK2JMLxHtN4gg==",
-        "dependencies": {
-          "Microsoft.WindowsAppSDK.Base": "1.8.251216001",
-          "Microsoft.WindowsAppSDK.InteractiveExperiences": "1.8.260415001"
-        }
-      },
-      "SQLite": {
-        "type": "Transitive",
-        "resolved": "3.53.4",
-        "contentHash": "KN7jeWqgUPeBRe1FlcpZURzxomuKKEKHmBBQfg+Nx7NkY1LjKhzHvH+3ASkNvhayESE34nMBinL9CV21JfPRJw=="
-      },
-      "System.DirectoryServices.Protocols": {
-        "type": "Transitive",
-        "resolved": "10.0.12",
-        "contentHash": "L2PHm7ewfjQYgbhBUB+lXiewxoNo+rhn06geWeUJP3qYCDnkL+Qibv6TEPMlMsF/zab4cU2bE8BWTBqzHZYiYg=="
-      },
-      "System.Security.Cryptography.Pkcs": {
-        "type": "Transitive",
-        "resolved": "8.0.1",
-        "contentHash": "CoCRHFym33aUSf/NtWSVSZa99dkd0Hm7OCZUxORBjRB16LNhIEOf8THPqzIYlvKM0nNDAPTRBa1FxEECrgaxxA=="
-      }
-    },
     "net10.0-windows10.0.19041/win-x64": {
       "Microsoft.Web.WebView2": {
         "type": "Transitive",
@@ -186,11 +155,11 @@
       },
       "Microsoft.WindowsAppSDK.Foundation": {
         "type": "Transitive",
-        "resolved": "1.8.260415000",
-        "contentHash": "4bIloiECRf6qY0MeAmXXo+j8xv78Q7zsSIOIctX7dcbU5WPWQKIWA9xhRpy3cNBmoZ+o8XAR9GK2JMLxHtN4gg==",
+        "resolved": "1.8.260803002",
+        "contentHash": "V2Mhddgyljl6jULPGbJ/J/kn6Y4D98Nckpr3Y27uK/CfbSnjcGTC6M+3aMJkyjNwoekyGAwEIRdBEYJBUCRRfA==",
         "dependencies": {
           "Microsoft.WindowsAppSDK.Base": "1.8.251216001",
-          "Microsoft.WindowsAppSDK.InteractiveExperiences": "1.8.260415001"
+          "Microsoft.WindowsAppSDK.InteractiveExperiences": "1.8.260708001"
         }
       },
       "SQLite": {
