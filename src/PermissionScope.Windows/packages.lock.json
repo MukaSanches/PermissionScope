@@ -4,9 +4,9 @@
     "net10.0-windows10.0.19041": {
       "System.DirectoryServices.Protocols": {
         "type": "Direct",
-        "requested": "[10.0.12, )",
-        "resolved": "10.0.12",
-        "contentHash": "L2PHm7ewfjQYgbhBUB+lXiewxoNo+rhn06geWeUJP3qYCDnkL+Qibv6TEPMlMsF/zab4cU2bE8BWTBqzHZYiYg=="
+        "requested": "[11.0.0, )",
+        "resolved": "11.0.0",
+        "contentHash": "gmes+wSLYzyp0lh05nIox1qhWAHt71GKWHycDRhkwgULlaSRh5icX9SuGMooLQ9N95Bn21iJkPFy3mqfBvPUrw=="
       },
       "Microsoft.Data.Sqlite.Core": {
         "type": "Transitive",
@@ -85,24 +85,6 @@
           "PDFsharp": "[6.2.4, )",
           "SQLitePCLRaw.bundle_e_sqlite3": "[3.0.5, )"
         }
-      }
-    },
-    "net10.0-windows10.0.19041/win-arm64": {
-      "System.DirectoryServices.Protocols": {
-        "type": "Direct",
-        "requested": "[10.0.12, )",
-        "resolved": "10.0.12",
-        "contentHash": "L2PHm7ewfjQYgbhBUB+lXiewxoNo+rhn06geWeUJP3qYCDnkL+Qibv6TEPMlMsF/zab4cU2bE8BWTBqzHZYiYg=="
-      },
-      "SQLite": {
-        "type": "Transitive",
-        "resolved": "3.53.4",
-        "contentHash": "KN7jeWqgUPeBRe1FlcpZURzxomuKKEKHmBBQfg+Nx7NkY1LjKhzHvH+3ASkNvhayESE34nMBinL9CV21JfPRJw=="
-      },
-      "System.Security.Cryptography.Pkcs": {
-        "type": "Transitive",
-        "resolved": "8.0.1",
-        "contentHash": "CoCRHFym33aUSf/NtWSVSZa99dkd0Hm7OCZUxORBjRB16LNhIEOf8THPqzIYlvKM0nNDAPTRBa1FxEECrgaxxA=="
       }
     }
   }
